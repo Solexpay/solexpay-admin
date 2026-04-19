@@ -11,7 +11,7 @@ import { Component } from '@angular/core';
           <!-- Brand -->
           <div class="col-span-2 space-y-5">
             <div class="flex items-center gap-3">
-              <img src="/logo-icon.png" alt="Solexpay" class="h-8 w-8 shrink-0 object-contain brightness-0 invert"/>
+              <img src="/logo-icon.png" alt="Solexpay" class="h-12 w-12 shrink-0 object-contain brightness-0 invert"/>
               <span class="text-2xl font-black tracking-tighter text-white font-display">Solexpay</span>
             </div>
             <p class="text-outline-variant text-sm leading-relaxed max-w-xs">Financial empowerment for the next generation of African leaders. Built for Nigerian students.</p>
