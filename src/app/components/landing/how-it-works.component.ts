@@ -1,10 +1,8 @@
 import { Component } from '@angular/core';
-import { LucideAngularModule, Bell, PiggyBank, Plus, Receipt, Send, UtensilsCrossed, Wallet } from 'lucide-angular';
 
 @Component({
   selector: 'app-landing-how-it-works',
   standalone: true,
-  imports: [LucideAngularModule],
   styles: [`
     .step-divider { background: linear-gradient(90deg, transparent, #005bbf30, transparent); }
     .step-num { -webkit-text-stroke: 2px rgba(0,91,191,0.08); color: transparent; font-size: clamp(5rem, 12vw, 11rem); line-height: 1; }
@@ -68,72 +66,58 @@ import { LucideAngularModule, Bell, PiggyBank, Plus, Receipt, Send, UtensilsCros
                 <div class="bg-surface rounded-[2.65rem] overflow-hidden relative h-full">
                   <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-950 rounded-full z-30"></div>
                   <div class="px-4 pt-10 pb-4 flex flex-col gap-3 h-full">
-                    <div class="flex justify-between items-center">
+                    <div class="flex items-center justify-between">
                       <div class="flex items-center gap-2">
                         <div class="w-8 h-8 rounded-full editorial-gradient flex items-center justify-center shadow-sm">
                           <img src="/logo-icon.png" alt="" class="w-5 h-5 object-contain brightness-0 invert"/>
                         </div>
                         <div>
-                          <p class="text-[9px] text-on-surface-variant leading-none mb-0.5">Good morning</p>
-                          <p class="text-xs font-bold text-on-surface leading-none">Chidi</p>
+                          <p class="text-[9px] text-on-surface-variant leading-none mb-0.5">SolexPay</p>
+                          <p class="text-xs font-bold text-on-surface leading-none">Create Account</p>
                         </div>
                       </div>
-                      <div class="relative">
-                        <lucide-icon [img]="BellIcon" class="w-4.5 h-4.5 text-outline"></lucide-icon>
-                        <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-error rounded-full"></span>
+                      <span class="text-[9px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">Step 1/3</span>
+                    </div>
+
+                    <div class="editorial-gradient px-4 py-3 rounded-2xl text-on-primary shadow-lg">
+                      <p class="text-[9px] opacity-80 mb-1">Download Complete</p>
+                      <div class="w-full h-1.5 rounded-full bg-white/25 overflow-hidden mb-1.5">
+                        <div class="h-full w-full bg-white rounded-full"></div>
+                      </div>
+                      <p class="text-[9px] font-semibold">Ready to set up your profile</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="bg-surface-container-low rounded-xl p-2.5 border border-primary/20">
+                        <p class="text-[8px] text-on-surface-variant">Download on</p>
+                        <p class="text-[10px] font-bold text-on-surface">App Store</p>
+                      </div>
+                      <div class="bg-surface-container-low rounded-xl p-2.5 border border-outline-variant/30">
+                        <p class="text-[8px] text-on-surface-variant">Get it on</p>
+                        <p class="text-[10px] font-bold text-on-surface">Google Play</p>
                       </div>
                     </div>
 
-                    <div class="editorial-gradient px-4 py-4 rounded-2xl text-on-primary shadow-lg">
-                      <p class="text-[9px] opacity-80 mb-1">Total Balance</p>
-                      <div class="flex items-baseline gap-0.5">
-                        <span class="text-xs font-medium">₦</span>
-                        <h2 class="text-2xl font-black font-display">45,200</h2>
-                        <span class="text-xs font-medium opacity-70">.00</span>
+                    <div class="flex-1 bg-surface-container-low rounded-xl p-3 space-y-2.5 min-h-0">
+                      <div class="flex items-center gap-2">
+                        <span class="w-4 h-4 rounded-full bg-tertiary text-white text-[9px] font-bold flex items-center justify-center">✓</span>
+                        <p class="text-[10px] font-semibold text-on-surface">Install app</p>
                       </div>
-                      <p class="text-[8px] opacity-65 mt-0.5">**** 4521 · Verified</p>
-                    </div>
-
-                    <div class="grid grid-cols-4 gap-2">
-                      @for (action of quickActions; track action.label) {
-                        <div class="bg-surface-container rounded-xl py-2.5 flex flex-col items-center gap-1">
-                          <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <lucide-icon [img]="action.icon" class="w-3.5 h-3.5 text-primary"></lucide-icon>
-                          </div>
-                          <p class="text-[8px] font-bold text-on-surface-variant leading-none">{{ action.label }}</p>
-                        </div>
-                      }
-                    </div>
-
-                    <div>
-                      <p class="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Recent Activity</p>
-                      <div class="space-y-2">
-                        <div class="flex justify-between items-center bg-surface-container-low p-2.5 rounded-xl">
-                          <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 bg-primary-fixed rounded-lg flex items-center justify-center">
-                              <lucide-icon [img]="UtensilsIcon" class="w-3.5 h-3.5 text-primary"></lucide-icon>
-                            </div>
-                            <div>
-                              <p class="text-[10px] font-bold">Cafeteria</p>
-                              <p class="text-[9px] text-outline">Food &amp; Drinks</p>
-                            </div>
-                          </div>
-                          <span class="text-[10px] font-bold text-error">-₦1,200</span>
-                        </div>
-                        <div class="flex justify-between items-center bg-surface-container-low p-2.5 rounded-xl">
-                          <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 bg-tertiary/10 rounded-lg flex items-center justify-center">
-                              <lucide-icon [img]="PiggyBankIcon" class="w-3.5 h-3.5 text-tertiary"></lucide-icon>
-                            </div>
-                            <div>
-                              <p class="text-[10px] font-bold">Savings Goal</p>
-                              <p class="text-[9px] text-outline">Hostel Fund</p>
-                            </div>
-                          </div>
-                          <span class="text-[10px] font-bold text-tertiary">+₦5,000</span>
-                        </div>
+                      <div class="flex items-center gap-2">
+                        <span class="w-4 h-4 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">2</span>
+                        <p class="text-[10px] font-semibold text-on-surface">Enter phone number</p>
+                      </div>
+                      <div class="bg-surface rounded-lg px-2.5 py-2 border border-outline-variant/30">
+                        <p class="text-[8px] text-on-surface-variant mb-1">Phone Number</p>
+                        <p class="text-[10px] font-bold text-on-surface">+234 801 234 5678</p>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="w-4 h-4 rounded-full bg-surface-container-high text-on-surface-variant text-[9px] font-bold flex items-center justify-center">3</span>
+                        <p class="text-[10px] text-on-surface-variant">Verify OTP</p>
                       </div>
                     </div>
+
+                    <button class="w-full py-2.5 editorial-gradient text-on-primary rounded-xl text-[11px] font-bold">Continue Setup</button>
                   </div>
                 </div>
               </div>
@@ -255,17 +239,6 @@ import { LucideAngularModule, Bell, PiggyBank, Plus, Receipt, Send, UtensilsCros
   `
 })
 export class LandingHowItWorksComponent {
-  readonly BellIcon = Bell;
-  readonly UtensilsIcon = UtensilsCrossed;
-  readonly PiggyBankIcon = PiggyBank;
-
-  readonly quickActions = [
-    { icon: Plus, label: 'Fund' },
-    { icon: Send, label: 'Send' },
-    { icon: Receipt, label: 'Bills' },
-    { icon: Wallet, label: 'Save' },
-  ];
-
   readonly verifyPoints = [
     'BVN or NIN accepted — instant result',
     'Bank-grade 256-bit encryption',

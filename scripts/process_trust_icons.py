@@ -49,22 +49,25 @@ def fit_canvas(img: Image.Image, width: int = 320, height: int = 140) -> Image.I
 
 
 SOURCES = {
-    "cbn": "CBNicon.webp",
-    "nigeria": "nigeriaicon.png",
-    "crc": "CRCicon.png",
-    "nibss": "NIBSSicon.png",
+    "cbn": {"file": "CBNicon.webp", "remove_bg": True},
+    "nigeria": {"file": "nigeriaicon.png", "remove_bg": False},
+    "crc": {"file": "CRCicon.png", "remove_bg": True},
+    "nibss": {"file": "NIBSSicon.png", "remove_bg": True},
 }
 
 
 def main() -> None:
-    for slug, name in SOURCES.items():
+    for slug, config in SOURCES.items():
+        name = config["file"]
         src = DOWNLOADS / name
         if not src.exists():
             print(f"[MISSING] {name}")
             continue
 
-        processed = remove_white_bg(src)
-        processed = trim_alpha(processed)
+        processed = Image.open(src).convert("RGBA")
+        if config.get("remove_bg", True):
+            processed = remove_white_bg(src)
+            processed = trim_alpha(processed)
         processed = fit_canvas(processed)
 
         out = OUT / f"{slug}.png"
