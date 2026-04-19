@@ -15,8 +15,10 @@ import { LucideAngularModule, Download, LogIn } from 'lucide-angular';
     <nav class="fixed top-0 w-full z-50 border-b border-outline-variant/20 shadow-sm">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-8">
-          <img src="/logo-icon.png" alt="Solexpay" class="h-10 w-10 shrink-0 object-contain"/>
-          <span class="text-xl font-black tracking-tighter text-primary font-display">Solexpay</span>
+          <div class="flex items-center gap-1">
+            <img src="/logo-icon.png" alt="Solexpay" class="h-14 w-14 shrink-0 object-contain"/>
+            <span class="text-xl font-black tracking-tighter text-primary font-display">Solexpay</span>
+          </div>
           <div class="hidden md:flex gap-6 items-center text-sm font-medium">
             <a href="#features" class="text-on-surface-variant hover:text-primary transition-colors">Features</a>
             <a href="#how-it-works" class="text-on-surface-variant hover:text-primary transition-colors">How it Works</a>
