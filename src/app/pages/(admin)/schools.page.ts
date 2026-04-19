@@ -269,7 +269,7 @@ export class SchoolsPageComponent {
       status: 'ACTIVE',
       apiToken: 'sk_live_51H7x8jK8Q2mN9pR5',
       createdAt: '2023-01-15',
-      logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/44/University_of_Lagos_logo.png/120px-University_of_Lagos_logo.png'
+      logoUrl: '/logos/unilag.png'
     },
     {
       id: 'SCH-002',
@@ -284,7 +284,7 @@ export class SchoolsPageComponent {
       status: 'ACTIVE',
       apiToken: 'sk_live_51H8y9kL9Q3mO0qS6',
       createdAt: '2023-02-20',
-      logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a3/Covenant_University_logo.png/120px-Covenant_University_logo.png'
+      logoUrl: '/logos/cu.png'
     },
     {
       id: 'SCH-003',
@@ -299,7 +299,7 @@ export class SchoolsPageComponent {
       status: 'ACTIVE',
       apiToken: 'sk_live_51H9z0mM0Q4mP1rT7',
       createdAt: '2023-03-10',
-      logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7f/University_of_Ibadan_logo.png/120px-University_of_Ibadan_logo.png'
+      logoUrl: '/logos/ui.png'
     },
     {
       id: 'SCH-004',
@@ -314,7 +314,7 @@ export class SchoolsPageComponent {
       status: 'INACTIVE',
       apiToken: 'sk_live_51H0a1nN1Q5mQ2sU8',
       createdAt: '2023-04-05',
-      logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/University_of_Abuja_logo.png/120px-University_of_Abuja_logo.png'
+      logoUrl: '/logos/uniabuja.png'
     }
   ]);
 

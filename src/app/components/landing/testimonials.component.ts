@@ -60,12 +60,12 @@ export class LandingTestimonialsComponent {
   readonly StarIcon = Star;
 
   readonly universities: UniLogo[] = [
-    { name: 'UNILAG', fullName: 'University of Lagos',               color: 'linear-gradient(135deg,#1d4ed8,#2563eb)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/44/University_of_Lagos_logo.png/120px-University_of_Lagos_logo.png' },
-    { name: 'UI',     fullName: 'University of Ibadan',               color: 'linear-gradient(135deg,#059669,#10b981)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7f/University_of_Ibadan_logo.png/120px-University_of_Ibadan_logo.png' },
-    { name: 'OAU',    fullName: 'Obafemi Awolowo University',         color: 'linear-gradient(135deg,#b91c1c,#dc2626)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Obafemi_Awolowo_University_logo.png/120px-Obafemi_Awolowo_University_logo.png' },
-    { name: 'UNN',    fullName: 'University of Nigeria, Nsukka',      color: 'linear-gradient(135deg,#7c3aed,#8b5cf6)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/6/6e/University_of_Nigeria_logo.png/120px-University_of_Nigeria_logo.png' },
-    { name: 'ABU',    fullName: 'Ahmadu Bello University',            color: 'linear-gradient(135deg,#c2410c,#ea580c)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/98/Ahmadu_Bello_University_logo.png/120px-Ahmadu_Bello_University_logo.png' },
-    { name: 'FUTA',   fullName: 'Federal Univ. of Technology, Akure', color: 'linear-gradient(135deg,#0e7490,#06b6d4)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e1/Federal_University_of_Technology_Akure_logo.png/120px-Federal_University_of_Technology_Akure_logo.png' },
+    { name: 'UNILAG', fullName: 'University of Lagos',               color: 'linear-gradient(135deg,#1d4ed8,#2563eb)', logoUrl: '/logos/unilag.png' },
+    { name: 'UI',     fullName: 'University of Ibadan',               color: 'linear-gradient(135deg,#059669,#10b981)', logoUrl: '/logos/ui.png' },
+    { name: 'OAU',    fullName: 'Obafemi Awolowo University',         color: 'linear-gradient(135deg,#b91c1c,#dc2626)', logoUrl: '/logos/oau.png' },
+    { name: 'UNN',    fullName: 'University of Nigeria, Nsukka',      color: 'linear-gradient(135deg,#7c3aed,#8b5cf6)', logoUrl: '/logos/unn.png' },
+    { name: 'ABU',    fullName: 'Ahmadu Bello University',            color: 'linear-gradient(135deg,#c2410c,#ea580c)', logoUrl: '/logos/abu.png' },
+    { name: 'FUTA',   fullName: 'Federal Univ. of Technology, Akure', color: 'linear-gradient(135deg,#0e7490,#06b6d4)', logoUrl: '/logos/futa.png' },
   ];
 
   readonly testimonials: Testimonial[] = [
