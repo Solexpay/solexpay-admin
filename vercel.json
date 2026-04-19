@@ -3,7 +3,7 @@
   "name": "solexpay-admin",
   "version": 2,
   "buildCommand": "pnpm build",
-  "outputDirectory": "dist/solexpay-admin/client",
+  "outputDirectory": "dist/solexpay-admin",
   "framework": null,
   "rewrites": [
     {
