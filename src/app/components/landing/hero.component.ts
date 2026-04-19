@@ -68,6 +68,28 @@ import { LucideAngularModule, GraduationCap, CheckCircle2, Zap, Bell, UtensilsCr
             </a>
           </div>
         </div>
+
+        <div class="pt-4">
+          <p class="text-[11px] text-on-surface-variant mb-3 font-bold uppercase tracking-[0.18em]">Built on trusted Nigerian rails</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div class="bg-surface-container-low rounded-xl px-3 py-2.5 border border-outline-variant/20 flex flex-col items-center gap-1.5">
+              <img src="/trust/cbn.png" alt="Central Bank of Nigeria" class="h-8 w-auto object-contain" loading="lazy" />
+              <span class="text-[10px] font-bold text-on-surface-variant tracking-wide">CBN Standards</span>
+            </div>
+            <div class="bg-surface-container-low rounded-xl px-3 py-2.5 border border-outline-variant/20 flex flex-col items-center gap-1.5">
+              <img src="/trust/nibss.png" alt="NIBSS" class="h-8 w-auto object-contain" loading="lazy" />
+              <span class="text-[10px] font-bold text-on-surface-variant tracking-wide">NIBSS Connected</span>
+            </div>
+            <div class="bg-surface-container-low rounded-xl px-3 py-2.5 border border-outline-variant/20 flex flex-col items-center gap-1.5">
+              <img src="/trust/crc.png" alt="Credit Registry" class="h-8 w-auto object-contain" loading="lazy" />
+              <span class="text-[10px] font-bold text-on-surface-variant tracking-wide">CRC Integrated</span>
+            </div>
+            <div class="bg-surface-container-low rounded-xl px-3 py-2.5 border border-outline-variant/20 flex flex-col items-center gap-1.5">
+              <img src="/trust/nigeria.png" alt="Federal Republic of Nigeria" class="h-8 w-auto object-contain" loading="lazy" />
+              <span class="text-[10px] font-bold text-on-surface-variant tracking-wide">Nigeria First</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Right phone mockups -->

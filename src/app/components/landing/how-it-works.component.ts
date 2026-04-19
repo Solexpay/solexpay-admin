@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
+import { LucideAngularModule, Bell, PiggyBank, Plus, Receipt, Send, UtensilsCrossed, Wallet } from 'lucide-angular';
 
 @Component({
   selector: 'app-landing-how-it-works',
   standalone: true,
+  imports: [LucideAngularModule],
   styles: [`
     .step-divider { background: linear-gradient(90deg, transparent, #005bbf30, transparent); }
     .step-num { -webkit-text-stroke: 2px rgba(0,91,191,0.08); color: transparent; font-size: clamp(5rem, 12vw, 11rem); line-height: 1; }
@@ -10,6 +12,8 @@ import { Component } from '@angular/core';
     .ill-shield { filter: drop-shadow(0 16px 32px rgba(0,91,191,0.18)); }
     .ill-wallet { filter: drop-shadow(0 16px 32px rgba(0,91,191,0.18)); }
     .store-badge { background: rgba(15,23,42,0.9); }
+    .editorial-gradient { background: linear-gradient(135deg, #005bbf 0%, #1a73e8 100%); }
+    .phone-frame { background: linear-gradient(145deg, #1e293b 0%, #0f172a 60%, #020617 100%); aspect-ratio: 9 / 19.5; }
   `],
   template: `
     <section id="how-it-works" class="overflow-x-hidden">
@@ -54,82 +58,86 @@ import { Component } from '@angular/core';
               </div>
             </div>
           </div>
-          <!-- Phone illustration — capped and centered, won't overflow -->
           <div class="flex justify-center w-full overflow-hidden" data-aos="fade-left" data-aos-duration="800" data-aos-delay="100">
-            <svg class="ill-phone w-[220px] sm:w-[260px] md:w-full md:max-w-[300px] shrink-0" viewBox="0 0 280 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="hiw1G" x1="0" y1="0" x2="204" y2="95" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#005bbf"/><stop offset="1" stop-color="#1a73e8"/>
-                </linearGradient>
-              </defs>
-              <rect x="20" y="8" width="240" height="504" rx="38" fill="#0f172a"/>
-              <rect x="17" y="110" width="3" height="34" rx="1.5" fill="#334155"/>
-              <rect x="17" y="152" width="3" height="54" rx="1.5" fill="#334155"/>
-              <rect x="260" y="132" width="3" height="42" rx="1.5" fill="#334155"/>
-              <rect x="100" y="22" width="80" height="18" rx="9" fill="#1e293b"/>
-              <rect x="26" y="48" width="228" height="452" rx="28" fill="#f8fafc"/>
-              <!-- Header -->
-              <circle cx="54" cy="76" r="17" fill="url(#hiw1G)"/>
-              <text x="54" y="81" text-anchor="middle" fill="white" font-size="13" font-weight="900" font-family="system-ui">S</text>
-              <text x="78" y="70" fill="#94a3b8" font-size="9" font-family="system-ui">Good morning</text>
-              <text x="78" y="84" fill="#0f172a" font-size="13" font-weight="900" font-family="system-ui">Chidi</text>
-              <circle cx="232" cy="76" r="14" fill="#f1f5f9"/>
-              <rect x="226" y="71" width="12" height="9" rx="6" fill="#475569"/>
-              <rect x="228" y="79" width="8" height="3" rx="1.5" fill="#475569"/>
-              <circle cx="237" cy="68" r="4" fill="#ef4444"/>
-              <!-- Balance Card -->
-              <rect x="38" y="102" width="204" height="108" rx="18" fill="url(#hiw1G)"/>
-              <text x="54" y="122" fill="white" font-size="9" opacity="0.78" font-family="system-ui">Total Balance</text>
-              <text x="54" y="150" fill="white" font-size="14" font-weight="700" font-family="system-ui">₦</text>
-              <text x="70" y="150" fill="white" font-size="24" font-weight="900" font-family="system-ui">45,200</text>
-              <text x="159" y="150" fill="white" font-size="12" opacity="0.7" font-family="system-ui">.00</text>
-              <text x="54" y="166" fill="white" font-size="8" opacity="0.6" font-family="system-ui">**** 4521</text>
-              <rect x="106" y="157" width="48" height="14" rx="7" fill="rgba(255,255,255,0.18)"/>
-              <text x="130" y="168" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Verified</text>
-              <circle cx="178" cy="164" r="4" fill="rgba(255,255,255,0.25)"/>
-              <circle cx="190" cy="164" r="4" fill="rgba(255,255,255,0.25)"/>
-              <circle cx="202" cy="164" r="4" fill="rgba(255,255,255,0.4)"/>
-              <rect x="50" y="178" width="38" height="22" rx="8" fill="rgba(255,255,255,0.18)"/>
-              <text x="69" y="193" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Fund</text>
-              <rect x="95" y="178" width="38" height="22" rx="8" fill="rgba(255,255,255,0.18)"/>
-              <text x="114" y="193" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Send</text>
-              <rect x="140" y="178" width="38" height="22" rx="8" fill="rgba(255,255,255,0.18)"/>
-              <text x="159" y="193" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Bills</text>
-              <rect x="185" y="178" width="38" height="22" rx="8" fill="rgba(255,255,255,0.18)"/>
-              <text x="204" y="193" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Save</text>
-              <!-- Transactions -->
-              <text x="40" y="232" fill="#94a3b8" font-size="8" font-weight="700" font-family="system-ui" letter-spacing="0.5">RECENT ACTIVITY</text>
-              <rect x="38" y="242" width="204" height="38" rx="12" fill="white"/>
-              <circle cx="60" cy="261" r="13" fill="#dbeafe"/>
-              <rect x="57" y="254" width="2.5" height="14" rx="1.25" fill="#1d4ed8"/>
-              <rect x="62" y="254" width="2.5" height="8" rx="1.25" fill="#1d4ed8"/>
-              <rect x="57" y="262" width="7.5" height="2" rx="1" fill="#1d4ed8"/>
-              <text x="80" y="257" fill="#0f172a" font-size="10" font-weight="700" font-family="system-ui">Cafeteria</text>
-              <text x="80" y="270" fill="#94a3b8" font-size="8" font-family="system-ui">Food &amp; Drinks</text>
-              <text x="234" y="263" text-anchor="end" fill="#ef4444" font-size="10" font-weight="700" font-family="system-ui">-₦1,200</text>
-              <rect x="38" y="288" width="204" height="38" rx="12" fill="white"/>
-              <circle cx="60" cy="307" r="13" fill="#d1fae5"/>
-              <circle cx="60" cy="307" r="7" fill="none" stroke="#059669" stroke-width="2"/>
-              <rect x="58" y="301" width="4" height="2.5" rx="1.25" fill="#059669"/>
-              <text x="80" y="303" fill="#0f172a" font-size="10" font-weight="700" font-family="system-ui">Savings Goal</text>
-              <text x="80" y="316" fill="#94a3b8" font-size="8" font-family="system-ui">Hostel Fund</text>
-              <text x="234" y="309" text-anchor="end" fill="#059669" font-size="10" font-weight="700" font-family="system-ui">+₦5,000</text>
-              <rect x="38" y="334" width="204" height="38" rx="12" fill="white"/>
-              <circle cx="60" cy="353" r="13" fill="#ede9fe"/>
-              <rect x="53" y="346" width="14" height="14" rx="3" fill="none" stroke="#7c3aed" stroke-width="2"/>
-              <rect x="53" y="351" width="14" height="2" fill="#7c3aed" opacity="0.5"/>
-              <text x="80" y="349" fill="#0f172a" font-size="10" font-weight="700" font-family="system-ui">School Fees</text>
-              <text x="80" y="362" fill="#94a3b8" font-size="8" font-family="system-ui">Portal Payment</text>
-              <text x="234" y="355" text-anchor="end" fill="#ef4444" font-size="10" font-weight="700" font-family="system-ui">-₦35,000</text>
-              <!-- Bottom bar -->
-              <rect x="26" y="460" width="228" height="40" fill="white"/>
-              <rect x="26" y="488" width="228" height="12" rx="28" fill="white"/>
-              <circle cx="80" cy="476" r="4" fill="url(#hiw1G)"/>
-              <circle cx="114" cy="476" r="4" fill="#e2e8f0"/>
-              <circle cx="148" cy="476" r="4" fill="#e2e8f0"/>
-              <circle cx="182" cy="476" r="4" fill="#e2e8f0"/>
-              <rect x="108" y="496" width="64" height="4" rx="2" fill="#cbd5e1"/>
-            </svg>
+            <div class="relative w-[220px] sm:w-[260px] md:w-[300px] phone-frame rounded-[3.25rem] p-[6px] sm:p-[7px] ill-phone">
+              <div class="absolute left-[-3px] top-24 w-[3px] h-12 bg-slate-700 rounded-l-sm"></div>
+              <div class="absolute left-[-3px] top-40 w-[3px] h-20 bg-slate-700 rounded-l-sm"></div>
+              <div class="absolute right-[-3px] top-36 w-[3px] h-16 bg-slate-700 rounded-r-sm"></div>
+
+              <div class="bg-slate-950 rounded-[2.9rem] p-1 h-full">
+                <div class="bg-surface rounded-[2.65rem] overflow-hidden relative h-full">
+                  <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-950 rounded-full z-30"></div>
+                  <div class="px-4 pt-10 pb-4 flex flex-col gap-3 h-full">
+                    <div class="flex justify-between items-center">
+                      <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full editorial-gradient flex items-center justify-center shadow-sm">
+                          <img src="/logo-icon.png" alt="" class="w-5 h-5 object-contain brightness-0 invert"/>
+                        </div>
+                        <div>
+                          <p class="text-[9px] text-on-surface-variant leading-none mb-0.5">Good morning</p>
+                          <p class="text-xs font-bold text-on-surface leading-none">Chidi</p>
+                        </div>
+                      </div>
+                      <div class="relative">
+                        <lucide-icon [img]="BellIcon" class="w-4.5 h-4.5 text-outline"></lucide-icon>
+                        <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-error rounded-full"></span>
+                      </div>
+                    </div>
+
+                    <div class="editorial-gradient px-4 py-4 rounded-2xl text-on-primary shadow-lg">
+                      <p class="text-[9px] opacity-80 mb-1">Total Balance</p>
+                      <div class="flex items-baseline gap-0.5">
+                        <span class="text-xs font-medium">₦</span>
+                        <h2 class="text-2xl font-black font-display">45,200</h2>
+                        <span class="text-xs font-medium opacity-70">.00</span>
+                      </div>
+                      <p class="text-[8px] opacity-65 mt-0.5">**** 4521 · Verified</p>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2">
+                      @for (action of quickActions; track action.label) {
+                        <div class="bg-surface-container rounded-xl py-2.5 flex flex-col items-center gap-1">
+                          <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <lucide-icon [img]="action.icon" class="w-3.5 h-3.5 text-primary"></lucide-icon>
+                          </div>
+                          <p class="text-[8px] font-bold text-on-surface-variant leading-none">{{ action.label }}</p>
+                        </div>
+                      }
+                    </div>
+
+                    <div>
+                      <p class="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Recent Activity</p>
+                      <div class="space-y-2">
+                        <div class="flex justify-between items-center bg-surface-container-low p-2.5 rounded-xl">
+                          <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-primary-fixed rounded-lg flex items-center justify-center">
+                              <lucide-icon [img]="UtensilsIcon" class="w-3.5 h-3.5 text-primary"></lucide-icon>
+                            </div>
+                            <div>
+                              <p class="text-[10px] font-bold">Cafeteria</p>
+                              <p class="text-[9px] text-outline">Food &amp; Drinks</p>
+                            </div>
+                          </div>
+                          <span class="text-[10px] font-bold text-error">-₦1,200</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-surface-container-low p-2.5 rounded-xl">
+                          <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-tertiary/10 rounded-lg flex items-center justify-center">
+                              <lucide-icon [img]="PiggyBankIcon" class="w-3.5 h-3.5 text-tertiary"></lucide-icon>
+                            </div>
+                            <div>
+                              <p class="text-[10px] font-bold">Savings Goal</p>
+                              <p class="text-[9px] text-outline">Hostel Fund</p>
+                            </div>
+                          </div>
+                          <span class="text-[10px] font-bold text-tertiary">+₦5,000</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -247,6 +255,17 @@ import { Component } from '@angular/core';
   `
 })
 export class LandingHowItWorksComponent {
+  readonly BellIcon = Bell;
+  readonly UtensilsIcon = UtensilsCrossed;
+  readonly PiggyBankIcon = PiggyBank;
+
+  readonly quickActions = [
+    { icon: Plus, label: 'Fund' },
+    { icon: Send, label: 'Send' },
+    { icon: Receipt, label: 'Bills' },
+    { icon: Wallet, label: 'Save' },
+  ];
+
   readonly verifyPoints = [
     'BVN or NIN accepted — instant result',
     'Bank-grade 256-bit encryption',
