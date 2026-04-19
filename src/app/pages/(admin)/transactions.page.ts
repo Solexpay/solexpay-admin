@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, isDevMode } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { injectQuery, keepPreviousData } from '@tanstack/angular-query-experimental';
@@ -17,14 +17,6 @@ interface Transaction {
   createdAt: string;
   reference: string;
 }
-
-const MOCK_TRANSACTIONS: Transaction[] = isDevMode() ? [
-  { id: 'TXN-001', type: 'WALLET_FUNDING', amount: 50000, status: 'SUCCESS', senderName: 'GTBank', recipientName: 'John Doe', description: 'Wallet funding via bank transfer', createdAt: new Date(Date.now() - 3600000).toISOString(), reference: 'WAL-20240418001' },
-  { id: 'TXN-002', type: 'LOAN_DISBURSEMENT', amount: 150000, status: 'SUCCESS', senderName: 'SolexPay', recipientName: 'Jane Smith', description: 'Loan disbursement - Education', createdAt: new Date(Date.now() - 7200000).toISOString(), reference: 'LOAN-20240418002' },
-  { id: 'TXN-003', type: 'NIP_TRANSFER', amount: 25000, status: 'PENDING', senderName: 'Mike Johnson', recipientName: 'UBA Account', description: 'Interbank transfer', createdAt: new Date(Date.now() - 10800000).toISOString(), reference: 'NIP-20240418003' },
-  { id: 'TXN-004', type: 'LOAN_REPAYMENT', amount: 12500, status: 'SUCCESS', senderName: 'Sarah Williams', recipientName: 'SolexPay', description: 'Monthly loan repayment', createdAt: new Date(Date.now() - 86400000).toISOString(), reference: 'REP-20240417004' },
-  { id: 'TXN-005', type: 'BILL_PAYMENT', amount: 5000, status: 'FAILED', senderName: 'Tom Brown', recipientName: 'PHCN', description: 'Electricity bill payment', createdAt: new Date(Date.now() - 172800000).toISOString(), reference: 'BILL-20240416005' },
-] : [];
 
 @Component({
   selector: 'app-transactions',
@@ -197,7 +189,7 @@ export class TransactionsPageComponent {
     const response = this.transactionsQuery.data();
     if (response?.data?.content) return response.data.content;
     if (response?.data && Array.isArray(response.data)) return response.data;
-    return MOCK_TRANSACTIONS;
+    return [];
   });
 
   filteredTransactions = computed(() => {

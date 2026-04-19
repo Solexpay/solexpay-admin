@@ -16,6 +16,10 @@ export const MOCK = {
     user: { id: 'usr-001', email: 'admin@solexpay.com', role: 'ADMIN', name: 'Dev Admin' },
   },
 
+  forgotPassword: {
+    message: 'If the email exists, a reset link has been sent.',
+  },
+
   dashboard: {
     totalUsers: 1482,
     activeUsers: 1104,
@@ -27,6 +31,27 @@ export const MOCK = {
     overdueLoans: 18,
     totalLoanDisbursed: 15600000,
     revenue: 980000,
+    volumeByDay: [
+      { date: '2024-01-01', amount: 150000 },
+      { date: '2024-01-02', amount: 230000 },
+      { date: '2024-01-03', amount: 180000 },
+      { date: '2024-01-04', amount: 320000 },
+      { date: '2024-01-05', amount: 280000 },
+      { date: '2024-01-06', amount: 350000 },
+      { date: '2024-01-07', amount: 410000 },
+    ],
+    pendingKycItems: [
+      { id: '1', name: 'John Doe', type: 'BVN Verification', time: '2 min ago' },
+      { id: '2', name: 'Jane Smith', type: 'NIN Verification', time: '15 min ago' },
+      { id: '3', name: 'Mike Johnson', type: 'BVN Verification', time: '1 hour ago' },
+    ],
+    recentTransactions: [
+      { id: '1', type: 'WALLET_FUNDING', amount: 50000, status: 'SUCCESS', createdAt: new Date().toISOString(), userName: 'John Doe' },
+      { id: '2', type: 'LOAN_DISBURSEMENT', amount: 150000, status: 'SUCCESS', createdAt: new Date(Date.now() - 3600000).toISOString(), userName: 'Jane Smith' },
+      { id: '3', type: 'NIP_TRANSFER', amount: 25000, status: 'PENDING', createdAt: new Date(Date.now() - 7200000).toISOString(), userName: 'Mike Johnson' },
+      { id: '4', type: 'LOAN_REPAYMENT', amount: 12500, status: 'SUCCESS', createdAt: new Date(Date.now() - 86400000).toISOString(), userName: 'Sarah Williams' },
+      { id: '5', type: 'BILL_PAYMENT', amount: 5000, status: 'FAILED', createdAt: new Date(Date.now() - 172800000).toISOString(), userName: 'Tom Brown' },
+    ],
   },
 
   users: page([

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, isDevMode } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -27,13 +27,6 @@ interface Loan {
   appliedAt: string;
   creditScore: number;
 }
-
-const MOCK_LOANS: Loan[] = isDevMode() ? [
-  { id: 'LOAN-001', userId: 'USR-001', userName: 'John Doe', schoolName: 'University of Lagos', amount: 150000, interestRate: 15, tenorMonths: 6, monthlyRepayment: 28750, status: 'OPS_REVIEW', purpose: 'Tuition Fees', appliedAt: new Date(Date.now() - 86400000).toISOString(), creditScore: 720 },
-  { id: 'LOAN-002', userId: 'USR-002', userName: 'Jane Smith', schoolName: 'Covenant University', amount: 250000, interestRate: 12, tenorMonths: 12, monthlyRepayment: 23333, status: 'PENDING', purpose: 'Accommodation', appliedAt: new Date(Date.now() - 172800000).toISOString(), creditScore: 680 },
-  { id: 'LOAN-003', userId: 'USR-003', userName: 'Michael Johnson', schoolName: 'University of Ibadan', amount: 100000, interestRate: 18, tenorMonths: 3, monthlyRepayment: 34500, status: 'OPS_REVIEW', purpose: 'Books & Materials', appliedAt: new Date(Date.now() - 259200000).toISOString(), creditScore: 450 },
-  { id: 'LOAN-004', userId: 'USR-004', userName: 'Sarah Williams', schoolName: 'Ahmadu Bello University', amount: 500000, interestRate: 10, tenorMonths: 24, monthlyRepayment: 22917, status: 'APPROVED', purpose: 'Tuition Fees', appliedAt: new Date(Date.now() - 432000000).toISOString(), creditScore: 780 },
-] : [];
 
 @Component({
   selector: 'app-loans',
@@ -253,7 +246,7 @@ export class LoansPageComponent {
     const response = this.loansQuery.data();
     if (response?.data?.content) return response.data.content;
     if (response?.data && Array.isArray(response.data)) return response.data;
-    return MOCK_LOANS;
+    return [];
   });
 
   filteredLoans = computed(() => {

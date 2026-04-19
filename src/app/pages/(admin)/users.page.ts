@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, isDevMode } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -294,14 +294,7 @@ export class UsersPageComponent {
         walletBalance: 0,
       }));
     }
-    if (!isDevMode()) return [];
-    return [
-      { id: '1', firstName: 'John', lastName: 'Doe', email: 'john@example.com', phone: '+2348012345678', status: 'ACTIVE' as const, kycStatus: 'VERIFIED' as const, createdAt: '2024-01-15', walletBalance: 125000 },
-      { id: '2', firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', phone: '+2348098765432', status: 'ACTIVE' as const, kycStatus: 'VERIFIED' as const, createdAt: '2024-02-20', walletBalance: 89000 },
-      { id: '3', firstName: 'Mike', lastName: 'Johnson', email: 'mike@example.com', phone: '+2348055512345', status: 'SUSPENDED' as const, kycStatus: 'PENDING' as const, createdAt: '2024-03-10', walletBalance: 0 },
-      { id: '4', firstName: 'Sarah', lastName: 'Williams', email: 'sarah@example.com', phone: '+2348077723456', status: 'ACTIVE' as const, kycStatus: 'UNVERIFIED' as const, createdAt: '2024-04-05', walletBalance: 45000 },
-      { id: '5', firstName: 'Tom', lastName: 'Brown', email: 'tom@example.com', phone: '+2348033323456', status: 'PENDING' as const, kycStatus: 'PENDING' as const, createdAt: '2024-04-18', walletBalance: 0 },
-    ];
+    return [];
   });
 
   filteredUsers = computed(() => {

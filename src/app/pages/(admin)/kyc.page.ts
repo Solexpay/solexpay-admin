@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, isDevMode } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -29,13 +29,6 @@ interface KycItem {
   submittedAt: string;
   documents: string[];
 }
-
-const MOCK_QUEUE: KycItem[] = isDevMode() ? [
-  { id: '1', userId: 'USR-001', userName: 'John Doe', type: 'BVN', documentNumber: '12345678901', status: 'PENDING', submittedAt: new Date(Date.now() - 300000).toISOString(), documents: ['ID Front', 'ID Back', 'Selfie'] },
-  { id: '2', userId: 'USR-002', userName: 'Jane Smith', type: 'NIN', documentNumber: '98765432109', status: 'PENDING', submittedAt: new Date(Date.now() - 900000).toISOString(), documents: ['NIN Slip', 'Selfie'] },
-  { id: '3', userId: 'USR-003', userName: 'Michael Johnson', type: 'BVN', documentNumber: '45678901234', status: 'PENDING', submittedAt: new Date(Date.now() - 1800000).toISOString(), documents: ['ID Front', 'ID Back', 'Utility Bill'] },
-  { id: '4', userId: 'USR-004', userName: 'Sarah Williams', type: 'NIN', documentNumber: '78901234567', status: 'PENDING', submittedAt: new Date(Date.now() - 3600000).toISOString(), documents: ['NIN Slip'] },
-] : [];
 
 @Component({
   selector: 'app-kyc',
@@ -231,7 +224,7 @@ export class KycPageComponent {
     if (response?.data && Array.isArray(response.data)) return response.data;
     if (response?.content) return response.content;
     if (Array.isArray(response)) return response;
-    return MOCK_QUEUE;
+    return [];
   });
 
   pendingCount = computed(() => this.kycQueue().filter(k => k.status === 'PENDING').length);

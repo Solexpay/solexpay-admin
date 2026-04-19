@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, isDevMode } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { lastValueFrom } from 'rxjs';
@@ -91,7 +91,7 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
                   <div class="w-full bg-primary-fixed-dim rounded-t-lg origin-bottom transition-all duration-300"
                        [class.animate-bar-grow]="chartVisible()"
                        [style.animation-delay]="i * 50 + 'ms'"
-                       [style.height.%]="(day.amount / maxVolume()) * 100">
+                       [style.height.%]="(day.amount / (maxVolume() || 1)) * 100">
                   </div>
                   <span class="text-xs text-on-surface-variant">{{ day.date | date:'EEE' }}</span>
                 </div>
@@ -224,37 +224,23 @@ export class DashboardPageComponent {
   volumeData = computed(() => {
     const m = this.metrics() as any;
     if (m?.volumeByDay) return m.volumeByDay;
-    if (!isDevMode()) return [];
-    return [
-      { date: '2024-01-01', amount: 150000 },
-      { date: '2024-01-02', amount: 230000 },
-      { date: '2024-01-03', amount: 180000 },
-      { date: '2024-01-04', amount: 320000 },
-      { date: '2024-01-05', amount: 280000 },
-      { date: '2024-01-06', amount: 350000 },
-      { date: '2024-01-07', amount: 410000 },
-    ];
+    return [];
   });
 
-  maxVolume = computed(() => Math.max(...this.volumeData().map((d: { date: string; amount: number }) => d.amount)));
+  maxVolume = computed(() => {
+    const values = this.volumeData().map((d: { date: string; amount: number }) => d.amount);
+    return values.length ? Math.max(...values) : 0;
+  });
 
-  pendingKycItems = computed(() => [
-    { id: '1', name: 'John Doe', type: 'BVN Verification', time: '2 min ago' },
-    { id: '2', name: 'Jane Smith', type: 'NIN Verification', time: '15 min ago' },
-    { id: '3', name: 'Mike Johnson', type: 'BVN Verification', time: '1 hour ago' },
-  ]);
+  pendingKycItems = computed(() => {
+    const m = this.metrics() as any;
+    return m?.pendingKycItems || [];
+  });
 
   recentTransactions = computed(() => {
     const m = this.metrics() as any;
     if (m?.recentTransactions) return m.recentTransactions;
-    if (!isDevMode()) return [];
-    return [
-      { id: '1', type: 'WALLET_FUNDING', amount: 50000, status: 'SUCCESS', createdAt: new Date().toISOString(), userName: 'John Doe' },
-      { id: '2', type: 'LOAN_DISBURSEMENT', amount: 150000, status: 'SUCCESS', createdAt: new Date(Date.now() - 3600000).toISOString(), userName: 'Jane Smith' },
-      { id: '3', type: 'NIP_TRANSFER', amount: 25000, status: 'PENDING', createdAt: new Date(Date.now() - 7200000).toISOString(), userName: 'Mike Johnson' },
-      { id: '4', type: 'LOAN_REPAYMENT', amount: 12500, status: 'SUCCESS', createdAt: new Date(Date.now() - 86400000).toISOString(), userName: 'Sarah Williams' },
-      { id: '5', type: 'BILL_PAYMENT', amount: 5000, status: 'FAILED', createdAt: new Date(Date.now() - 172800000).toISOString(), userName: 'Tom Brown' },
-    ];
+    return [];
   });
 
   getTransactionIcon(type: string): string {

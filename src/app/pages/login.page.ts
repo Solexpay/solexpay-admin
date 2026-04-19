@@ -22,6 +22,14 @@ function emailValidator(control: AbstractControl) {
   template: `
     <div class="min-h-screen bg-surface flex items-center justify-center p-4">
       <div class="w-full max-w-md">
+        <button
+          type="button"
+          (click)="goBack()"
+          class="inline-flex items-center gap-2 text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors mb-5">
+          <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+          Back
+        </button>
+
         <!-- Logo -->
         <div class="text-center mb-8">
           <img src="/logo-icon.png" alt="Solexpay" class="h-20 w-auto mx-auto mb-4 object-contain drop-shadow-[0_4px_16px_rgba(0,91,191,0.25)]"/>
@@ -52,6 +60,11 @@ function emailValidator(control: AbstractControl) {
               </div>
               @if (emailInvalid()) {
                 <p class="text-xs text-error mt-1">{{ emailError() }}</p>
+              } @else if (showEmailHelperWarning()) {
+                <p class="mt-1.5 text-xs text-amber-700 bg-amber-100 border border-amber-300 rounded-lg px-2.5 py-1.5 inline-flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm">warning</span>
+                  Use format like name@school.edu.ng
+                </p>
               }
             </div>
 
@@ -81,6 +94,11 @@ function emailValidator(control: AbstractControl) {
               </div>
               @if (passwordInvalid()) {
                 <p class="text-xs text-error mt-1">{{ passwordError() }}</p>
+              } @else if (showPasswordHelperWarning()) {
+                <p class="mt-1.5 text-xs text-amber-700 bg-amber-100 border border-amber-300 rounded-lg px-2.5 py-1.5 inline-flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm">warning</span>
+                  Password must be at least 8 characters
+                </p>
               }
             </div>
 
@@ -124,7 +142,17 @@ function emailValidator(control: AbstractControl) {
 
           <!-- Links -->
           <div class="mt-6 text-center">
-            <a href="#" class="text-sm text-primary hover:underline">Forgot password?</a>
+            <button
+              type="button"
+              (click)="forgotPassword()"
+              [disabled]="forgotLoading()"
+              class="text-sm text-primary hover:underline disabled:opacity-50 disabled:no-underline">
+              @if (forgotLoading()) {
+                Sending reset link...
+              } @else {
+                Forgot password?
+              }
+            </button>
           </div>
         </div>
 
@@ -149,12 +177,17 @@ export class LoginPageComponent {
 
   showPassword = signal(false);
   isLoading = signal(false);
+  forgotLoading = signal(false);
   role = signal<'ADMIN' | 'SCHOOL'>('ADMIN');
 
   private get emailCtrl() { return this.form.controls.email; }
   private get passwordCtrl() { return this.form.controls.password; }
 
   emailInvalid = computed(() => this.emailCtrl.invalid && this.emailCtrl.touched);
+  showEmailHelperWarning = computed(() => {
+    const value = (this.emailCtrl.value || '').trim();
+    return value.length > 0 && !EMAIL_RE.test(value) && !this.emailCtrl.touched;
+  });
   emailError = computed(() => {
     if (this.emailCtrl.hasError('required')) return 'Email is required';
     if (this.emailCtrl.hasError('invalidEmail')) return 'Enter a valid email address';
@@ -162,11 +195,19 @@ export class LoginPageComponent {
   });
 
   passwordInvalid = computed(() => this.passwordCtrl.invalid && this.passwordCtrl.touched);
+  showPasswordHelperWarning = computed(() => {
+    const value = this.passwordCtrl.value || '';
+    return value.length > 0 && value.length < 8 && !this.passwordCtrl.touched;
+  });
   passwordError = computed(() => {
     if (this.passwordCtrl.hasError('required')) return 'Password is required';
     if (this.passwordCtrl.hasError('minlength')) return 'Password must be at least 8 characters';
     return null;
   });
+
+  goBack() {
+    this.router.navigate(['/']);
+  }
 
   login() {
     this.form.markAllAsTouched();
@@ -183,6 +224,27 @@ export class LoginPageComponent {
       error: (err) => {
         this.isLoading.set(false);
         this.toast.show('error', err.error?.message || 'Invalid credentials');
+      }
+    });
+  }
+
+  forgotPassword() {
+    const email = this.emailCtrl.value.trim();
+    if (!email || !EMAIL_RE.test(email)) {
+      this.emailCtrl.markAsTouched();
+      this.toast.show('error', 'Enter a valid email to reset password');
+      return;
+    }
+
+    this.forgotLoading.set(true);
+    this.auth.forgotPassword(email).subscribe({
+      next: () => {
+        this.forgotLoading.set(false);
+        this.toast.show('success', 'Password reset instructions sent to your email');
+      },
+      error: (err: any) => {
+        this.forgotLoading.set(false);
+        this.toast.show('error', err.error?.message || 'Unable to send reset link');
       }
     });
   }
