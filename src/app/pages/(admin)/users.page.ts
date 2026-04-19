@@ -38,16 +38,16 @@ interface User {
   template: `
     <div class="space-y-6">
       <!-- Page header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 class="text-2xl font-bold text-on-surface">Users</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">Users</h1>
           <p class="text-sm text-on-surface-variant mt-1">Manage user accounts and KYC status</p>
         </div>
         <div class="flex items-center gap-3">
           <button solexRipple 
                   magnetic
-                  class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110">
-            <span class="flex items-center gap-2">
+                  class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110 w-full sm:w-auto">
+            <span class="flex items-center justify-center gap-2">
               <span class="material-symbols-outlined text-sm">download</span>
               Export
             </span>
@@ -56,7 +56,7 @@ interface User {
       </div>
 
       <!-- Filters -->
-      <div class="bg-surface-container-lowest rounded-xl p-4 flex flex-wrap items-center gap-4 shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+      <div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
         <div class="flex-1 min-w-[200px] relative">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input
@@ -73,7 +73,7 @@ interface User {
           [ngModel]="statusFilter()"
           (ngModelChange)="onStatusChange($event)"
           class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none
-                 focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                 focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 cursor-pointer w-full sm:w-auto">
           <option value="">All Status</option>
           <option value="ACTIVE">Active</option>
           <option value="SUSPENDED">Suspended</option>
@@ -84,7 +84,7 @@ interface User {
           [ngModel]="kycFilter()"
           (ngModelChange)="kycFilter.set($event)"
           class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none
-                 focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                 focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 cursor-pointer w-full sm:w-auto">
           <option value="">All KYC</option>
           <option value="VERIFIED">Verified</option>
           <option value="PENDING">Pending</option>
@@ -94,110 +94,112 @@ interface User {
 
       <!-- Users Table -->
       <div class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden">
-        <table class="w-full">
-          <thead>
-            <tr class="bg-surface-container text-left">
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">User</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Contact</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">KYC</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Balance</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Joined</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @if (loading()) {
-              @for (n of [1,2,3,4,5]; track n; let i = $index) {
-                <tr class="border-t border-surface-container">
-                  <td class="px-6 py-4"><div class="h-4 w-32 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="150 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-40 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="300 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="450 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="600 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-20 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="750 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-24 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="900 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-8 bg-surface-container-high rounded-full ml-auto skeleton-peak" [style.animation-delay]="1050 + 'ms'"></div></td>
-                </tr>
-              }
-            } @else {
-              @for (user of filteredUsers(); track user.id; let i = $index) {
-                <tr class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
-                    scrollReveal
-                    [style.animation-delay]="i * 40 + 'ms'"
-                    [style.animation-fill-mode]="'forwards'">
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
-                        <span class="text-sm font-bold text-primary">{{ user.firstName[0] }}{{ user.lastName[0] }}</span>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[900px]">
+            <thead>
+              <tr class="bg-surface-container text-left">
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">User</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Contact</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">KYC</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Balance</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Joined</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                @for (n of [1,2,3,4,5]; track n; let i = $index) {
+                  <tr class="border-t border-surface-container">
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-32 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="150 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-40 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="300 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="450 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="600 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-20 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="750 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-24 bg-surface-container-high rounded-full skeleton-peak" [style.animation-delay]="900 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-8 bg-surface-container-high rounded-full ml-auto skeleton-peak" [style.animation-delay]="1050 + 'ms'"></div></td>
+                  </tr>
+                }
+              } @else {
+                @for (user of filteredUsers(); track user.id; let i = $index) {
+                  <tr class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
+                      scrollReveal
+                      [style.animation-delay]="i * 40 + 'ms'"
+                      [style.animation-fill-mode]="'forwards'">
+                    <td class="px-4 sm:px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center shrink-0">
+                          <span class="text-sm font-bold text-primary">{{ user.firstName[0] }}{{ user.lastName[0] }}</span>
+                        </div>
+                        <div class="min-w-0">
+                          <p class="text-sm font-semibold text-on-surface truncate">{{ user.firstName }} {{ user.lastName }}</p>
+                          <p class="text-xs text-on-surface-variant cursor-pointer hover:text-primary transition-colors truncate"
+                             copyToClipboard
+                             tooltip="Click to copy user ID"
+                             tooltipPosition="bottom">ID: {{ user.id }}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p class="text-sm font-semibold text-on-surface">{{ user.firstName }} {{ user.lastName }}</p>
-                        <p class="text-xs text-on-surface-variant cursor-pointer hover:text-primary transition-colors"
-                           copyToClipboard
-                           tooltip="Click to copy user ID"
-                           tooltipPosition="bottom">ID: {{ user.id }}</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <p class="text-sm text-on-surface cursor-pointer hover:text-primary transition-colors truncate max-w-[150px]"
+                         copyToClipboard
+                         tooltip="Click to copy email"
+                         tooltipPosition="bottom">{{ user.email }}</p>
+                      <p class="text-xs text-on-surface-variant cursor-pointer hover:text-primary transition-colors"
+                         copyToClipboard
+                         tooltip="Click to copy phone"
+                         tooltipPosition="bottom">{{ user.phone }}</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <app-status-chip [status]="user.status"></app-status-chip>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <app-status-chip [status]="user.kycStatus"></app-status-chip>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <span class="text-sm font-semibold text-on-surface whitespace-nowrap">
+                        <span class="text-on-surface-variant">₦</span>{{ user.walletBalance | number:'1.0-0':'en-NG' }}
+                      </span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <span class="text-sm text-on-surface-variant whitespace-nowrap">{{ user.createdAt | date:'mediumDate' }}</span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 text-right">
+                      <div class="flex items-center justify-end gap-1 sm:gap-2">
+                        <button
+                          (click)="viewUser(user)"
+                          class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
+                          tooltip="View user details"
+                          tooltipPosition="left">
+                          <span class="material-symbols-outlined text-on-surface-variant text-sm">visibility</span>
+                        </button>
+                        @if (user.status === 'ACTIVE') {
+                          <button
+                            (click)="suspendMutation.mutate({ userId: user.id, userName: user.firstName + ' ' + user.lastName })"
+                            [disabled]="suspendMutation.isPending()"
+                            class="p-2 rounded-lg hover:bg-error-container transition-colors disabled:opacity-50"
+                            tooltip="Suspend user account"
+                            tooltipPosition="left">
+                            <span class="material-symbols-outlined text-error text-sm">block</span>
+                          </button>
+                        } @else {
+                          <button
+                            (click)="reactivateMutation.mutate({ userId: user.id, userName: user.firstName + ' ' + user.lastName })"
+                            [disabled]="reactivateMutation.isPending()"
+                            class="p-2 rounded-lg hover:bg-tertiary-fixed transition-colors disabled:opacity-50"
+                            tooltip="Reactivate user account"
+                            tooltipPosition="left">
+                            <span class="material-symbols-outlined text-tertiary text-sm">check_circle</span>
+                          </button>
+                        }
                       </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <p class="text-sm text-on-surface cursor-pointer hover:text-primary transition-colors"
-                       copyToClipboard
-                       tooltip="Click to copy email"
-                       tooltipPosition="bottom">{{ user.email }}</p>
-                    <p class="text-xs text-on-surface-variant cursor-pointer hover:text-primary transition-colors"
-                       copyToClipboard
-                       tooltip="Click to copy phone"
-                       tooltipPosition="bottom">{{ user.phone }}</p>
-                  </td>
-                  <td class="px-6 py-4">
-                    <app-status-chip [status]="user.status"></app-status-chip>
-                  </td>
-                  <td class="px-6 py-4">
-                    <app-status-chip [status]="user.kycStatus"></app-status-chip>
-                  </td>
-                  <td class="px-6 py-4">
-                    <span class="text-sm font-semibold text-on-surface">
-                      <span class="text-on-surface-variant">₦</span>{{ user.walletBalance | number:'1.0-0':'en-NG' }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4">
-                    <span class="text-sm text-on-surface-variant">{{ user.createdAt | date:'mediumDate' }}</span>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                      <button
-                        (click)="viewUser(user)"
-                        class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
-                        tooltip="View user details"
-                        tooltipPosition="left">
-                        <span class="material-symbols-outlined text-on-surface-variant text-sm">visibility</span>
-                      </button>
-                      @if (user.status === 'ACTIVE') {
-                        <button
-                          (click)="suspendMutation.mutate({ userId: user.id, userName: user.firstName + ' ' + user.lastName })"
-                          [disabled]="suspendMutation.isPending()"
-                          class="p-2 rounded-lg hover:bg-error-container transition-colors disabled:opacity-50"
-                          tooltip="Suspend user account"
-                          tooltipPosition="left">
-                          <span class="material-symbols-outlined text-error text-sm">block</span>
-                        </button>
-                      } @else {
-                        <button
-                          (click)="reactivateMutation.mutate({ userId: user.id, userName: user.firstName + ' ' + user.lastName })"
-                          [disabled]="reactivateMutation.isPending()"
-                          class="p-2 rounded-lg hover:bg-tertiary-fixed transition-colors disabled:opacity-50"
-                          tooltip="Reactivate user account"
-                          tooltipPosition="left">
-                          <span class="material-symbols-outlined text-tertiary text-sm">check_circle</span>
-                        </button>
-                      }
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                }
               }
-            }
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
 
         @if (!loading() && filteredUsers().length === 0) {
           <div class="text-center py-12">
@@ -208,7 +210,7 @@ interface User {
       </div>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
         <p class="text-sm text-on-surface-variant">
           Showing {{ filteredUsers().length }} of {{ totalUsers() }} users
         </p>
@@ -219,7 +221,7 @@ interface User {
             class="px-3 py-2 rounded-lg bg-surface-container-high text-on-surface-variant hover:bg-surface-container disabled:opacity-50 transition-colors">
             <span class="material-symbols-outlined text-sm">chevron_left</span>
           </button>
-          <span class="text-sm text-on-surface px-2">Page {{ currentPage() + 1 }} of {{ totalPages() }}</span>
+          <span class="text-sm text-on-surface px-2 whitespace-nowrap">Page {{ currentPage() + 1 }} of {{ totalPages() }}</span>
           <button
             [disabled]="currentPage() >= totalPages() - 1"
             (click)="nextPage()"

@@ -44,9 +44,9 @@ const MOCK_QUEUE: KycItem[] = isDevMode() ? [
   template: `
     <div class="space-y-6">
       <!-- Page header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 class="text-2xl font-bold text-on-surface">KYC Verification Queue</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">KYC Verification Queue</h1>
           <p class="text-sm text-on-surface-variant mt-1">Review and approve identity verifications</p>
         </div>
         <div class="flex items-center gap-2 text-sm">
@@ -146,13 +146,13 @@ const MOCK_QUEUE: KycItem[] = isDevMode() ? [
 
               <!-- Actions -->
               @if (item.status === 'PENDING') {
-                <div class="flex gap-3">
+                <div class="flex flex-wrap gap-2 sm:gap-3">
                   <button
                     solexRipple
                     magnetic
                     (click)="approveMutation.mutate({ id: item.id, userName: item.userName })"
                     [disabled]="approveMutation.isPending()"
-                    class="flex-1 py-2.5 bg-tertiary text-on-tertiary rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
+                    class="flex-1 min-w-[80px] py-2.5 bg-tertiary text-on-tertiary rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
                     tooltip="Approve this KYC verification"
                     tooltipPosition="bottom">
                     Approve
@@ -162,7 +162,7 @@ const MOCK_QUEUE: KycItem[] = isDevMode() ? [
                     magnetic
                     (click)="rejectMutation.mutate({ id: item.id, userName: item.userName })"
                     [disabled]="rejectMutation.isPending()"
-                    class="flex-1 py-2.5 bg-error-container text-on-error-container rounded-xl font-bold text-sm transition-all hover:bg-error hover:text-on-error active:scale-95 disabled:opacity-50"
+                    class="flex-1 min-w-[80px] py-2.5 bg-error-container text-on-error-container rounded-xl font-bold text-sm transition-all hover:bg-error hover:text-on-error active:scale-95 disabled:opacity-50"
                     tooltip="Reject this KYC verification"
                     tooltipPosition="bottom">
                     Reject
@@ -170,7 +170,7 @@ const MOCK_QUEUE: KycItem[] = isDevMode() ? [
                   <button
                     magnetic
                     (click)="viewDetails(item)"
-                    class="px-4 py-2.5 bg-surface-container text-on-surface rounded-xl font-bold text-sm hover:bg-surface-container-high transition-colors"
+                    class="px-3 sm:px-4 py-2.5 bg-surface-container text-on-surface rounded-xl font-bold text-sm hover:bg-surface-container-high transition-colors"
                     tooltip="View detailed information"
                     tooltipPosition="bottom">
                     <span class="material-symbols-outlined text-sm">visibility</span>

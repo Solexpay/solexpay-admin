@@ -33,19 +33,19 @@ const MOCK_TRANSACTIONS: Transaction[] = isDevMode() ? [
   template: `
     <div class="space-y-6">
       <!-- Page header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 class="text-2xl font-bold text-on-surface">Transaction Ledger</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">Transaction Ledger</h1>
           <p class="text-sm text-on-surface-variant mt-1">View and search all system transactions</p>
         </div>
-        <button class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110 flex items-center gap-2">
+        <button class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110 flex items-center justify-center gap-2 sm:w-auto w-full">
           <span class="material-symbols-outlined text-sm">download</span>
           Export
         </button>
       </div>
 
       <!-- Filters -->
-      <div class="bg-surface-container-lowest rounded-xl p-4 flex flex-wrap items-center gap-4 shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+      <div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
         <div class="flex-1 min-w-[200px] relative">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input
@@ -57,7 +57,7 @@ const MOCK_TRANSACTIONS: Transaction[] = isDevMode() ? [
             placeholder="Search by reference, user, or description...">
         </div>
 
-        <select [(ngModel)]="typeFilter" class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer">
+        <select [(ngModel)]="typeFilter" class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer w-full sm:w-auto">
           <option value="">All Types</option>
           <option value="WALLET_FUNDING">Wallet Funding</option>
           <option value="LOAN_DISBURSEMENT">Loan Disbursement</option>
@@ -66,7 +66,7 @@ const MOCK_TRANSACTIONS: Transaction[] = isDevMode() ? [
           <option value="BILL_PAYMENT">Bill Payment</option>
         </select>
 
-        <select [(ngModel)]="statusFilter" class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer">
+        <select [(ngModel)]="statusFilter" class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer w-full sm:w-auto">
           <option value="">All Status</option>
           <option value="SUCCESS">Success</option>
           <option value="PENDING">Pending</option>
@@ -77,7 +77,7 @@ const MOCK_TRANSACTIONS: Transaction[] = isDevMode() ? [
           type="date"
           [ngModel]="dateFrom()"
           (ngModelChange)="dateFrom.set($event)"
-          class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none">
+          class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none w-full sm:w-auto">
       </div>
 
       <!-- Volume Summary -->
@@ -100,66 +100,68 @@ const MOCK_TRANSACTIONS: Transaction[] = isDevMode() ? [
 
       <!-- Transactions Table -->
       <div class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden">
-        <table class="w-full">
-          <thead>
-            <tr class="bg-surface-container text-left">
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Reference</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Type</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">From/To</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Amount</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            @if (loading()) {
-              @for (n of [1,2,3,4,5]; track n; let i = $index) {
-                <tr class="border-t border-surface-container">
-                  <td class="px-6 py-4"><div class="h-4 w-32 bg-surface-container-high rounded-full animate-skeleton-pulse"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-28 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="100 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-36 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="200 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="300 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="400 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-24 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="500 + 'ms'"></div></td>
-                </tr>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[800px]">
+            <thead>
+              <tr class="bg-surface-container text-left">
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Reference</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Type</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">From/To</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Amount</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                @for (n of [1,2,3,4,5]; track n; let i = $index) {
+                  <tr class="border-t border-surface-container">
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-32 bg-surface-container-high rounded-full animate-skeleton-pulse"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-28 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="100 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-36 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="200 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="300 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="400 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-24 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="500 + 'ms'"></div></td>
+                  </tr>
+                }
+              } @else {
+                @for (tx of filteredTransactions(); track tx.id; let i = $index) {
+                  <tr class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
+                      [style.animation-delay]="i * 40 + 'ms'"
+                      [style.animation-fill-mode]="'forwards'">
+                    <td class="px-4 sm:px-6 py-4">
+                      <p class="text-sm font-mono text-on-surface truncate max-w-[120px]">{{ tx.reference }}</p>
+                      <p class="text-xs text-on-surface-variant truncate max-w-[150px]">{{ tx.description }}</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm shrink-0" [class]="getTypeColor(tx.type)">
+                          {{ getTypeIcon(tx.type) }}
+                        </span>
+                        <span class="text-sm text-on-surface">{{ formatType(tx.type) }}</span>
+                      </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <p class="text-sm text-on-surface truncate max-w-[120px]">{{ tx.senderName }}</p>
+                      <p class="text-xs text-on-surface-variant truncate max-w-[120px]">→ {{ tx.recipientName }}</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <p class="text-sm font-bold text-on-surface whitespace-nowrap">
+                        <span class="text-on-surface-variant">₦</span>{{ tx.amount | number:'1.0-0':'en-NG' }}
+                      </p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <app-status-chip [status]="tx.status"></app-status-chip>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <p class="text-sm text-on-surface whitespace-nowrap">{{ tx.createdAt | date:'short' }}</p>
+                    </td>
+                  </tr>
+                }
               }
-            } @else {
-              @for (tx of filteredTransactions(); track tx.id; let i = $index) {
-                <tr class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
-                    [style.animation-delay]="i * 40 + 'ms'"
-                    [style.animation-fill-mode]="'forwards'">
-                  <td class="px-6 py-4">
-                    <p class="text-sm font-mono text-on-surface">{{ tx.reference }}</p>
-                    <p class="text-xs text-on-surface-variant">{{ tx.description }}</p>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-2">
-                      <span class="material-symbols-outlined text-sm" [class]="getTypeColor(tx.type)">
-                        {{ getTypeIcon(tx.type) }}
-                      </span>
-                      <span class="text-sm text-on-surface">{{ formatType(tx.type) }}</span>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <p class="text-sm text-on-surface">{{ tx.senderName }}</p>
-                    <p class="text-xs text-on-surface-variant">→ {{ tx.recipientName }}</p>
-                  </td>
-                  <td class="px-6 py-4">
-                    <p class="text-sm font-bold text-on-surface">
-                      <span class="text-on-surface-variant">₦</span>{{ tx.amount | number:'1.0-0':'en-NG' }}
-                    </p>
-                  </td>
-                  <td class="px-6 py-4">
-                    <app-status-chip [status]="tx.status"></app-status-chip>
-                  </td>
-                  <td class="px-6 py-4">
-                    <p class="text-sm text-on-surface">{{ tx.createdAt | date:'short' }}</p>
-                  </td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
 
         @if (!loading() && filteredTransactions().length === 0) {
           <div class="text-center py-12">

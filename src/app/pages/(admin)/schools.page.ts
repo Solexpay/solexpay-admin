@@ -19,6 +19,7 @@ interface School {
   status: 'ACTIVE' | 'INACTIVE';
   apiToken: string;
   createdAt: string;
+  logoUrl: string;
 }
 
 @Component({
@@ -28,44 +29,44 @@ interface School {
   template: `
     <div class="space-y-6">
       <!-- Page header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 class="text-2xl font-bold text-on-surface">Schools Directory</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">Schools Directory</h1>
           <p class="text-sm text-on-surface-variant mt-1">Manage partner schools and API access</p>
         </div>
         <button 
           solexRipple
           (click)="showAddSchool = true"
-          class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110 flex items-center gap-2">
+          class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110 flex items-center justify-center gap-2 sm:w-auto w-full">
           <span class="material-symbols-outlined text-sm">add</span>
           Add School
         </button>
       </div>
 
       <!-- Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-primary shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-surface-container-lowest p-3 sm:p-4 rounded-xl border-l-4 border-primary shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
           <p class="text-xs text-on-surface-variant uppercase">Total Schools</p>
-          <p class="text-2xl font-bold text-on-surface mt-1">{{ schools().length }}</p>
+          <p class="text-xl sm:text-2xl font-bold text-on-surface mt-1">{{ schools().length }}</p>
         </div>
-        <div class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-tertiary shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+        <div class="bg-surface-container-lowest p-3 sm:p-4 rounded-xl border-l-4 border-tertiary shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
           <p class="text-xs text-on-surface-variant uppercase">Active Students</p>
-          <p class="text-2xl font-bold text-on-surface mt-1">{{ totalStudents() | number:'1.0-0':'en-NG' }}</p>
+          <p class="text-xl sm:text-2xl font-bold text-on-surface mt-1">{{ totalStudents() | number:'1.0-0':'en-NG' }}</p>
         </div>
-        <div class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-secondary shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+        <div class="bg-surface-container-lowest p-3 sm:p-4 rounded-xl border-l-4 border-secondary shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
           <p class="text-xs text-on-surface-variant uppercase">Active Loans</p>
-          <p class="text-2xl font-bold text-on-surface mt-1">{{ totalActiveLoans() }}</p>
+          <p class="text-xl sm:text-2xl font-bold text-on-surface mt-1">{{ totalActiveLoans() }}</p>
         </div>
-        <div class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-primary shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+        <div class="bg-surface-container-lowest p-3 sm:p-4 rounded-xl border-l-4 border-primary shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
           <p class="text-xs text-on-surface-variant uppercase">Total Disbursed</p>
-          <p class="text-2xl font-bold text-on-surface mt-1">
-            <span class="text-lg opacity-50">₦</span>{{ totalDisbursed() | number:'1.0-0':'en-NG' }}
+          <p class="text-xl sm:text-2xl font-bold text-on-surface mt-1">
+            <span class="text-base sm:text-lg opacity-50">₦</span>{{ totalDisbursed() | number:'1.0-0':'en-NG' }}
           </p>
         </div>
       </div>
 
       <!-- Filters -->
-      <div class="bg-surface-container-lowest rounded-xl p-4 flex flex-wrap items-center gap-4 shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+      <div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
         <div class="flex-1 min-w-[200px] relative">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input 
@@ -77,7 +78,7 @@ interface School {
             placeholder="Search schools...">
         </div>
         
-        <select [(ngModel)]="stateFilter" class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer">
+        <select [(ngModel)]="stateFilter" class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer w-full sm:w-auto">
           <option value="">All States</option>
           <option value="Lagos">Lagos</option>
           <option value="Ogun">Ogun</option>
@@ -85,7 +86,7 @@ interface School {
           <option value="Abuja">Abuja</option>
         </select>
 
-        <select [(ngModel)]="statusFilter" class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer">
+        <select [(ngModel)]="statusFilter" class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer w-full sm:w-auto">
           <option value="">All Status</option>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
@@ -100,11 +101,12 @@ interface School {
                [style.animation-fill-mode]="'forwards'">
             <div class="flex items-start justify-between mb-4">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center">
-                  <span class="material-symbols-outlined text-primary">school</span>
-                </div>
-                <div>
-                  <h3 class="text-sm font-bold text-on-surface">{{ school.name }}</h3>
+                <img [src]="school.logoUrl" 
+                     [alt]="school.name + ' logo'"
+                     class="w-12 h-12 rounded-xl object-contain bg-white p-1 shadow-sm"
+                     onerror="this.src='https://ui-avatars.com/api/?name=' + encodeURIComponent(this.alt) + '&background=random&color=fff&size=120'">
+                <div class="min-w-0">
+                  <h3 class="text-sm font-bold text-on-surface truncate">{{ school.name }}</h3>
                   <p class="text-xs text-on-surface-variant">{{ school.state }}</p>
                 </div>
               </div>
@@ -172,10 +174,17 @@ interface School {
 
     <!-- Add School Modal -->
     @if (showAddSchool) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="absolute inset-0 bg-inverse-surface/30 backdrop-blur-md" (click)="showAddSchool = false"></div>
-        <div class="relative bg-surface-container-lowest rounded-xl p-6 w-full max-w-md shadow-[0_32px_64px_rgba(25,28,29,0.12)] animate-modal-scale-in">
-          <h2 class="text-lg font-bold text-on-surface mb-4">Add New School</h2>
+        <div class="relative bg-surface-container-lowest rounded-t-xl sm:rounded-xl p-4 sm:p-6 w-full sm:max-w-md shadow-[0_32px_64px_rgba(25,28,29,0.12)] animate-modal-scale-in max-h-[90vh] overflow-y-auto">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-on-surface">Add New School</h2>
+            <button 
+              (click)="showAddSchool = false"
+              class="p-2 rounded-lg hover:bg-surface-container-high transition-colors">
+              <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+          </div>
           <form (ngSubmit)="addSchool()" class="space-y-4">
             <input 
               type="text"
@@ -259,7 +268,8 @@ export class SchoolsPageComponent {
       totalDisbursed: 125000000,
       status: 'ACTIVE',
       apiToken: 'sk_live_51H7x8jK8Q2mN9pR5',
-      createdAt: '2023-01-15'
+      createdAt: '2023-01-15',
+      logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/44/University_of_Lagos_logo.png/120px-University_of_Lagos_logo.png'
     },
     {
       id: 'SCH-002',
@@ -273,7 +283,8 @@ export class SchoolsPageComponent {
       totalDisbursed: 45000000,
       status: 'ACTIVE',
       apiToken: 'sk_live_51H8y9kL9Q3mO0qS6',
-      createdAt: '2023-02-20'
+      createdAt: '2023-02-20',
+      logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a3/Covenant_University_logo.png/120px-Covenant_University_logo.png'
     },
     {
       id: 'SCH-003',
@@ -287,7 +298,8 @@ export class SchoolsPageComponent {
       totalDisbursed: 89000000,
       status: 'ACTIVE',
       apiToken: 'sk_live_51H9z0mM0Q4mP1rT7',
-      createdAt: '2023-03-10'
+      createdAt: '2023-03-10',
+      logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7f/University_of_Ibadan_logo.png/120px-University_of_Ibadan_logo.png'
     },
     {
       id: 'SCH-004',
@@ -301,7 +313,8 @@ export class SchoolsPageComponent {
       totalDisbursed: 32000000,
       status: 'INACTIVE',
       apiToken: 'sk_live_51H0a1nN1Q5mQ2sU8',
-      createdAt: '2023-04-05'
+      createdAt: '2023-04-05',
+      logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/University_of_Abuja_logo.png/120px-University_of_Abuja_logo.png'
     }
   ]);
 
@@ -375,7 +388,8 @@ export class SchoolsPageComponent {
       totalDisbursed: 0,
       status: 'ACTIVE',
       apiToken: 'sk_live_' + Math.random().toString(36).substring(2, 15),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      logoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(this.newSchool.name)}&background=random&color=fff&size=120`
     };
 
     this.schools.update(schools => [...schools, school]);

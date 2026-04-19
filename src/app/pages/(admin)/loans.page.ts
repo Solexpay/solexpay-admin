@@ -42,9 +42,9 @@ const MOCK_LOANS: Loan[] = isDevMode() ? [
   template: `
     <div class="space-y-6">
       <!-- Page header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 class="text-2xl font-bold text-on-surface">Loan Applications</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">Loan Applications</h1>
           <p class="text-sm text-on-surface-variant mt-1">Review and manage student loan applications</p>
         </div>
       </div>
@@ -89,105 +89,107 @@ const MOCK_LOANS: Loan[] = isDevMode() ? [
 
       <!-- Loans Table -->
       <div class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden">
-        <table class="w-full">
-          <thead>
-            <tr class="bg-surface-container text-left">
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Applicant</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">School</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Amount</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tenor</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Credit Score</th>
-              <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @if (loading()) {
-              @for (n of [1,2,3,4]; track n; let i = $index) {
-                <tr class="border-t border-surface-container">
-                  <td class="px-6 py-4"><div class="h-4 w-32 bg-surface-container-high rounded-full animate-skeleton-pulse"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-28 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="100 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="200 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="300 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="400 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="500 + 'ms'"></div></td>
-                  <td class="px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full ml-auto animate-skeleton-pulse" [style.animation-delay]="600 + 'ms'"></div></td>
-                </tr>
-              }
-            } @else {
-              @for (loan of filteredLoans(); track loan.id; let i = $index) {
-                <tr class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
-                    [style.animation-delay]="i * 40 + 'ms'"
-                    [style.animation-fill-mode]="'forwards'">
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
-                        <span class="text-sm font-bold text-primary">{{ loan.userName[0] }}</span>
-                      </div>
-                      <div>
-                        <p class="text-sm font-semibold text-on-surface">{{ loan.userName }}</p>
-                        <p class="text-xs text-on-surface-variant">{{ loan.purpose }}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <p class="text-sm text-on-surface">{{ loan.schoolName }}</p>
-                  </td>
-                  <td class="px-6 py-4">
-                    <p class="text-sm font-bold text-on-surface">
-                      <span class="text-on-surface-variant">₦</span>{{ loan.amount | number:'1.0-0':'en-NG' }}
-                    </p>
-                    <p class="text-xs text-on-surface-variant">{{ loan.interestRate }}% APR</p>
-                  </td>
-                  <td class="px-6 py-4">
-                    <p class="text-sm text-on-surface">{{ loan.tenorMonths }} months</p>
-                    <p class="text-xs text-on-surface-variant">₦{{ loan.monthlyRepayment | number:'1.0-0':'en-NG' }}/mo</p>
-                  </td>
-                  <td class="px-6 py-4">
-                    <app-status-chip [status]="loan.status"></app-status-chip>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-2">
-                      <div class="w-16 h-2 bg-surface-container-high rounded-full overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-500"
-                             [class]="loan.creditScore >= 700 ? 'bg-tertiary' : loan.creditScore >= 500 ? 'bg-secondary' : 'bg-error'"
-                             [style.width.%]="(loan.creditScore / 850) * 100">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[900px]">
+            <thead>
+              <tr class="bg-surface-container text-left">
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Applicant</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">School</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Amount</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tenor</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Credit Score</th>
+                <th class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                @for (n of [1,2,3,4]; track n; let i = $index) {
+                  <tr class="border-t border-surface-container">
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-32 bg-surface-container-high rounded-full animate-skeleton-pulse"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-28 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="100 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="200 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="300 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="400 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse" [style.animation-delay]="500 + 'ms'"></div></td>
+                    <td class="px-4 sm:px-6 py-4"><div class="h-4 w-16 bg-surface-container-high rounded-full ml-auto animate-skeleton-pulse" [style.animation-delay]="600 + 'ms'"></div></td>
+                  </tr>
+                }
+              } @else {
+                @for (loan of filteredLoans(); track loan.id; let i = $index) {
+                  <tr class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
+                      [style.animation-delay]="i * 40 + 'ms'"
+                      [style.animation-fill-mode]="'forwards'">
+                    <td class="px-4 sm:px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center shrink-0">
+                          <span class="text-sm font-bold text-primary">{{ loan.userName[0] }}</span>
+                        </div>
+                        <div class="min-w-0">
+                          <p class="text-sm font-semibold text-on-surface truncate">{{ loan.userName }}</p>
+                          <p class="text-xs text-on-surface-variant truncate">{{ loan.purpose }}</p>
                         </div>
                       </div>
-                      <span class="text-sm font-semibold text-on-surface">{{ loan.creditScore }}</span>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                      <button
-                        (click)="viewLoan(loan)"
-                        class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
-                        title="View Details">
-                        <span class="material-symbols-outlined text-on-surface-variant text-sm">visibility</span>
-                      </button>
-                      @if (loan.status === 'OPS_REVIEW') {
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <p class="text-sm text-on-surface truncate max-w-[150px]">{{ loan.schoolName }}</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <p class="text-sm font-bold text-on-surface">
+                        <span class="text-on-surface-variant">₦</span>{{ loan.amount | number:'1.0-0':'en-NG' }}
+                      </p>
+                      <p class="text-xs text-on-surface-variant">{{ loan.interestRate }}% APR</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <p class="text-sm text-on-surface">{{ loan.tenorMonths }} months</p>
+                      <p class="text-xs text-on-surface-variant">₦{{ loan.monthlyRepayment | number:'1.0-0':'en-NG' }}/mo</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <app-status-chip [status]="loan.status"></app-status-chip>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                      <div class="flex items-center gap-2">
+                        <div class="w-12 sm:w-16 h-2 bg-surface-container-high rounded-full overflow-hidden">
+                          <div class="h-full rounded-full transition-all duration-500"
+                               [class]="loan.creditScore >= 700 ? 'bg-tertiary' : loan.creditScore >= 500 ? 'bg-secondary' : 'bg-error'"
+                               [style.width.%]="(loan.creditScore / 850) * 100">
+                          </div>
+                        </div>
+                        <span class="text-sm font-semibold text-on-surface">{{ loan.creditScore }}</span>
+                      </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 text-right">
+                      <div class="flex items-center justify-end gap-1 sm:gap-2">
                         <button
-                          solexRipple
-                          (click)="approveMutation.mutate(loan.id)"
-                          [disabled]="approveMutation.isPending()"
-                          class="px-3 py-1.5 bg-tertiary text-on-tertiary rounded-lg text-xs font-bold transition-all hover:brightness-110 disabled:opacity-50">
-                          Approve
+                          (click)="viewLoan(loan)"
+                          class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
+                          title="View Details">
+                          <span class="material-symbols-outlined text-on-surface-variant text-sm">visibility</span>
                         </button>
-                        <button
-                          solexRipple
-                          (click)="rejectMutation.mutate(loan.id)"
-                          [disabled]="rejectMutation.isPending()"
-                          class="px-3 py-1.5 bg-error-container text-on-error-container rounded-lg text-xs font-bold transition-all hover:bg-error hover:text-on-error disabled:opacity-50">
-                          Reject
-                        </button>
-                      }
-                    </div>
-                  </td>
-                </tr>
+                        @if (loan.status === 'OPS_REVIEW') {
+                          <button
+                            solexRipple
+                            (click)="approveMutation.mutate(loan.id)"
+                            [disabled]="approveMutation.isPending()"
+                            class="px-2 sm:px-3 py-1.5 bg-tertiary text-on-tertiary rounded-lg text-xs font-bold transition-all hover:brightness-110 disabled:opacity-50 whitespace-nowrap">
+                            Approve
+                          </button>
+                          <button
+                            solexRipple
+                            (click)="rejectMutation.mutate(loan.id)"
+                            [disabled]="rejectMutation.isPending()"
+                            class="px-2 sm:px-3 py-1.5 bg-error-container text-on-error-container rounded-lg text-xs font-bold transition-all hover:bg-error hover:text-on-error disabled:opacity-50 whitespace-nowrap">
+                            Reject
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
               }
-            }
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
 
         @if (!loading() && filteredLoans().length === 0) {
           <div class="text-center py-12">

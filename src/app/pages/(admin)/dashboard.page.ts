@@ -19,12 +19,12 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
   template: `
     <div class="space-y-6">
       <!-- Page header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 class="text-2xl font-bold text-on-surface">Dashboard</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">Dashboard</h1>
           <p class="text-sm text-on-surface-variant mt-1">Overview of your system metrics and activity</p>
         </div>
-        <div class="text-sm text-on-surface-variant">
+        <div class="text-xs sm:text-sm text-on-surface-variant">
           Last updated: {{ now | date:'medium' }}
         </div>
       </div>
@@ -101,11 +101,11 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
         </div>
 
         <!-- Pending KYC Queue -->
-        <div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover-lift transition-all duration-200">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold text-on-surface">Pending KYC</h3>
+        <div class="bg-surface-container-lowest rounded-xl p-4 sm:p-6 shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover-lift transition-all duration-200">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+            <h3 class="text-base sm:text-lg font-bold text-on-surface">Pending KYC</h3>
             <a routerLink="/kyc" 
-               class="text-sm text-primary hover:underline"
+               class="text-xs sm:text-sm text-primary hover:underline"
                tooltip="View all KYC submissions"
                tooltipPosition="left">View All</a>
           </div>
@@ -151,8 +151,8 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
       </div>
 
       <!-- Recent Transactions -->
-      <div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover-lift transition-all duration-200">
-        <div class="flex items-center justify-between mb-4">
+      <div class="bg-surface-container-lowest rounded-xl p-4 sm:p-6 shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover-lift transition-all duration-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
           <h3 class="text-lg font-bold text-on-surface">Recent Transactions</h3>
           <a routerLink="/transactions" 
              class="text-sm text-primary hover:underline"
@@ -160,47 +160,49 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
              tooltipPosition="left">View All</a>
         </div>
 
-        @if (loading()) {
-          <div class="space-y-2">
-            @for (n of [1,2,3,4,5]; track n; let i = $index) {
-              <div class="flex items-center gap-4 p-3 animate-skeleton-pulse"
-                   [style.animation-delay]="i * 150 + 'ms'">
-                <div class="w-10 h-10 rounded-full bg-surface-container-high"></div>
-                <div class="flex-1">
-                  <div class="h-4 w-32 bg-surface-container-high rounded-full mb-2"></div>
-                  <div class="h-3 w-24 bg-surface-container-high rounded-full"></div>
+        <div class="overflow-x-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
+          @if (loading()) {
+            <div class="space-y-2 min-w-[600px]">
+              @for (n of [1,2,3,4,5]; track n; let i = $index) {
+                <div class="flex items-center gap-4 p-3 animate-skeleton-pulse"
+                     [style.animation-delay]="i * 150 + 'ms'">
+                  <div class="w-10 h-10 rounded-full bg-surface-container-high"></div>
+                  <div class="flex-1">
+                    <div class="h-4 w-32 bg-surface-container-high rounded-full mb-2"></div>
+                    <div class="h-3 w-24 bg-surface-container-high rounded-full"></div>
+                  </div>
+                  <div class="h-4 w-20 bg-surface-container-high rounded-full"></div>
                 </div>
-                <div class="h-4 w-20 bg-surface-container-high rounded-full"></div>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="space-y-2">
-            @for (tx of recentTransactions(); track tx.id; let i = $index) {
-              <div class="flex items-center gap-4 p-3 hover:bg-surface-container-low rounded-xl transition-colors duration-200 animate-stagger-in opacity-0"
-                   [style.animation-delay]="i * 40 + 'ms'"
-                   [style.animation-fill-mode]="'forwards'">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center"
-                     [class]="tx.status === 'SUCCESS' ? 'bg-tertiary-fixed' : tx.status === 'PENDING' ? 'bg-secondary-fixed' : 'bg-error-container'">
-                  <span class="material-symbols-outlined text-sm"
-                        [class]="tx.status === 'SUCCESS' ? 'text-tertiary' : tx.status === 'PENDING' ? 'text-secondary' : 'text-error'">
-                    {{ getTransactionIcon(tx.type) }}
-                  </span>
+              }
+            </div>
+          } @else {
+            <div class="space-y-2 min-w-[600px]">
+              @for (tx of recentTransactions(); track tx.id; let i = $index) {
+                <div class="flex items-center gap-4 p-3 hover:bg-surface-container-low rounded-xl transition-colors duration-200 animate-stagger-in opacity-0"
+                     [style.animation-delay]="i * 40 + 'ms'"
+                     [style.animation-fill-mode]="'forwards'">
+                  <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                       [class]="tx.status === 'SUCCESS' ? 'bg-tertiary-fixed' : tx.status === 'PENDING' ? 'bg-secondary-fixed' : 'bg-error-container'">
+                    <span class="material-symbols-outlined text-sm"
+                          [class]="tx.status === 'SUCCESS' ? 'text-tertiary' : tx.status === 'PENDING' ? 'text-secondary' : 'text-error'">
+                      {{ getTransactionIcon(tx.type) }}
+                    </span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-on-surface truncate">{{ tx.userName }}</p>
+                    <p class="text-xs text-on-surface-variant">{{ tx.type }} • {{ tx.createdAt | date:'short' }}</p>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <span class="text-sm font-bold text-on-surface">
+                      <span class="text-on-surface-variant">₦</span>{{ tx.amount | number:'1.0-0':'en-NG' }}
+                    </span>
+                    <app-status-chip [status]="tx.status"></app-status-chip>
+                  </div>
                 </div>
-                <div class="flex-1">
-                  <p class="text-sm font-semibold text-on-surface">{{ tx.userName }}</p>
-                  <p class="text-xs text-on-surface-variant">{{ tx.type }} • {{ tx.createdAt | date:'short' }}</p>
-                </div>
-                <div class="flex items-center gap-3">
-                  <span class="text-sm font-bold text-on-surface">
-                    <span class="text-on-surface-variant">₦</span>{{ tx.amount | number:'1.0-0':'en-NG' }}
-                  </span>
-                  <app-status-chip [status]="tx.status"></app-status-chip>
-                </div>
-              </div>
-            }
-          </div>
-        }
+              }
+            </div>
+          }
+        </div>
       </div>
     </div>
   `

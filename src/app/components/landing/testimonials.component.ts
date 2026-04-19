@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { LucideAngularModule, Star } from 'lucide-angular';
 
-interface UniLogo { name: string; fullName: string; color: string; }
+interface UniLogo { name: string; fullName: string; color: string; logoUrl: string; }
 interface Testimonial { name: string; school: string; quote: string; avatar: string; }
 
 @Component({
@@ -19,11 +19,11 @@ interface Testimonial { name: string; school: string; quote: string; avatar: str
               <div class="flex items-center gap-3 px-5 py-3 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 hover:-translate-y-0.5 transition-all duration-300 cursor-default"
                    [title]="uni.fullName"
                    data-aos="fade-up" [attr.data-aos-delay]="i * 60">
-                <!-- Colored lettermark badge -->
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-[11px] font-black shrink-0 shadow-sm"
-                     [style.background]="uni.color">
-                  {{ uni.name.slice(0,3) }}
-                </div>
+                <!-- University logo -->
+                <img [src]="uni.logoUrl" 
+                     [alt]="uni.name + ' logo'"
+                     class="w-9 h-9 rounded-xl object-contain bg-white p-0.5 shrink-0 shadow-sm"
+                     onerror="this.src='https://ui-avatars.com/api/?name=' + this.alt + '&background=random&color=fff&size=120'">
                 <span class="text-sm font-bold text-on-surface tracking-wide">{{ uni.name }}</span>
               </div>
             }
@@ -60,12 +60,12 @@ export class LandingTestimonialsComponent {
   readonly StarIcon = Star;
 
   readonly universities: UniLogo[] = [
-    { name: 'UNILAG', fullName: 'University of Lagos',               color: 'linear-gradient(135deg,#1d4ed8,#2563eb)' },
-    { name: 'UI',     fullName: 'University of Ibadan',               color: 'linear-gradient(135deg,#059669,#10b981)' },
-    { name: 'OAU',    fullName: 'Obafemi Awolowo University',         color: 'linear-gradient(135deg,#b91c1c,#dc2626)' },
-    { name: 'UNN',    fullName: 'University of Nigeria, Nsukka',      color: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
-    { name: 'ABU',    fullName: 'Ahmadu Bello University',            color: 'linear-gradient(135deg,#c2410c,#ea580c)' },
-    { name: 'FUTA',   fullName: 'Federal Univ. of Technology, Akure', color: 'linear-gradient(135deg,#0e7490,#06b6d4)' },
+    { name: 'UNILAG', fullName: 'University of Lagos',               color: 'linear-gradient(135deg,#1d4ed8,#2563eb)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/44/University_of_Lagos_logo.png/120px-University_of_Lagos_logo.png' },
+    { name: 'UI',     fullName: 'University of Ibadan',               color: 'linear-gradient(135deg,#059669,#10b981)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7f/University_of_Ibadan_logo.png/120px-University_of_Ibadan_logo.png' },
+    { name: 'OAU',    fullName: 'Obafemi Awolowo University',         color: 'linear-gradient(135deg,#b91c1c,#dc2626)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Obafemi_Awolowo_University_logo.png/120px-Obafemi_Awolowo_University_logo.png' },
+    { name: 'UNN',    fullName: 'University of Nigeria, Nsukka',      color: 'linear-gradient(135deg,#7c3aed,#8b5cf6)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/6/6e/University_of_Nigeria_logo.png/120px-University_of_Nigeria_logo.png' },
+    { name: 'ABU',    fullName: 'Ahmadu Bello University',            color: 'linear-gradient(135deg,#c2410c,#ea580c)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/98/Ahmadu_Bello_University_logo.png/120px-Ahmadu_Bello_University_logo.png' },
+    { name: 'FUTA',   fullName: 'Federal Univ. of Technology, Akure', color: 'linear-gradient(135deg,#0e7490,#06b6d4)', logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e1/Federal_University_of_Technology_Akure_logo.png/120px-Federal_University_of_Technology_Akure_logo.png' },
   ];
 
   readonly testimonials: Testimonial[] = [
