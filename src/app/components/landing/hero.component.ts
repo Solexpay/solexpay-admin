@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { LucideAngularModule, GraduationCap, Apple, Smartphone, CheckCircle2, Zap, Bell, UtensilsCrossed, PiggyBank, Plus, Send, Receipt, Wallet } from 'lucide-angular';
+import { LucideAngularModule, GraduationCap, CheckCircle2, Zap, Bell, UtensilsCrossed, PiggyBank, Plus, Send, Receipt, Wallet } from 'lucide-angular';
 
 @Component({
   selector: 'app-landing-hero',
@@ -10,10 +10,8 @@ import { LucideAngularModule, GraduationCap, Apple, Smartphone, CheckCircle2, Za
     .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
     .phone-glow { box-shadow: 0 50px 100px -20px rgba(0,91,191,0.35), 0 20px 40px -10px rgba(0,91,191,0.20); }
     .phone-back { box-shadow: 0 40px 80px -20px rgba(0,109,44,0.25), 0 12px 28px rgba(0,0,0,0.14); }
-    /* iPhone 15 Pro – 146.6 x 70.85 mm → 9 : 19.5 */
     .phone-frame { background: linear-gradient(145deg, #1e293b 0%, #0f172a 60%, #020617 100%); aspect-ratio: 9 / 19.5; }
     .phone-frame-green { background: linear-gradient(145deg, #1f2937 0%, #111827 100%); aspect-ratio: 9 / 19.5; }
-    .phone-screen { aspect-ratio: 9 / 19.5; }
     @keyframes float { 0%,100%{transform:translateY(0) rotate(3deg)} 50%{transform:translateY(-12px) rotate(3deg)} }
     @keyframes float-delayed { 0%,100%{transform:translateY(-6px) rotate(-6deg)} 50%{transform:translateY(6px) rotate(-6deg)} }
     .animate-float { animation: float 5s ease-in-out infinite; }
@@ -48,15 +46,21 @@ import { LucideAngularModule, GraduationCap, Apple, Smartphone, CheckCircle2, Za
         <div class="pt-2">
           <p class="text-xs text-on-surface-variant mb-3 font-medium uppercase tracking-wider">Available on</p>
           <div class="flex flex-wrap gap-3">
+            <!-- App Store badge -->
             <a href="#download" class="flex items-center gap-3 bg-on-surface text-surface px-5 py-3 rounded-xl hover:bg-on-surface/90 transition-all">
-              <lucide-icon [img]="AppleIcon" class="w-7 h-7"></lucide-icon>
+              <svg class="w-7 h-7 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
+              </svg>
               <div class="text-left">
                 <p class="text-[10px] opacity-70 leading-none mb-0.5">Download on the</p>
                 <p class="text-sm font-bold leading-none">App Store</p>
               </div>
             </a>
+            <!-- Google Play badge -->
             <a href="#download" class="flex items-center gap-3 bg-on-surface text-surface px-5 py-3 rounded-xl hover:bg-on-surface/90 transition-all">
-              <lucide-icon [img]="SmartphoneIcon" class="w-7 h-7"></lucide-icon>
+              <svg class="w-7 h-7 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 010 2.594zM1.337.924a1.49 1.49 0 00-.271.83v20.49a1.49 1.49 0 00.278.84l.027.023 11.293-11.29v-.045L1.31.902zM14.58 17.679l-3.765-3.765L1.337 23.16c.495.525 1.29.59 1.865.16l11.378-5.641M14.58 6.43L3.203.793c-.576-.43-1.371-.365-1.866.16l10.478 10.246z"/>
+              </svg>
               <div class="text-left">
                 <p class="text-[10px] opacity-70 leading-none mb-0.5">Get it on</p>
                 <p class="text-sm font-bold leading-none">Google Play</p>
@@ -114,26 +118,26 @@ import { LucideAngularModule, GraduationCap, Apple, Smartphone, CheckCircle2, Za
           </div>
         </div>
 
-        <!-- Front phone - iPhone 15 Pro-style frame -->
+        <!-- Front phone -->
         <div class="relative z-20 ml-20 w-[260px] phone-frame rounded-[3.25rem] p-[7px] phone-glow animate-float">
-          <!-- Side button accents -->
           <div class="absolute left-[-3px] top-24 w-[3px] h-12 bg-slate-700 rounded-l-sm"></div>
           <div class="absolute left-[-3px] top-40 w-[3px] h-20 bg-slate-700 rounded-l-sm"></div>
           <div class="absolute right-[-3px] top-36 w-[3px] h-16 bg-slate-700 rounded-r-sm"></div>
 
           <div class="bg-slate-950 rounded-[2.9rem] p-1 h-full">
             <div class="bg-surface rounded-[2.65rem] overflow-hidden relative h-full">
-              <!-- Dynamic Island -->
               <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-950 rounded-full z-30"></div>
-
               <div class="p-5 pt-10 flex flex-col gap-4 h-full">
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2">
                     <div class="w-9 h-9 rounded-full editorial-gradient flex items-center justify-center shadow-sm">
-                      <img src="/logo-icon-white.png" alt="Solexpay" class="w-5 h-5" />
+                      <!-- Inline SVG logo (white) -->
+                      <svg class="w-5 h-5" viewBox="0 0 36 36" fill="none">
+                        <path d="M27 9.5C27 6.462 24.538 4 21.5 4H18C12.477 4 8 8.477 8 14s4.477 10 10 10h.5C23.851 24 28 28.149 28 33" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                      </svg>
                     </div>
                     <div>
-                      <p class="text-[10px] text-on-surface-variant">Good morning 👋</p>
+                      <p class="text-[10px] text-on-surface-variant">Good morning</p>
                       <p class="text-xs font-bold text-on-surface">Chidi</p>
                     </div>
                   </div>
@@ -221,8 +225,6 @@ import { LucideAngularModule, GraduationCap, Apple, Smartphone, CheckCircle2, Za
 })
 export class LandingHeroComponent {
   readonly GraduationCapIcon = GraduationCap;
-  readonly AppleIcon = Apple;
-  readonly SmartphoneIcon = Smartphone;
   readonly CheckIcon = CheckCircle2;
   readonly ZapIcon = Zap;
   readonly BellIcon = Bell;

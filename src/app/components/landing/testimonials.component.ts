@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { LucideAngularModule, Star } from 'lucide-angular';
 
-interface UniLogo { name: string; fullName: string; domain: string; }
+interface UniLogo { name: string; fullName: string; color: string; }
 interface Testimonial { name: string; school: string; quote: string; avatar: string; }
 
 @Component({
@@ -14,15 +14,16 @@ interface Testimonial { name: string; school: string; quote: string; avatar: str
       <div class="max-w-7xl mx-auto px-6">
         <div class="text-center mb-16" data-aos="fade-up">
           <p class="text-on-surface-variant font-bold text-sm tracking-widest uppercase mb-8">Trusted Across Nigeria</p>
-          <div class="flex flex-wrap justify-center items-center gap-5 md:gap-8 mb-16">
+          <div class="flex flex-wrap justify-center items-center gap-4 md:gap-5 mb-16">
             @for (uni of universities; track uni.name; let i = $index) {
-              <div class="flex items-center gap-3 px-5 py-3 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:-translate-y-0.5 transition-all duration-300"
+              <div class="flex items-center gap-3 px-5 py-3 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 hover:-translate-y-0.5 transition-all duration-300 cursor-default"
                    [title]="uni.fullName"
                    data-aos="fade-up" [attr.data-aos-delay]="i * 60">
-                <img [src]="'https://www.google.com/s2/favicons?domain=' + uni.domain + '&sz=64'"
-                     [alt]="uni.name"
-                     class="w-8 h-8 rounded-md object-contain"
-                     loading="lazy" />
+                <!-- Colored lettermark badge -->
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-[11px] font-black shrink-0 shadow-sm"
+                     [style.background]="uni.color">
+                  {{ uni.name.slice(0,3) }}
+                </div>
                 <span class="text-sm font-bold text-on-surface tracking-wide">{{ uni.name }}</span>
               </div>
             }
@@ -59,12 +60,12 @@ export class LandingTestimonialsComponent {
   readonly StarIcon = Star;
 
   readonly universities: UniLogo[] = [
-    { name: 'UNILAG', fullName: 'University of Lagos',              domain: 'unilag.edu.ng' },
-    { name: 'UI',     fullName: 'University of Ibadan',              domain: 'ui.edu.ng' },
-    { name: 'OAU',    fullName: 'Obafemi Awolowo University',        domain: 'oauife.edu.ng' },
-    { name: 'UNN',    fullName: 'University of Nigeria, Nsukka',     domain: 'unn.edu.ng' },
-    { name: 'ABU',    fullName: 'Ahmadu Bello University',           domain: 'abu.edu.ng' },
-    { name: 'FUTA',   fullName: 'Federal Univ. of Technology, Akure', domain: 'futa.edu.ng' },
+    { name: 'UNILAG', fullName: 'University of Lagos',               color: 'linear-gradient(135deg,#1d4ed8,#2563eb)' },
+    { name: 'UI',     fullName: 'University of Ibadan',               color: 'linear-gradient(135deg,#059669,#10b981)' },
+    { name: 'OAU',    fullName: 'Obafemi Awolowo University',         color: 'linear-gradient(135deg,#b91c1c,#dc2626)' },
+    { name: 'UNN',    fullName: 'University of Nigeria, Nsukka',      color: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
+    { name: 'ABU',    fullName: 'Ahmadu Bello University',            color: 'linear-gradient(135deg,#c2410c,#ea580c)' },
+    { name: 'FUTA',   fullName: 'Federal Univ. of Technology, Akure', color: 'linear-gradient(135deg,#0e7490,#06b6d4)' },
   ];
 
   readonly testimonials: Testimonial[] = [
