@@ -17,21 +17,21 @@ import { LucideAngularModule, ShieldCheck } from 'lucide-angular';
         <div class="relative z-10 max-w-2xl">
           <div class="flex items-center gap-3 mb-6">
             <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center">
-              <img src="/logo-icon-white.png" alt="Solexpay" class="w-7 h-7" />
+              <img src="/logo-icon.png" alt="Solexpay" class="w-9 h-auto object-contain brightness-0 invert" />
             </div>
             <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/15 rounded-full text-xs font-bold tracking-wider uppercase">
               <lucide-icon [img]="ShieldCheckIcon" class="w-3.5 h-3.5"></lucide-icon>
               CBN Regulated · Instant Disbursement
             </div>
           </div>
-          <h2 class="text-4xl md:text-5xl font-black mb-6 leading-tight font-display">School fees shouldn't<br/>stop you.</h2>
-          <p class="text-xl opacity-90 mb-10 leading-relaxed">Focus on your exams, we'll handle the finances. Get academic loans deposited instantly to your wallet.</p>
-          <div class="grid grid-cols-3 gap-4 mb-10">
+          <h2 class="text-3xl sm:text-4xl md:text-5xl font-black mb-4 sm:mb-6 leading-tight font-display">School fees shouldn't<br/>stop you.</h2>
+          <p class="text-base sm:text-xl opacity-90 mb-8 sm:mb-10 leading-relaxed">Focus on your exams, we'll handle the finances. Get academic loans deposited instantly to your wallet.</p>
+          <div class="grid grid-cols-3 gap-2 sm:gap-4 mb-8 sm:mb-10">
             @for (stat of loanStats; track stat.label; let i = $index) {
-              <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5"
+              <div class="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-5"
                    data-aos="fade-up" [attr.data-aos-delay]="i * 100">
                 <p class="text-xs font-medium opacity-70 mb-1">{{ stat.label }}</p>
-                <h4 class="text-2xl font-black font-display">{{ stat.value }}</h4>
+                <h4 class="text-xl sm:text-2xl font-black font-display">{{ stat.value }}</h4>
               </div>
             }
           </div>

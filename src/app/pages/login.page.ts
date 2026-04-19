@@ -24,7 +24,7 @@ function emailValidator(control: AbstractControl) {
       <div class="w-full max-w-md">
         <!-- Logo -->
         <div class="text-center mb-8">
-          <img src="/logo-icon.png" alt="Solexpay" class="h-14 w-14 mx-auto mb-4 object-contain drop-shadow-[0_4px_16px_rgba(0,91,191,0.25)]"/>
+          <img src="/logo-icon.png" alt="Solexpay" class="h-20 w-auto mx-auto mb-4 object-contain drop-shadow-[0_4px_16px_rgba(0,91,191,0.25)]"/>
           <h1 class="text-2xl font-bold text-on-surface">Solexpay</h1>
           <p class="text-sm text-on-surface-variant mt-1">Admin Portal</p>
         </div>

@@ -16,7 +16,7 @@ import { LucideAngularModule, Download, LogIn } from 'lucide-angular';
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-8">
           <div class="flex items-center gap-1">
-            <img src="/logo-icon.png" alt="Solexpay" class="h-14 w-14 shrink-0 object-contain"/>
+            <img src="/logo-icon.png" alt="Solexpay" class="h-10 w-auto shrink-0 object-contain"/>
             <span class="text-xl font-black tracking-tighter text-primary font-display">Solexpay</span>
           </div>
           <div class="hidden md:flex gap-6 items-center text-sm font-medium">
@@ -26,13 +26,14 @@ import { LucideAngularModule, Download, LogIn } from 'lucide-angular';
           </div>
         </div>
         <div class="flex items-center gap-3">
-          <a routerLink="/login" class="px-5 py-2 text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2">
+          <a routerLink="/login" class="hidden sm:flex px-5 py-2 text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors items-center gap-2">
             <lucide-icon [img]="LogInIcon" class="w-4 h-4"></lucide-icon>
             Admin Login
           </a>
-          <a href="#download" class="px-6 py-2.5 editorial-gradient text-on-primary font-bold text-sm rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
+          <a href="#download" class="px-4 sm:px-6 py-2 sm:py-2.5 editorial-gradient text-on-primary font-bold text-sm rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
             <lucide-icon [img]="DownloadIcon" class="w-4 h-4"></lucide-icon>
-            Get the App
+            <span class="hidden xs:inline sm:inline">Get the App</span>
+            <span class="sm:hidden">Download</span>
           </a>
         </div>
       </div>

@@ -18,24 +18,24 @@ import { LucideAngularModule, GraduationCap, CheckCircle2, Zap, Bell, UtensilsCr
     .animate-float-delayed { animation: float-delayed 6s ease-in-out infinite; }
   `],
   template: `
-    <section class="max-w-7xl mx-auto px-6 pt-32 pb-20 md:pb-28 grid md:grid-cols-2 gap-12 items-center">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-16 sm:pb-20 md:pb-28 grid md:grid-cols-2 gap-8 md:gap-12 items-center">
       <!-- Left copy -->
-      <div class="space-y-8" data-aos="fade-right" data-aos-duration="700">
+      <div class="space-y-6 sm:space-y-8" data-aos="fade-right" data-aos-duration="700">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant text-xs font-bold tracking-widest uppercase">
           <lucide-icon [img]="GraduationCapIcon" class="w-3.5 h-3.5"></lucide-icon>
           Built for Nigerian Students
         </div>
 
-        <h1 class="text-5xl md:text-[4.25rem] font-extrabold tracking-tighter leading-[1.05] text-on-surface font-display">
+        <h1 class="text-4xl sm:text-5xl md:text-[4.25rem] font-extrabold tracking-tighter leading-[1.05] text-on-surface font-display">
           The smarter<br/>wallet for<br/><span class="text-primary">campus life.</span>
         </h1>
 
-        <p class="text-lg text-on-surface-variant max-w-md leading-relaxed">
+        <p class="text-base sm:text-lg text-on-surface-variant max-w-md leading-relaxed">
           Manage allowances, pay school fees, and access instant student loans — all in one beautifully simple app.
         </p>
 
-        <div class="flex flex-wrap gap-4">
-          <a href="#download" class="px-8 py-4 editorial-gradient text-on-primary font-bold rounded-xl shadow-xl shadow-primary/25 hover:brightness-110 hover:-translate-y-0.5 transition-all">
+        <div class="flex flex-wrap gap-3 sm:gap-4">
+          <a href="#download" class="px-6 sm:px-8 py-3 sm:py-4 editorial-gradient text-on-primary font-bold rounded-xl shadow-xl shadow-primary/25 hover:brightness-110 hover:-translate-y-0.5 transition-all">
             Open Your Account
           </a>
           <a href="#features" class="px-8 py-4 bg-surface-container-high text-on-surface font-bold rounded-xl hover:bg-surface-container-highest transition-colors">
@@ -71,12 +71,12 @@ import { LucideAngularModule, GraduationCap, CheckCircle2, Zap, Bell, UtensilsCr
       </div>
 
       <!-- Right phone mockups -->
-      <div class="relative flex justify-center items-center min-h-[620px] md:min-h-[640px] lg:min-h-[620px]" data-aos="fade-left" data-aos-duration="800" data-aos-delay="150">
+      <div class="relative flex justify-center items-center min-h-[420px] sm:min-h-[520px] md:min-h-[620px]" data-aos="fade-left" data-aos-duration="800" data-aos-delay="150">
         <div class="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 w-64 h-64 bg-tertiary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <!-- Back phone -->
-        <div class="absolute left-0 top-10 z-10 w-[210px] phone-frame-green rounded-[2.75rem] p-[6px] phone-back animate-float-delayed">
+        <!-- Back phone — hidden on mobile -->
+        <div class="absolute left-0 top-10 z-10 hidden sm:block w-[210px] phone-frame-green rounded-[2.75rem] p-[6px] phone-back animate-float-delayed">
           <div class="bg-slate-950 rounded-[2.55rem] p-1 h-full">
             <div class="bg-surface rounded-[2.3rem] overflow-hidden h-full">
               <div class="h-6 bg-slate-950 flex items-center justify-center rounded-t-[2.3rem]">
@@ -119,7 +119,7 @@ import { LucideAngularModule, GraduationCap, CheckCircle2, Zap, Bell, UtensilsCr
         </div>
 
         <!-- Front phone -->
-        <div class="relative z-20 ml-20 w-[260px] phone-frame rounded-[3.25rem] p-[7px] phone-glow animate-float">
+        <div class="relative z-20 sm:ml-20 w-[210px] sm:w-[260px] phone-frame rounded-[3.25rem] p-[6px] sm:p-[7px] phone-glow animate-float">
           <div class="absolute left-[-3px] top-24 w-[3px] h-12 bg-slate-700 rounded-l-sm"></div>
           <div class="absolute left-[-3px] top-40 w-[3px] h-20 bg-slate-700 rounded-l-sm"></div>
           <div class="absolute right-[-3px] top-36 w-[3px] h-16 bg-slate-700 rounded-r-sm"></div>

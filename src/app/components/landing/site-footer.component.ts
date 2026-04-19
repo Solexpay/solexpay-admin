@@ -6,12 +6,12 @@ import { Component } from '@angular/core';
   template: `
     <footer class="bg-inverse-surface text-surface py-20">
       <div class="max-w-7xl mx-auto px-6">
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 md:gap-12 mb-12 md:mb-16">
 
           <!-- Brand -->
-          <div class="col-span-2 space-y-5">
+          <div class="sm:col-span-2 space-y-5">
             <div class="flex items-center gap-1">
-              <img src="/logo-icon.png" alt="Solexpay" class="h-16 w-16 shrink-0 object-contain brightness-0 invert"/>
+              <img src="/logo-icon.png" alt="Solexpay" class="h-10 w-auto shrink-0 object-contain brightness-0 invert"/>
               <span class="text-2xl font-black tracking-tighter text-white font-display">Solexpay</span>
             </div>
             <p class="text-outline-variant text-sm leading-relaxed max-w-xs">Financial empowerment for the next generation of African leaders. Built for Nigerian students.</p>
