@@ -127,42 +127,45 @@ import { LucideAngularModule, GraduationCap, CheckCircle2, Zap, Bell, UtensilsCr
           <div class="bg-slate-950 rounded-[2.9rem] p-1 h-full">
             <div class="bg-surface rounded-[2.65rem] overflow-hidden relative h-full">
               <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-950 rounded-full z-30"></div>
-              <div class="p-5 pt-10 flex flex-col gap-4 h-full">
+              <div class="px-4 pt-10 pb-4 flex flex-col gap-3 h-full">
+                <!-- Header -->
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-full editorial-gradient flex items-center justify-center shadow-sm">
-                      <!-- Inline SVG logo (white) -->
-                      <svg class="w-5 h-5" viewBox="0 0 36 36" fill="none">
-                        <path d="M27 9.5C27 6.462 24.538 4 21.5 4H18C12.477 4 8 8.477 8 14s4.477 10 10 10h.5C23.851 24 28 28.149 28 33" stroke="white" stroke-width="4" stroke-linecap="round"/>
-                      </svg>
+                    <div class="w-8 h-8 rounded-full editorial-gradient flex items-center justify-center shadow-sm">
+                      <img src="/logo-icon.png" alt="" class="w-5 h-5 object-contain brightness-0 invert"/>
                     </div>
                     <div>
-                      <p class="text-[10px] text-on-surface-variant">Good morning</p>
-                      <p class="text-xs font-bold text-on-surface">Chidi</p>
+                      <p class="text-[9px] text-on-surface-variant leading-none mb-0.5">Good morning</p>
+                      <p class="text-xs font-bold text-on-surface leading-none">Chidi</p>
                     </div>
                   </div>
                   <div class="relative">
-                    <lucide-icon [img]="BellIcon" class="w-5 h-5 text-outline"></lucide-icon>
+                    <lucide-icon [img]="BellIcon" class="w-4.5 h-4.5 text-outline"></lucide-icon>
                     <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-error rounded-full"></span>
                   </div>
                 </div>
 
-                <div class="editorial-gradient p-5 rounded-2xl text-on-primary shadow-lg">
-                  <p class="text-[10px] opacity-80 mb-1">Total Balance</p>
-                  <div class="flex items-baseline gap-1">
-                    <span class="text-sm font-medium">₦</span>
-                    <h2 class="text-3xl font-black font-display">45,200</h2>
-                    <span class="text-sm font-medium">.00</span>
+                <!-- Balance card — no quick actions inside, just the balance -->
+                <div class="editorial-gradient px-4 py-4 rounded-2xl text-on-primary shadow-lg">
+                  <p class="text-[9px] opacity-80 mb-1">Total Balance</p>
+                  <div class="flex items-baseline gap-0.5">
+                    <span class="text-xs font-medium">₦</span>
+                    <h2 class="text-2xl font-black font-display">45,200</h2>
+                    <span class="text-xs font-medium opacity-70">.00</span>
                   </div>
-                  <p class="text-[9px] opacity-70 mt-1">**** 4521 · Verified</p>
-                  <div class="mt-4 grid grid-cols-4 gap-1.5">
-                    @for (action of quickActions; track action.label) {
-                      <div class="bg-white/15 rounded-xl p-2 flex flex-col items-center gap-1">
-                        <lucide-icon [img]="action.icon" class="w-3.5 h-3.5"></lucide-icon>
-                        <p class="text-[8px] font-bold leading-none">{{ action.label }}</p>
+                  <p class="text-[8px] opacity-65 mt-0.5">**** 4521 · Verified</p>
+                </div>
+
+                <!-- Quick actions — own row, more space -->
+                <div class="grid grid-cols-4 gap-2">
+                  @for (action of quickActions; track action.label) {
+                    <div class="bg-surface-container rounded-xl py-2.5 flex flex-col items-center gap-1">
+                      <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <lucide-icon [img]="action.icon" class="w-3.5 h-3.5 text-primary"></lucide-icon>
                       </div>
-                    }
-                  </div>
+                      <p class="text-[8px] font-bold text-on-surface-variant leading-none">{{ action.label }}</p>
+                    </div>
+                  }
                 </div>
 
                 <div>

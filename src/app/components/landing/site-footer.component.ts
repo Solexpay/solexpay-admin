@@ -11,10 +11,7 @@ import { Component } from '@angular/core';
           <!-- Brand -->
           <div class="col-span-2 space-y-5">
             <div class="flex items-center gap-3">
-              <!-- White inline SVG logo — no background box -->
-              <svg class="h-9 w-9 shrink-0" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M27 9.5C27 6.462 24.538 4 21.5 4H18C12.477 4 8 8.477 8 14s4.477 10 10 10h.5C23.851 24 28 28.149 28 33" stroke="white" stroke-width="4" stroke-linecap="round"/>
-              </svg>
+              <img src="/logo-icon.png" alt="Solexpay" class="h-8 w-8 shrink-0 object-contain brightness-0 invert"/>
               <span class="text-2xl font-black tracking-tighter text-white font-display">Solexpay</span>
             </div>
             <p class="text-outline-variant text-sm leading-relaxed max-w-xs">Financial empowerment for the next generation of African leaders. Built for Nigerian students.</p>

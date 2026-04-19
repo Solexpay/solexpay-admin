@@ -57,48 +57,107 @@ import { Component } from '@angular/core';
           </div>
           <!-- Phone illustration -->
           <div class="flex justify-center" data-aos="fade-left" data-aos-duration="800" data-aos-delay="100">
-            <svg class="ill-phone w-full max-w-[320px]" viewBox="0 0 280 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="ill-phone w-full max-w-[300px]" viewBox="0 0 280 520" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <linearGradient id="hiw1Grad" x1="0" y1="0" x2="280" y2="500" gradientUnits="userSpaceOnUse">
+                <linearGradient id="hiw1G" x1="0" y1="0" x2="204" y2="95" gradientUnits="userSpaceOnUse">
                   <stop stop-color="#005bbf"/><stop offset="1" stop-color="#1a73e8"/>
                 </linearGradient>
-                <linearGradient id="hiw1Card" x1="0" y1="0" x2="240" y2="100" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#005bbf"/><stop offset="1" stop-color="#1a73e8"/>
+                <linearGradient id="hiw1Teal" x1="0" y1="0" x2="50" y2="50" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#0d9488"/><stop offset="1" stop-color="#06b6d4"/>
                 </linearGradient>
               </defs>
-              <!-- Phone frame -->
-              <rect x="20" y="10" width="240" height="480" rx="36" fill="#0f172a"/>
-              <!-- Dynamic island -->
-              <rect x="100" y="24" width="80" height="18" rx="9" fill="#1e293b"/>
+              <!-- Phone shell -->
+              <rect x="20" y="8" width="240" height="504" rx="38" fill="#0f172a"/>
+              <!-- Side buttons -->
+              <rect x="17" y="110" width="3" height="34" rx="1.5" fill="#334155"/>
+              <rect x="17" y="152" width="3" height="54" rx="1.5" fill="#334155"/>
+              <rect x="260" y="132" width="3" height="42" rx="1.5" fill="#334155"/>
+              <!-- Dynamic Island -->
+              <rect x="100" y="22" width="80" height="18" rx="9" fill="#1e293b"/>
               <!-- Screen -->
-              <rect x="26" y="46" width="228" height="438" rx="28" fill="#f8fafc"/>
-              <!-- App bar header -->
-              <rect x="26" y="46" width="228" height="60" rx="28" fill="url(#hiw1Card)"/>
-              <rect x="26" y="76" width="228" height="30" fill="url(#hiw1Card)"/>
-              <text x="140" y="82" text-anchor="middle" fill="white" font-size="11" font-weight="600" font-family="system-ui" opacity="0.8">Good morning</text>
-              <text x="140" y="98" text-anchor="middle" fill="white" font-size="14" font-weight="900" font-family="system-ui">Chidi</text>
-              <!-- Balance card -->
-              <rect x="40" y="120" width="200" height="100" rx="18" fill="url(#hiw1Card)"/>
-              <text x="56" y="144" fill="white" font-size="9" font-weight="500" opacity="0.75">Total Balance</text>
-              <text x="56" y="172" fill="white" font-size="26" font-weight="900" font-family="system-ui">₦45,200</text>
-              <text x="56" y="190" fill="white" font-size="8" opacity="0.6">**** 4521 · Verified</text>
-              <!-- Action buttons -->
-              <rect x="44" y="238" width="46" height="46" rx="14" fill="#eff6ff"/>
-              <text x="67" y="266" text-anchor="middle" fill="#1d4ed8" font-size="18" font-family="system-ui">↑</text>
-              <rect x="98" y="238" width="46" height="46" rx="14" fill="#eff6ff"/>
-              <text x="121" y="266" text-anchor="middle" fill="#1d4ed8" font-size="18" font-family="system-ui">↓</text>
-              <rect x="152" y="238" width="46" height="46" rx="14" fill="#eff6ff"/>
-              <text x="175" y="266" text-anchor="middle" fill="#1d4ed8" font-size="16" font-family="system-ui">₦</text>
-              <rect x="206" y="238" width="46" height="46" rx="14" fill="#eff6ff"/>
-              <text x="229" y="266" text-anchor="middle" fill="#1d4ed8" font-size="16" font-family="system-ui">☰</text>
-              <!-- Download progress -->
-              <text x="40" y="310" fill="#64748b" font-size="9" font-weight="700" font-family="system-ui">DOWNLOADING SOLEXPAY...</text>
-              <rect x="40" y="318" width="200" height="10" rx="5" fill="#e2e8f0"/>
-              <rect x="40" y="318" width="160" height="10" rx="5" fill="url(#hiw1Grad)"/>
-              <!-- App icon floating in -->
-              <circle cx="140" cy="395" r="38" fill="url(#hiw1Card)"/>
-              <text x="140" y="404" text-anchor="middle" fill="white" font-size="28" font-weight="900" font-family="system-ui">S</text>
-              <text x="140" y="450" text-anchor="middle" fill="#64748b" font-size="9" font-weight="600" font-family="system-ui">Tap to Open</text>
+              <rect x="26" y="48" width="228" height="452" rx="28" fill="#f8fafc"/>
+
+              <!-- ── Header ── -->
+              <!-- Avatar -->
+              <circle cx="54" cy="76" r="17" fill="url(#hiw1G)"/>
+              <text x="54" y="81" text-anchor="middle" fill="white" font-size="13" font-weight="900" font-family="system-ui">S</text>
+              <!-- Greeting -->
+              <text x="78" y="70" fill="#94a3b8" font-size="9" font-weight="500" font-family="system-ui">Good morning</text>
+              <text x="78" y="84" fill="#0f172a" font-size="13" font-weight="900" font-family="system-ui">Chidi</text>
+              <!-- Bell -->
+              <circle cx="232" cy="76" r="14" fill="#f1f5f9"/>
+              <rect x="226" y="71" width="12" height="9" rx="6" fill="#475569"/>
+              <rect x="228" y="79" width="8" height="3" rx="1.5" fill="#475569"/>
+              <rect x="230" y="81" width="4" height="2" rx="1" fill="#94a3b8"/>
+              <circle cx="237" cy="68" r="4" fill="#ef4444"/>
+
+              <!-- ── Balance Card ── -->
+              <rect x="38" y="102" width="204" height="108" rx="18" fill="url(#hiw1G)"/>
+              <text x="54" y="122" fill="white" font-size="9" font-weight="500" opacity="0.78" font-family="system-ui">Total Balance</text>
+              <text x="54" y="150" fill="white" font-size="14" font-weight="700" font-family="system-ui">₦</text>
+              <text x="70" y="150" fill="white" font-size="24" font-weight="900" font-family="system-ui">45,200</text>
+              <text x="159" y="150" fill="white" font-size="12" opacity="0.7" font-family="system-ui">.00</text>
+              <text x="54" y="166" fill="white" font-size="8" opacity="0.6" font-family="system-ui">**** 4521</text>
+              <!-- Verified badge -->
+              <rect x="106" y="157" width="48" height="14" rx="7" fill="rgba(255,255,255,0.18)"/>
+              <text x="130" y="168" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Verified</text>
+              <!-- Card dots -->
+              <circle cx="178" cy="164" r="4" fill="rgba(255,255,255,0.25)"/>
+              <circle cx="190" cy="164" r="4" fill="rgba(255,255,255,0.25)"/>
+              <circle cx="202" cy="164" r="4" fill="rgba(255,255,255,0.4)"/>
+              <!-- Row of action mini-buttons inside card -->
+              <rect x="50" y="178" width="38" height="22" rx="8" fill="rgba(255,255,255,0.18)"/>
+              <text x="69" y="193" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Fund</text>
+              <rect x="95" y="178" width="38" height="22" rx="8" fill="rgba(255,255,255,0.18)"/>
+              <text x="114" y="193" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Send</text>
+              <rect x="140" y="178" width="38" height="22" rx="8" fill="rgba(255,255,255,0.18)"/>
+              <text x="159" y="193" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Bills</text>
+              <rect x="185" y="178" width="38" height="22" rx="8" fill="rgba(255,255,255,0.18)"/>
+              <text x="204" y="193" text-anchor="middle" fill="white" font-size="8" font-weight="700" font-family="system-ui">Save</text>
+
+              <!-- ── Transactions Header ── -->
+              <text x="40" y="232" fill="#94a3b8" font-size="8" font-weight="700" font-family="system-ui" letter-spacing="0.5">RECENT ACTIVITY</text>
+
+              <!-- Transaction 1 -->
+              <rect x="38" y="242" width="204" height="38" rx="12" fill="white"/>
+              <circle cx="60" cy="261" r="13" fill="#dbeafe"/>
+              <!-- Fork icon simplified: a vertical rect -->
+              <rect x="57" y="254" width="2.5" height="14" rx="1.25" fill="#1d4ed8"/>
+              <rect x="62" y="254" width="2.5" height="8" rx="1.25" fill="#1d4ed8"/>
+              <rect x="57" y="262" width="7.5" height="2" rx="1" fill="#1d4ed8"/>
+              <text x="80" y="257" fill="#0f172a" font-size="10" font-weight="700" font-family="system-ui">Cafeteria</text>
+              <text x="80" y="270" fill="#94a3b8" font-size="8" font-family="system-ui">Food &amp; Drinks</text>
+              <text x="234" y="263" text-anchor="end" fill="#ef4444" font-size="10" font-weight="700" font-family="system-ui">-₦1,200</text>
+
+              <!-- Transaction 2 -->
+              <rect x="38" y="288" width="204" height="38" rx="12" fill="white"/>
+              <circle cx="60" cy="307" r="13" fill="#d1fae5"/>
+              <!-- Piggy icon: circle outline + coin slot -->
+              <circle cx="60" cy="307" r="7" fill="none" stroke="#059669" stroke-width="2"/>
+              <rect x="58" y="301" width="4" height="2.5" rx="1.25" fill="#059669"/>
+              <text x="80" y="303" fill="#0f172a" font-size="10" font-weight="700" font-family="system-ui">Savings Goal</text>
+              <text x="80" y="316" fill="#94a3b8" font-size="8" font-family="system-ui">Hostel Fund</text>
+              <text x="234" y="309" text-anchor="end" fill="#059669" font-size="10" font-weight="700" font-family="system-ui">+₦5,000</text>
+
+              <!-- Transaction 3 -->
+              <rect x="38" y="334" width="204" height="38" rx="12" fill="white"/>
+              <circle cx="60" cy="353" r="13" fill="#ede9fe"/>
+              <rect x="53" y="346" width="14" height="14" rx="3" fill="none" stroke="#7c3aed" stroke-width="2"/>
+              <rect x="53" y="351" width="14" height="2" fill="#7c3aed" opacity="0.5"/>
+              <text x="80" y="349" fill="#0f172a" font-size="10" font-weight="700" font-family="system-ui">School Fees</text>
+              <text x="80" y="362" fill="#94a3b8" font-size="8" font-family="system-ui">Portal Payment</text>
+              <text x="234" y="355" text-anchor="end" fill="#ef4444" font-size="10" font-weight="700" font-family="system-ui">-₦35,000</text>
+
+              <!-- Bottom bar -->
+              <rect x="26" y="460" width="228" height="40" rx="0" fill="white"/>
+              <rect x="26" y="488" width="228" height="12" rx="28" fill="white"/>
+              <!-- Nav dots -->
+              <circle cx="80" cy="476" r="4" fill="url(#hiw1G)"/>
+              <circle cx="114" cy="476" r="4" fill="#e2e8f0"/>
+              <circle cx="148" cy="476" r="4" fill="#e2e8f0"/>
+              <circle cx="182" cy="476" r="4" fill="#e2e8f0"/>
+              <!-- Home indicator pill -->
+              <rect x="108" y="496" width="64" height="4" rx="2" fill="#cbd5e1"/>
             </svg>
           </div>
         </div>
