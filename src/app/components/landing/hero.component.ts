@@ -88,24 +88,24 @@ import { LucideAngularModule, GraduationCap, CheckCircle2, Zap, Bell, UtensilsCr
                   <p class="text-2xl font-black font-display">₦250,000</p>
                   <p class="text-[9px] opacity-70 mt-1">Disbursed to your wallet</p>
                 </div>
-                <div class="flex-1 flex flex-col gap-2">
-                  <div class="bg-surface-container-low p-3 rounded-xl flex justify-between items-center">
+                <div class="flex-1 flex flex-col gap-2 min-h-0">
+                  <div class="flex-1 bg-surface-container-low px-3 rounded-xl flex justify-between items-center">
                     <span class="text-[10px] font-medium text-on-surface-variant">Next Payment</span>
                     <span class="text-[10px] font-bold text-on-surface">May 15</span>
                   </div>
-                  <div class="bg-surface-container-low p-3 rounded-xl flex justify-between items-center">
+                  <div class="flex-1 bg-surface-container-low px-3 rounded-xl flex justify-between items-center">
                     <span class="text-[10px] font-medium text-on-surface-variant">Monthly</span>
                     <span class="text-[10px] font-bold text-tertiary">₦23,333</span>
                   </div>
-                  <div class="bg-surface-container-low p-3 rounded-xl flex justify-between items-center">
+                  <div class="flex-1 bg-surface-container-low px-3 rounded-xl flex justify-between items-center">
                     <span class="text-[10px] font-medium text-on-surface-variant">Interest Rate</span>
                     <span class="text-[10px] font-bold text-on-surface">12% APR</span>
                   </div>
-                  <div class="bg-surface-container-low p-3 rounded-xl flex justify-between items-center">
+                  <div class="flex-1 bg-surface-container-low px-3 rounded-xl flex justify-between items-center">
                     <span class="text-[10px] font-medium text-on-surface-variant">Tenor</span>
                     <span class="text-[10px] font-bold text-on-surface">12 months</span>
                   </div>
-                  <div class="bg-surface-container-low p-3 rounded-xl flex justify-between items-center">
+                  <div class="flex-1 bg-surface-container-low px-3 rounded-xl flex justify-between items-center">
                     <span class="text-[10px] font-medium text-on-surface-variant">Remaining</span>
                     <span class="text-[10px] font-bold text-on-surface">₦210,000</span>
                   </div>
