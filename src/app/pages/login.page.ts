@@ -238,12 +238,19 @@ export class LoginPageComponent {
 
     this.forgotLoading.set(true);
     this.auth.forgotPassword(email).subscribe({
-      next: () => {
+      next: (response) => {
         this.forgotLoading.set(false);
-        this.toast.show('success', 'Password reset instructions sent to your email');
+        console.log('Forgot password response:', response);
+        // In dev mode, show the reset link in console for testing
+        if (response.resetLink) {
+          console.log('DEV MODE - Reset link:', response.resetLink);
+          console.log('DEV MODE - Reset token:', response.resetToken);
+        }
+        this.toast.show('success', response.message || 'Password reset instructions sent to your email');
       },
       error: (err: any) => {
         this.forgotLoading.set(false);
+        console.error('Forgot password error:', err);
         this.toast.show('error', err.error?.message || 'Unable to send reset link');
       }
     });
