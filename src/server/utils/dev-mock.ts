@@ -16,8 +16,23 @@ export const MOCK = {
     user: { id: 'usr-001', email: 'admin@solexpay.com', role: 'ADMIN', name: 'Dev Admin' },
   },
 
-  forgotPassword: {
-    message: 'If the email exists, a reset link has been sent.',
+  forgotPassword: (email: string) => {
+    // Simulate a realistic forgot password flow
+    const mockResetToken = 'mock-reset-token-' + Math.random().toString(36).substring(2, 15);
+    const resetLink = `http://localhost:5173/reset-password?token=${mockResetToken}&email=${encodeURIComponent(email)}`;
+    
+    // Simulate processing delay (in real life, email sending takes time)
+    const processingTime = Math.floor(Math.random() * 500) + 200;
+    
+    return {
+      message: 'If the email exists, a reset link has been sent.',
+      email: email,
+      resetLink: IS_DEV ? resetLink : undefined, // Only show reset link in dev mode for testing
+      resetToken: IS_DEV ? mockResetToken : undefined, // Only show token in dev mode
+      expiresIn: '24h',
+      sentAt: new Date().toISOString(),
+      _devNote: IS_DEV ? 'DEV MODE: Use the reset link above to test the flow. Token expires in 24 hours.' : undefined,
+    };
   },
 
   dashboard: {

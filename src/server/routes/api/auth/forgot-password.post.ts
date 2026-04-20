@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const email = assertEmail(body?.email);
 
-  if (IS_DEV) return MOCK.forgotPassword;
+  if (IS_DEV) return MOCK.forgotPassword(email);
 
   const res = await fetch(`${process.env['API_URL']}/auth/forgot-password`, {
     method: 'POST',
