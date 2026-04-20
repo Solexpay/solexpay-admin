@@ -22,6 +22,7 @@ export const MOCK = {
 
   dashboard: {
     totalUsers: 1482,
+    totalVolume: 48200000,
     activeUsers: 1104,
     totalTransactions: 23410,
     totalTransactionVolume: 48200000,
@@ -31,14 +32,19 @@ export const MOCK = {
     overdueLoans: 18,
     totalLoanDisbursed: 15600000,
     revenue: 980000,
+    trends: {
+      users: 12.5,
+      volume: 8.3,
+      loans: -2.1,
+    },
     volumeByDay: [
-      { date: '2024-01-01', amount: 150000 },
-      { date: '2024-01-02', amount: 230000 },
-      { date: '2024-01-03', amount: 180000 },
-      { date: '2024-01-04', amount: 320000 },
-      { date: '2024-01-05', amount: 280000 },
-      { date: '2024-01-06', amount: 350000 },
-      { date: '2024-01-07', amount: 410000 },
+      { date: new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10), amount: 150000 },
+      { date: new Date(Date.now() - 5 * 86400000).toISOString().slice(0, 10), amount: 230000 },
+      { date: new Date(Date.now() - 4 * 86400000).toISOString().slice(0, 10), amount: 180000 },
+      { date: new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10), amount: 320000 },
+      { date: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10), amount: 280000 },
+      { date: new Date(Date.now() - 1 * 86400000).toISOString().slice(0, 10), amount: 350000 },
+      { date: new Date().toISOString().slice(0, 10), amount: 410000 },
     ],
     pendingKycItems: [
       { id: '1', name: 'John Doe', type: 'BVN Verification', time: '2 min ago' },
@@ -55,32 +61,32 @@ export const MOCK = {
   },
 
   users: page([
-    { id: 'usr-001', name: 'Chidi Okafor',    email: 'chidi@example.com',  phone: '08011111111', status: 'ACTIVE',    kycStatus: 'VERIFIED',  createdAt: '2024-01-10T09:00:00Z' },
-    { id: 'usr-002', name: 'Amaka Eze',        email: 'amaka@example.com',  phone: '08022222222', status: 'ACTIVE',    kycStatus: 'VERIFIED',  createdAt: '2024-01-15T11:30:00Z' },
-    { id: 'usr-003', name: 'Emeka Nwosu',      email: 'emeka@example.com',  phone: '08033333333', status: 'SUSPENDED', kycStatus: 'VERIFIED',  createdAt: '2024-02-01T08:00:00Z' },
-    { id: 'usr-004', name: 'Ngozi Adeyemi',    email: 'ngozi@example.com',  phone: '08044444444', status: 'ACTIVE',    kycStatus: 'PENDING',   createdAt: '2024-02-14T14:00:00Z' },
-    { id: 'usr-005', name: 'Tunde Balogun',    email: 'tunde@example.com',  phone: '08055555555', status: 'ACTIVE',    kycStatus: 'VERIFIED',  createdAt: '2024-03-02T10:00:00Z' },
-    { id: 'usr-006', name: 'Ifeoma Okeke',     email: 'ifeoma@example.com', phone: '08066666666', status: 'ACTIVE',    kycStatus: 'REJECTED',  createdAt: '2024-03-20T16:45:00Z' },
+    { id: 'usr-001', firstName: 'Chidi',  lastName: 'Okafor',   email: 'chidi@example.com',  phoneNumber: '08011111111', status: 'ACTIVE',    kycTier: 'TIER_2', createdAt: '2026-01-10T09:00:00Z', walletBalance: 125000 },
+    { id: 'usr-002', firstName: 'Amaka',  lastName: 'Eze',      email: 'amaka@example.com',  phoneNumber: '08022222222', status: 'ACTIVE',    kycTier: 'TIER_2', createdAt: '2026-01-15T11:30:00Z', walletBalance: 89000 },
+    { id: 'usr-003', firstName: 'Emeka',  lastName: 'Nwosu',    email: 'emeka@example.com',  phoneNumber: '08033333333', status: 'SUSPENDED', kycTier: 'TIER_2', createdAt: '2026-02-01T08:00:00Z', walletBalance: 0 },
+    { id: 'usr-004', firstName: 'Ngozi',  lastName: 'Adeyemi',  email: 'ngozi@example.com',  phoneNumber: '08044444444', status: 'ACTIVE',    kycTier: 'TIER_1', createdAt: '2026-02-14T14:00:00Z', walletBalance: 45000 },
+    { id: 'usr-005', firstName: 'Tunde',  lastName: 'Balogun',  email: 'tunde@example.com',  phoneNumber: '08055555555', status: 'ACTIVE',    kycTier: 'TIER_2', createdAt: '2026-03-02T10:00:00Z', walletBalance: 52000 },
+    { id: 'usr-006', firstName: 'Ifeoma', lastName: 'Okeke',    email: 'ifeoma@example.com', phoneNumber: '08066666666', status: 'ACTIVE',    kycTier: 'TIER_0', createdAt: '2026-03-20T16:45:00Z', walletBalance: 3000 },
   ]),
 
   transactions: page([
-    { id: 'txn-001', userId: 'usr-001', type: 'TRANSFER',  amount: 15000,  status: 'SUCCESS',  reference: 'REF001', description: 'School fees',    createdAt: '2024-04-01T09:10:00Z' },
-    { id: 'txn-002', userId: 'usr-002', type: 'DEPOSIT',   amount: 50000,  status: 'SUCCESS',  reference: 'REF002', description: 'Wallet top-up',  createdAt: '2024-04-02T11:00:00Z' },
-    { id: 'txn-003', userId: 'usr-003', type: 'WITHDRAWAL',amount: 8000,   status: 'FAILED',   reference: 'REF003', description: 'ATM withdrawal', createdAt: '2024-04-03T13:20:00Z' },
-    { id: 'txn-004', userId: 'usr-004', type: 'LOAN_DISBURSEMENT', amount: 100000, status: 'SUCCESS', reference: 'REF004', description: 'Loan payout', createdAt: '2024-04-04T08:30:00Z' },
-    { id: 'txn-005', userId: 'usr-005', type: 'TRANSFER',  amount: 3500,   status: 'PENDING',  reference: 'REF005', description: 'Airtime',        createdAt: '2024-04-05T17:00:00Z' },
+    { id: 'txn-001', type: 'WALLET_FUNDING', amount: 50000, status: 'SUCCESS', senderName: 'GTBank', recipientName: 'Chidi Okafor', reference: 'WAL-20260418001', description: 'Wallet funding via bank transfer', createdAt: new Date(Date.now() - 2 * 3600000).toISOString() },
+    { id: 'txn-002', type: 'LOAN_DISBURSEMENT', amount: 150000, status: 'SUCCESS', senderName: 'SolexPay', recipientName: 'Amaka Eze', reference: 'LOAN-20260418002', description: 'Loan disbursement - Education', createdAt: new Date(Date.now() - 6 * 3600000).toISOString() },
+    { id: 'txn-003', type: 'NIP_TRANSFER', amount: 25000, status: 'PENDING', senderName: 'Emeka Nwosu', recipientName: 'UBA Account', reference: 'NIP-20260418003', description: 'Interbank transfer', createdAt: new Date(Date.now() - 10 * 3600000).toISOString() },
+    { id: 'txn-004', type: 'LOAN_REPAYMENT', amount: 12500, status: 'SUCCESS', senderName: 'Ngozi Adeyemi', recipientName: 'SolexPay', reference: 'REP-20260417004', description: 'Monthly loan repayment', createdAt: new Date(Date.now() - 20 * 3600000).toISOString() },
+    { id: 'txn-005', type: 'BILL_PAYMENT', amount: 5000, status: 'FAILED', senderName: 'Tunde Balogun', recipientName: 'PHCN', reference: 'BILL-20260416005', description: 'Electricity bill payment', createdAt: new Date(Date.now() - 22 * 3600000).toISOString() },
   ]),
 
   loans: page([
-    { id: 'loan-001', userId: 'usr-001', amount: 100000, balance: 75000,  status: 'ACTIVE',    interestRate: 5, disbursedAt: '2024-01-20T09:00:00Z', dueDate: '2024-07-20' },
-    { id: 'loan-002', userId: 'usr-002', amount: 50000,  balance: 50000,  status: 'PENDING',   interestRate: 5, disbursedAt: null,                   dueDate: null },
-    { id: 'loan-003', userId: 'usr-003', amount: 75000,  balance: 80000,  status: 'OVERDUE',   interestRate: 5, disbursedAt: '2023-12-01T09:00:00Z', dueDate: '2024-03-01' },
-    { id: 'loan-004', userId: 'usr-005', amount: 200000, balance: 200000, status: 'APPROVED',  interestRate: 5, disbursedAt: null,                   dueDate: null },
-    { id: 'loan-005', userId: 'usr-006', amount: 30000,  balance: 0,      status: 'REPAID',    interestRate: 5, disbursedAt: '2024-02-01T09:00:00Z', dueDate: '2024-05-01' },
+    { id: 'LOAN-001', userId: 'USR-001', userName: 'Chidi Okafor', schoolName: 'University of Lagos', amount: 150000, interestRate: 15, tenorMonths: 6, monthlyRepayment: 28750, status: 'OPS_REVIEW', purpose: 'Tuition Fees', appliedAt: new Date(Date.now() - 86400000).toISOString(), creditScore: 720 },
+    { id: 'LOAN-002', userId: 'USR-002', userName: 'Amaka Eze', schoolName: 'Covenant University', amount: 250000, interestRate: 12, tenorMonths: 12, monthlyRepayment: 23333, status: 'PENDING', purpose: 'Accommodation', appliedAt: new Date(Date.now() - 172800000).toISOString(), creditScore: 680 },
+    { id: 'LOAN-003', userId: 'USR-003', userName: 'Emeka Nwosu', schoolName: 'University of Ibadan', amount: 100000, interestRate: 18, tenorMonths: 3, monthlyRepayment: 34500, status: 'OPS_REVIEW', purpose: 'Books & Materials', appliedAt: new Date(Date.now() - 259200000).toISOString(), creditScore: 450 },
+    { id: 'LOAN-004', userId: 'USR-004', userName: 'Ngozi Adeyemi', schoolName: 'Ahmadu Bello University', amount: 500000, interestRate: 10, tenorMonths: 24, monthlyRepayment: 22917, status: 'APPROVED', purpose: 'Tuition Fees', appliedAt: new Date(Date.now() - 432000000).toISOString(), creditScore: 780 },
+    { id: 'LOAN-005', userId: 'USR-005', userName: 'Tunde Balogun', schoolName: 'University of Abuja', amount: 120000, interestRate: 14, tenorMonths: 9, monthlyRepayment: 15400, status: 'DISBURSED', purpose: 'Hostel Fees', appliedAt: new Date(Date.now() - 604800000).toISOString(), creditScore: 640 },
   ]),
 
   overdueLoans: page([
-    { id: 'loan-003', userId: 'usr-003', amount: 75000, balance: 80000, status: 'OVERDUE', daysOverdue: 45, dueDate: '2024-03-01' },
+    { id: 'loan-003', userId: 'usr-003', amount: 75000, balance: 80000, status: 'OVERDUE', daysOverdue: 45, dueDate: '2026-03-01' },
   ]),
 
   kyc: page([

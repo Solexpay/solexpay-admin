@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-site-footer',
   standalone: true,
+  imports: [RouterLink],
   template: `
     <footer class="bg-inverse-surface text-surface py-20">
       <div class="max-w-7xl mx-auto px-6">
@@ -60,8 +62,12 @@ import { Component } from '@angular/core';
               <li class="hover:text-primary-fixed transition-colors cursor-pointer">About Us</li>
               <li class="hover:text-primary-fixed transition-colors cursor-pointer">Careers</li>
               <li class="hover:text-primary-fixed transition-colors cursor-pointer">Contact</li>
-              <li class="hover:text-primary-fixed transition-colors cursor-pointer">Privacy Policy</li>
-              <li class="hover:text-primary-fixed transition-colors cursor-pointer">Terms of Service</li>
+              <li>
+                <a routerLink="/privacy" class="hover:text-primary-fixed transition-colors">Privacy Policy</a>
+              </li>
+              <li>
+                <a routerLink="/terms" class="hover:text-primary-fixed transition-colors">Terms of Service</a>
+              </li>
             </ul>
           </div>
 
@@ -94,10 +100,10 @@ import { Component } from '@angular/core';
         </div>
 
         <div class="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-outline-variant text-xs">
-          <p>© 2025 SolexPay Technologies Ltd. All rights reserved.</p>
+          <p>© 2026 SolexPay Technologies Ltd. All rights reserved.</p>
           <div class="flex gap-6">
-            <span class="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
-            <span class="hover:text-white cursor-pointer transition-colors">Terms of Service</span>
+            <a routerLink="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
+            <a routerLink="/terms" class="hover:text-white transition-colors">Terms of Service</a>
             <span class="hover:text-white cursor-pointer transition-colors">Help Center</span>
           </div>
         </div>

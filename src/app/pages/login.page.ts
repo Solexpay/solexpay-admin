@@ -54,7 +54,7 @@ function emailValidator(control: AbstractControl) {
                   class="w-full bg-surface-container-highest rounded-xl py-3 pl-10 pr-4
                          transition-all duration-200 text-sm font-medium outline-none
                          focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 animate-focus-ring"
-                  placeholder="admin@solexpay.com"
+                  placeholder="admin&#64;solexpay.com"
                   [class.ring-2]="emailInvalid()"
                   [class.ring-error]="emailInvalid()">
               </div>
@@ -63,7 +63,7 @@ function emailValidator(control: AbstractControl) {
               } @else if (showEmailHelperWarning()) {
                 <p class="mt-1.5 text-xs text-amber-700 bg-amber-100 border border-amber-300 rounded-lg px-2.5 py-1.5 inline-flex items-center gap-1.5">
                   <span class="material-symbols-outlined text-sm">warning</span>
-                  Use format like name@school.edu.ng
+                  Use format like name&#64;school.edu.ng
                 </p>
               }
             </div>
@@ -123,7 +123,7 @@ function emailValidator(control: AbstractControl) {
             <!-- Submit -->
             <button
               solexRipple
-              glowEffect
+              glowEffect="always"
               type="submit"
               [disabled]="isLoading()"
               class="w-full py-3 bg-primary text-on-primary rounded-xl font-bold text-sm
@@ -158,7 +158,7 @@ function emailValidator(control: AbstractControl) {
 
         <!-- Footer -->
         <p class="text-center text-xs text-on-surface-variant mt-8">
-          © 2024 SolexPay. All rights reserved.
+          © 2026 SolexPay. All rights reserved.
         </p>
       </div>
     </div>

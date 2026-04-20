@@ -12,6 +12,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login.page').then(m => m.LoginPageComponent)
   },
   {
+    path: 'terms',
+    loadComponent: () => import('./pages/terms-of-service.page').then(m => m.TermsOfServicePageComponent)
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./pages/privacy-policy.page').then(m => m.PrivacyPolicyPageComponent)
+  },
+  {
     path: '',
     loadComponent: () => import('./components/layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     canActivate: [authGuard],
