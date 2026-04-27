@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const { authorization } = getHeaders(event);
   if (!authorization) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
-  if (IS_DEV) return MOCK.loans;
+  if (IS_DEV) return { data: MOCK.loans };
 
   const params = allowQueryParams(getQuery(event), ['page', 'size', 'status', 'userId', 'sort']);
 

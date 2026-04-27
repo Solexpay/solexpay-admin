@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const { authorization } = getHeaders(event);
   if (!authorization) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
-  if (IS_DEV) return MOCK.dashboard;
+  if (IS_DEV) return { data: MOCK.dashboard };
 
   const res = await fetch(`${process.env['API_URL']}/admin/dashboard/metrics`, {
     headers: { Authorization: authorization },

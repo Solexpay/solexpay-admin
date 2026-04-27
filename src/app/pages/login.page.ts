@@ -9,6 +9,8 @@ import { ShakeOnErrorDirective } from '../directives/shake-on-error.directive';
 import { GlowEffectDirective } from '../directives/glow-effect.directive';
 
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
+const LOCKOUT_THRESHOLD = 5;
+const LOCKOUT_MINUTES = 15;
 
 function emailValidator(control: AbstractControl) {
   const v = control.value as string;
@@ -77,12 +79,14 @@ function emailValidator(control: AbstractControl) {
                   [type]="showPassword() ? 'text' : 'password'"
                   formControlName="password"
                   autocomplete="current-password"
+                  (focus)="passwordFocused.set(true)"
+                  (blur)="passwordFocused.set(false)"
                   class="w-full bg-surface-container-highest rounded-xl py-3 pl-10 pr-10
                          transition-all duration-200 text-sm font-medium outline-none
                          focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20"
                   [class.ring-2]="passwordInvalid()"
                   [class.ring-error]="passwordInvalid()"
-                  placeholder="••••••••">
+                  placeholder="Min. 8 characters">
                 <button
                   type="button"
                   (click)="showPassword.set(!showPassword())"
@@ -94,13 +98,43 @@ function emailValidator(control: AbstractControl) {
               </div>
               @if (passwordInvalid()) {
                 <p class="text-xs text-error mt-1">{{ passwordError() }}</p>
-              } @else if (showPasswordHelperWarning()) {
-                <p class="mt-1.5 text-xs text-amber-700 bg-amber-100 border border-amber-300 rounded-lg px-2.5 py-1.5 inline-flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-sm">warning</span>
-                  Password must be at least 8 characters
-                </p>
+              } @else {
+                <!-- Strength hint shown while typing -->
+                @if (passwordFocused() && passwordLength() > 0 && passwordLength() < 8) {
+                  <div class="mt-1.5 flex items-center gap-2">
+                    <div class="flex gap-0.5 flex-1">
+                      @for (n of [1,2,3,4]; track n) {
+                        <div class="h-1 flex-1 rounded-full transition-colors duration-200"
+                             [class]="n <= passwordStrengthBars() ? strengthBarColor() : 'bg-surface-container-high'">
+                        </div>
+                      }
+                    </div>
+                    <span class="text-xs" [class]="strengthTextColor()">{{ passwordStrengthLabel() }}</span>
+                  </div>
+                }
+              }
+              @if (!passwordFocused() && !passwordInvalid()) {
+                <p class="text-xs text-on-surface-variant mt-1">Must be 8–128 characters</p>
               }
             </div>
+
+            <!-- Failed login warning -->
+            @if (failedAttempts() >= 3 && failedAttempts() < LOCKOUT_THRESHOLD) {
+              <div class="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-800">
+                <span class="material-symbols-outlined text-[16px] text-amber-600 mt-0.5 shrink-0">warning</span>
+                <span>
+                  {{ LOCKOUT_THRESHOLD - failedAttempts() }} attempt{{ LOCKOUT_THRESHOLD - failedAttempts() === 1 ? '' : 's' }} remaining before your account is temporarily locked.
+                </span>
+              </div>
+            }
+            @if (isLockedOut()) {
+              <div class="flex items-start gap-2.5 bg-error-container border border-error/20 rounded-xl px-3 py-2.5 text-xs text-on-error-container">
+                <span class="material-symbols-outlined text-[16px] mt-0.5 shrink-0">lock</span>
+                <span>
+                  Too many failed attempts. Please wait {{ lockoutMinutesLeft() }} minute{{ lockoutMinutesLeft() === 1 ? '' : 's' }} before trying again, or reset your password.
+                </span>
+              </div>
+            }
 
             <!-- Role Toggle -->
             <div class="flex gap-2 p-1 bg-surface-container rounded-xl">
@@ -125,7 +159,7 @@ function emailValidator(control: AbstractControl) {
               solexRipple
               glowEffect="always"
               type="submit"
-              [disabled]="isLoading()"
+              [disabled]="isLoading() || isLockedOut()"
               class="w-full py-3 bg-primary text-on-primary rounded-xl font-bold text-sm
                      transition-all hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
                      shadow-[0_4px_16px_rgba(0,91,191,0.3)]">
@@ -134,6 +168,8 @@ function emailValidator(control: AbstractControl) {
                   <span class="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></span>
                   Signing in...
                 </span>
+              } @else if (isLockedOut()) {
+                Account Locked — Try Again Later
               } @else {
                 Sign In
               }
@@ -141,7 +177,10 @@ function emailValidator(control: AbstractControl) {
           </form>
 
           <!-- Links -->
-          <div class="mt-6 text-center">
+          <div class="mt-6 flex items-center justify-between">
+            <p class="text-xs text-on-surface-variant">
+              Secure 256-bit encrypted login
+            </p>
             <button
               type="button"
               (click)="forgotPassword()"
@@ -165,6 +204,8 @@ function emailValidator(control: AbstractControl) {
   `
 })
 export class LoginPageComponent {
+  readonly LOCKOUT_THRESHOLD = LOCKOUT_THRESHOLD;
+
   private auth = inject(AuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
@@ -179,6 +220,21 @@ export class LoginPageComponent {
   isLoading = signal(false);
   forgotLoading = signal(false);
   role = signal<'ADMIN' | 'SCHOOL'>('ADMIN');
+  passwordFocused = signal(false);
+
+  failedAttempts = signal(0);
+  private lockoutUntil = signal<number | null>(null);
+
+  isLockedOut = computed(() => {
+    const until = this.lockoutUntil();
+    return until !== null && Date.now() < until;
+  });
+
+  lockoutMinutesLeft = computed(() => {
+    const until = this.lockoutUntil();
+    if (!until) return 0;
+    return Math.ceil((until - Date.now()) / 60000);
+  });
 
   private get emailCtrl() { return this.form.controls.email; }
   private get passwordCtrl() { return this.form.controls.password; }
@@ -195,14 +251,42 @@ export class LoginPageComponent {
   });
 
   passwordInvalid = computed(() => this.passwordCtrl.invalid && this.passwordCtrl.touched);
-  showPasswordHelperWarning = computed(() => {
-    const value = this.passwordCtrl.value || '';
-    return value.length > 0 && value.length < 8 && !this.passwordCtrl.touched;
-  });
   passwordError = computed(() => {
     if (this.passwordCtrl.hasError('required')) return 'Password is required';
     if (this.passwordCtrl.hasError('minlength')) return 'Password must be at least 8 characters';
     return null;
+  });
+
+  passwordLength = computed(() => (this.passwordCtrl.value || '').length);
+
+  passwordStrengthBars = computed(() => {
+    const len = this.passwordLength();
+    if (len === 0) return 0;
+    if (len < 4) return 1;
+    if (len < 6) return 2;
+    if (len < 8) return 3;
+    return 4;
+  });
+
+  passwordStrengthLabel = computed(() => {
+    const bars = this.passwordStrengthBars();
+    return ['', 'Weak', 'Fair', 'Almost', 'Ready'][bars];
+  });
+
+  strengthBarColor = computed(() => {
+    const bars = this.passwordStrengthBars();
+    if (bars <= 1) return 'bg-error';
+    if (bars === 2) return 'bg-amber-400';
+    if (bars === 3) return 'bg-yellow-400';
+    return 'bg-tertiary';
+  });
+
+  strengthTextColor = computed(() => {
+    const bars = this.passwordStrengthBars();
+    if (bars <= 1) return 'text-error';
+    if (bars === 2) return 'text-amber-600';
+    if (bars === 3) return 'text-yellow-600';
+    return 'text-tertiary';
   });
 
   goBack() {
@@ -210,6 +294,7 @@ export class LoginPageComponent {
   }
 
   login() {
+    if (this.isLockedOut()) return;
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
@@ -218,12 +303,21 @@ export class LoginPageComponent {
 
     this.auth.login({ email, password }, this.role()).subscribe({
       next: () => {
+        this.failedAttempts.set(0);
+        this.lockoutUntil.set(null);
         this.toast.show('success', 'Welcome back!');
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.toast.show('error', err.error?.message || 'Invalid credentials');
+        const attempts = this.failedAttempts() + 1;
+        this.failedAttempts.set(attempts);
+        if (attempts >= LOCKOUT_THRESHOLD) {
+          this.lockoutUntil.set(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
+          this.toast.show('error', `Too many failed attempts. Try again in ${LOCKOUT_MINUTES} minutes.`);
+        } else {
+          this.toast.show('error', err.error?.message || 'Invalid credentials');
+        }
       }
     });
   }

@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { lastValueFrom } from 'rxjs';
 import { AdminService, DashboardMetrics } from '../../services/admin.service';
@@ -15,7 +16,7 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MetricCardComponent, StatusChipComponent, ShimmerSkeletonComponent, CountUpDirective, HoverScaleDirective, TooltipDirective, PulseAnimationDirective, ScrollRevealDirective],
+  imports: [CommonModule, RouterLink, MetricCardComponent, StatusChipComponent, ShimmerSkeletonComponent, CountUpDirective, HoverScaleDirective, TooltipDirective, PulseAnimationDirective, ScrollRevealDirective],
   template: `
     <div class="space-y-6">
       <!-- Page header -->
@@ -44,9 +45,9 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
             label="Total Users"
             [value]="metrics()?.totalUsers || 0"
             color="primary"
-            [trend]="12.5"
+            [trend]="usersTrend()"
             [style.animation-delay]="0 + 'ms'"
-            hoverScale
+            hoverScale="md"
             class="animate-fade-slide-up" />
 
           <app-metric-card
@@ -54,25 +55,25 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
             [value]="metrics()?.totalVolume || 0"
             prefix="₦"
             color="tertiary"
-            [trend]="8.3"
+            [trend]="volumeTrend()"
             [style.animation-delay]="100 + 'ms'"
-            hoverScale
+            hoverScale="md"
             class="animate-fade-slide-up" />
 
           <app-metric-card
             label="Active Loans"
             [value]="metrics()?.activeLoans || 0"
             color="secondary"
-            [trend]="-2.1"
+            [trend]="loansTrend()"
             [style.animation-delay]="200 + 'ms'"
-            hoverScale
+            hoverScale="md"
             class="animate-fade-slide-up" />
 
           <app-metric-card
             label="Pending KYC"
             [value]="metrics()?.pendingKyc || 0"
             color="error"
-            hoverScale />
+            hoverScale="md" />
         }
       </div>
 
@@ -85,17 +86,34 @@ import { ScrollRevealDirective } from '../../directives/scroll-reveal.directive'
           @if (loading()) {
             <div class="h-48 bg-surface-container-high rounded-xl animate-skeleton-pulse"></div>
           } @else {
-            <div class="h-48 flex items-end gap-2">
-              @for (day of volumeData(); track day.date; let i = $index) {
-                <div class="flex-1 flex flex-col items-center gap-2">
-                  <div class="w-full bg-primary-fixed-dim rounded-t-lg origin-bottom transition-all duration-300"
-                       [class.animate-bar-grow]="chartVisible()"
-                       [style.animation-delay]="i * 50 + 'ms'"
-                       [style.height.%]="(day.amount / (maxVolume() || 1)) * 100">
+            <div class="flex flex-col gap-0">
+              <!-- Amount labels row -->
+              <div class="flex gap-1.5 mb-1">
+                @for (day of volumeData(); track day.date) {
+                  <div class="flex-1 text-center">
+                    <span class="text-[9px] font-semibold text-primary tabular-nums">{{ compactAmount(day.amount) }}</span>
                   </div>
-                  <span class="text-xs text-on-surface-variant">{{ day.date | date:'EEE' }}</span>
-                </div>
-              }
+                }
+              </div>
+              <!-- Bars -->
+              <div class="flex items-end gap-1.5" style="height:120px">
+                @for (day of volumeData(); track day.date; let i = $index) {
+                  <div class="flex-1 flex flex-col items-center">
+                    <div class="w-full bg-primary/25 hover:bg-primary/50 rounded-t-md transition-colors duration-150 animate-bar-grow"
+                         [style.animation-delay]="i * 60 + 'ms'"
+                         [style.height.px]="barHeightPx(day.amount)">
+                    </div>
+                  </div>
+                }
+              </div>
+              <!-- Day labels -->
+              <div class="flex gap-1.5 mt-1.5">
+                @for (day of volumeData(); track day.date) {
+                  <div class="flex-1 text-center">
+                    <span class="text-[10px] text-on-surface-variant">{{ day.date | date:'EEE' }}</span>
+                  </div>
+                }
+              </div>
             </div>
           }
         </div>
@@ -220,6 +238,9 @@ export class DashboardPageComponent {
 
   loading = computed(() => this.metricsQuery.isPending());
   metrics = computed(() => this.metricsQuery.data()?.data);
+  usersTrend = computed(() => (this.metrics() as any)?.trends?.users);
+  volumeTrend = computed(() => (this.metrics() as any)?.trends?.volume);
+  loansTrend = computed(() => (this.metrics() as any)?.trends?.loans);
 
   volumeData = computed(() => {
     const m = this.metrics() as any;
@@ -242,6 +263,17 @@ export class DashboardPageComponent {
     if (m?.recentTransactions) return m.recentTransactions;
     return [];
   });
+
+  barHeightPx(amount: number): number {
+    const max = this.maxVolume();
+    return max > 0 ? Math.round((amount / max) * 120) : 0;
+  }
+
+  compactAmount(amount: number): string {
+    if (amount >= 1_000_000) return `₦${(amount / 1_000_000).toFixed(1)}M`;
+    if (amount >= 1_000) return `₦${(amount / 1_000).toFixed(0)}K`;
+    return `₦${amount}`;
+  }
 
   getTransactionIcon(type: string): string {
     const icons: Record<string, string> = {

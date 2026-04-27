@@ -23,7 +23,7 @@ interface NavItem {
       <!-- Logo -->
       <div class="p-4 sm:p-6 border-b border-outline-variant/10">
         <div class="flex items-center gap-3 hover-scale cursor-pointer" hoverScale="sm">
-          <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center" pulseAnimation>
+          <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center" pulseAnimation="ring">
             <span class="material-symbols-outlined text-on-primary text-xl">account_balance</span>
           </div>
           <div>

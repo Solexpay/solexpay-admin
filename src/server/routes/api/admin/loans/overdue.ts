@@ -1,12 +1,12 @@
 import { defineEventHandler, getHeaders, getQuery, createError } from 'h3';
-import { allowQueryParams } from '../../../utils/validate';
-import { IS_DEV, MOCK } from '../../../utils/dev-mock';
+import { allowQueryParams } from '../../../../utils/validate';
+import { IS_DEV, MOCK } from '../../../../utils/dev-mock';
 
 export default defineEventHandler(async (event) => {
   const { authorization } = getHeaders(event);
   if (!authorization) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
-  if (IS_DEV) return MOCK.overdueLoans;
+  if (IS_DEV) return { data: MOCK.overdueLoans };
 
   const params = allowQueryParams(getQuery(event), ['page', 'size', 'sort']);
 

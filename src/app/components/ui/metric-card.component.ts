@@ -16,10 +16,10 @@ import { CountUpDirective } from '../../directives/count-up.directive';
       <p class="text-on-surface-variant text-sm font-medium mb-2">{{ label }}</p>
       <div class="flex items-baseline gap-1">
         @if (prefix) {
-          <span class="text-xl font-medium opacity-50">{{ prefix }}</span>
+          <span class="text-lg sm:text-xl font-medium opacity-50">{{ prefix }}</span>
         }
-        <h2 class="text-3xl font-black text-on-surface" [countUp]="value" [prefix]="prefix" [duration]="1200">
-          {{ value | number:'1.0-0':'en-NG' }}
+        <h2 class="text-2xl sm:text-3xl leading-tight font-black text-on-surface min-w-0 tabular-nums" [countUp]="value" [compact]="true" [duration]="1200" [title]="value | number:'1.0-0':'en-NG'">
+          {{ compactValue(value) }}
         </h2>
         @if (suffix) {
           <span class="text-sm font-medium text-on-surface-variant">{{ suffix }}</span>
@@ -33,7 +33,7 @@ import { CountUpDirective } from '../../directives/count-up.directive';
           </span>
           <span class="text-xs font-semibold"
                 [class]="trend >= 0 ? 'text-tertiary' : 'text-error'">
-            {{ trend >= 0 ? '+' : '' }}{{ trend }}%
+            {{ trend >= 0 ? '+' : '' }}{{ trend | number:'1.0-1' }}%
           </span>
           <span class="text-xs text-on-surface-variant">vs last month</span>
         </div>
@@ -56,5 +56,14 @@ export class MetricCardComponent {
       'tertiary': 'border-tertiary',
       'error': 'border-error'
     }[this.color];
+  }
+
+  compactValue(value: number): string {
+    if (!Number.isFinite(value)) return '0';
+    const abs = Math.abs(value);
+    if (abs >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}B`;
+    if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+    if (abs >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+    return `${Math.round(value)}`;
   }
 }

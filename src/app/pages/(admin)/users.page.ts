@@ -284,14 +284,14 @@ export class UsersPageComponent {
     if (response?.data?.content) {
       return response.data.content.map((u: any) => ({
         id: u.id,
-        firstName: u.firstName,
-        lastName: u.lastName,
+        firstName: u.firstName || u.name?.split(' ')?.[0] || 'User',
+        lastName: u.lastName || u.name?.split(' ')?.slice(1).join(' ') || '',
         email: u.email,
         phone: u.phoneNumber || 'N/A',
         status: u.status || 'ACTIVE',
         kycStatus: u.kycTier === 'TIER_2' ? 'VERIFIED' : u.kycTier === 'TIER_1' ? 'PENDING' : 'UNVERIFIED',
         createdAt: u.createdAt,
-        walletBalance: 0,
+        walletBalance: u.walletBalance || 0,
       }));
     }
     return [];
