@@ -12,12 +12,22 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login.page').then(m => m.LoginPageComponent)
   },
   {
+    path: 'reset-password',
+    loadComponent: () => import('./pages/reset-password.page').then(m => m.ResetPasswordPageComponent)
+  },
+  {
     path: 'terms',
     loadComponent: () => import('./pages/terms-of-service.page').then(m => m.TermsOfServicePageComponent)
   },
   {
     path: 'privacy',
     loadComponent: () => import('./pages/privacy-policy.page').then(m => m.PrivacyPolicyPageComponent)
+  },
+  {
+    path: 'docs',
+    loadComponent: () =>
+      import('./pages/docs.page').then(m => m.DocsPageComponent),
+    title: 'Developer API Reference — Solexpay'
   },
   {
     path: '',

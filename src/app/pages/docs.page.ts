@@ -1,0 +1,1454 @@
+import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-docs',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <!-- HERO SECTION -->
+    <div class="bg-gradient-to-br from-[#001d3d] to-[#003566] text-white px-6 py-16">
+      <div class="max-w-6xl mx-auto">
+        <!-- Logo row -->
+        <div class="flex items-center gap-3 mb-5">
+          <img src="/logo-icon.png" alt="Solexpay" class="h-10 w-auto drop-shadow-lg" />
+          <span class="text-2xl font-bold tracking-tight">Solexpay</span>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="text-4xl font-bold mb-3 leading-tight">Developer API Reference</h1>
+        <p class="text-blue-200 text-lg max-w-2xl leading-relaxed">
+          Complete REST API for the Solexpay platform — authentication, wallets,
+          loans, KYC, transfers, savings, bills, notifications, admin, and school portal.
+        </p>
+
+        <!-- CTA buttons -->
+        <div class="flex flex-wrap gap-3 mt-7">
+          <a href="http://api.solexpay.com.ng/swagger-ui/index.html" target="_blank"
+             class="inline-flex items-center gap-2 bg-white text-[#001d3d] font-semibold
+                    text-sm px-4 py-2.5 rounded-xl hover:bg-blue-50 transition-colors
+                    shadow-[0_4px_16px_rgba(0,91,191,0.3)]">
+            <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+            Interactive Swagger UI
+          </a>
+          <a href="http://api.solexpay.com.ng/v3/api-docs" target="_blank"
+             class="inline-flex items-center gap-2 bg-white/10 border border-white/20
+                    text-white font-semibold text-sm px-4 py-2.5 rounded-xl
+                    hover:bg-white/20 transition-colors">
+            <span class="material-symbols-outlined text-[18px]">data_object</span>
+            OpenAPI JSON
+          </a>
+        </div>
+
+        <!-- Base URL chip -->
+        <div class="mt-8 inline-flex items-center gap-3 bg-white/10 border border-white/20
+                    rounded-xl px-5 py-3">
+          <span class="text-xs text-blue-300 uppercase tracking-widest font-semibold">Base URL</span>
+          <code class="font-mono text-sm text-white">http://api.solexpay.com.ng</code>
+        </div>
+
+        <!-- Version badge -->
+        <div class="mt-4 inline-flex items-center gap-2 text-blue-300 text-sm">
+          <span class="material-symbols-outlined text-[16px]">verified</span>
+          OpenAPI 3.1.0 · v0
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 py-10 flex gap-8">
+      <!-- LEFT NAV -->
+      <aside class="hidden lg:block w-56 shrink-0">
+        <nav class="sticky top-6 max-h-[calc(100vh-5rem)] overflow-y-auto pr-2 space-y-1 text-sm">
+          <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-3 py-2">Authentication</p>
+          <button (click)="scrollTo('section-auth')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">key</span> Authentication
+          </button>
+
+          <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-3 py-2 mt-3">User Flow</p>
+          <button (click)="scrollTo('section-account')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">person</span> Account
+          </button>
+          <button (click)="scrollTo('section-wallet')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span> Wallet
+          </button>
+          <button (click)="scrollTo('section-kyc')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">verified_user</span> KYC Verification
+          </button>
+          <button (click)="scrollTo('section-nip')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">send</span> NIP Transfers
+          </button>
+          <button (click)="scrollTo('section-p2p')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">swap_horiz</span> P2P Transfers
+          </button>
+          <button (click)="scrollTo('section-transactions')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">receipt_long</span> Transactions
+          </button>
+
+          <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-3 py-2 mt-3">Products</p>
+          <button (click)="scrollTo('section-loans')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">school</span> Loans
+          </button>
+          <button (click)="scrollTo('section-repayment')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">payments</span> Loan Repayment
+          </button>
+          <button (click)="scrollTo('section-savings')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">savings</span> Savings
+          </button>
+          <button (click)="scrollTo('section-bills')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">bolt</span> Bills & VTU
+          </button>
+          <button (click)="scrollTo('section-notifications')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">notifications</span> Notifications
+          </button>
+
+          <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-3 py-2 mt-3">Admin & Schools</p>
+          <button (click)="scrollTo('section-admin')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">admin_panel_settings</span> Admin Dashboard
+          </button>
+          <button (click)="scrollTo('section-school')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">domain</span> School Portal
+          </button>
+          <button (click)="scrollTo('section-ops')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">rate_review</span> Loan Operations
+          </button>
+
+          <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-3 py-2 mt-3">Reference</p>
+          <button (click)="scrollTo('section-envelope')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">inventory_2</span> Response Envelope
+          </button>
+          <button (click)="scrollTo('section-schemas')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">data_object</span> Schemas Reference
+          </button>
+          <button (click)="scrollTo('section-errors')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">error</span> Error Codes
+          </button>
+          <button (click)="scrollTo('section-webhooks')" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface">
+            <span class="material-symbols-outlined text-[16px]">webhook</span> Webhooks
+          </button>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="flex-1 min-w-0 space-y-16">
+        <!-- Auth banner -->
+        <div class="bg-primary/8 border border-primary/20 rounded-2xl p-5 flex gap-4">
+          <span class="material-symbols-outlined text-primary mt-0.5 shrink-0">lock</span>
+          <div>
+            <p class="font-semibold text-on-surface text-sm">Bearer Token Authentication</p>
+            <p class="text-sm text-on-surface-variant mt-1">
+              Protected endpoints require an
+              <code class="font-mono bg-surface-container px-1.5 py-0.5 rounded text-xs">
+                Authorization: Bearer &lt;token&gt;
+              </code>
+              header. Obtain a token from
+              <code class="font-mono bg-surface-container px-1.5 py-0.5 rounded text-xs">
+                POST /auth/admin/login
+              </code>
+              (admin) or
+              <code class="font-mono bg-surface-container px-1.5 py-0.5 rounded text-xs">
+                POST /school/auth/login
+              </code>
+              (school portal).
+            </p>
+          </div>
+        </div>
+
+        <!-- Section: Authentication -->
+        <section id="section-auth">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">key</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Authentication</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">User registration, OTP, login, PIN management</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <!-- POST /auth/otp/registration -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('auth-otp-reg')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/auth/otp/registration</span>
+                <span class="text-sm text-on-surface-variant hidden sm:block">Send OTP for registration</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('auth-otp-reg')">expand_more</span>
+              </button>
+              @if (isExpanded('auth-otp-reg')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-on-surface-variant">lock_open</span>
+                    <span class="text-xs text-on-surface-variant">Authentication: None required</span>
+                  </div>
+                  <p class="text-sm text-on-surface-variant">Sends a 6-digit OTP to the provided phone number as the first step of user registration.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "phoneNumber": "08012345678"
+{{ '}' }}</pre>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Responses</p>
+                    <div class="rounded-xl border border-outline-variant overflow-hidden">
+                      <div class="flex items-center gap-2 px-4 py-2 bg-tertiary/5 border-b border-outline-variant">
+                        <span class="bg-tertiary/10 text-tertiary font-mono font-bold text-xs px-2 py-0.5 rounded-lg">200</span>
+                        <span class="text-xs text-on-surface-variant">OK</span>
+                      </div>
+                      <pre class="font-mono text-xs bg-surface-container p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "success": true,
+  "message": "OTP sent",
+  "data": {{ '{' }}
+    "message": "OTP sent to your phone",
+    "phoneNumber": "08012345678",
+    "expiresAt": "2026-04-28T10:10:00Z",
+    "reference": "otp-ref-abc123"
+  {{ '}' }},
+  "timestamp": "2026-04-28T10:00:00Z"
+{{ '}' }}</pre>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- POST /auth/register -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('auth-register')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/auth/register</span>
+                <span class="text-sm text-on-surface-variant hidden sm:block">Register new user</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('auth-register')">expand_more</span>
+              </button>
+              @if (isExpanded('auth-register')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-on-surface-variant">lock_open</span>
+                    <span class="text-xs text-on-surface-variant">Authentication: None required</span>
+                  </div>
+                  <p class="text-sm text-on-surface-variant">Completes user registration. Requires a valid OTP obtained from POST /auth/otp/registration.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "phoneNumber": "08012345678",
+  "firstName": "Chidi",
+  "lastName": "Okafor",
+  "otpCode": "123456"
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- POST /auth/otp/pin-setup -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('auth-otp-pin')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/auth/otp/pin-setup</span>
+                <span class="text-sm text-on-surface-variant hidden sm:block">Send OTP for PIN setup</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('auth-otp-pin')">expand_more</span>
+              </button>
+              @if (isExpanded('auth-otp-pin')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Triggers OTP for first-time PIN setup after registration.</p>
+                </div>
+              }
+            </div>
+
+            <!-- POST /auth/pin/set -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('auth-pin-set')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/auth/pin/set</span>
+                <span class="text-sm text-on-surface-variant hidden sm:block">Set PIN for first time</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('auth-pin-set')">expand_more</span>
+              </button>
+              @if (isExpanded('auth-pin-set')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Sets a 4-digit transaction PIN. Requires OTP verification.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "phoneNumber": "08012345678",
+  "otpCode": "123456",
+  "pin": "1234"
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- POST /auth/pin/change -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('auth-pin-change')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/auth/pin/change</span>
+                <span class="text-sm text-on-surface-variant hidden sm:block">Change existing PIN</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('auth-pin-change')">expand_more</span>
+              </button>
+              @if (isExpanded('auth-pin-change')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-on-surface-variant">lock</span>
+                    <span class="text-xs text-on-surface-variant">Authentication: Bearer Token</span>
+                  </div>
+                  <p class="text-sm text-on-surface-variant">Changes an existing transaction PIN. All three fields are required and must be 4 digits.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "oldPin": "1234",
+  "newPin": "5678",
+  "confirmNewPin": "5678"
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Account -->
+        <section id="section-account">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">person</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Account</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">User profile management</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <!-- GET /account/profile -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('account-get-profile')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/account/profile</span>
+                <span class="text-sm text-on-surface-variant hidden sm:block">Get user profile</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('account-get-profile')">expand_more</span>
+              </button>
+              @if (isExpanded('account-get-profile')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-on-surface-variant">lock</span>
+                    <span class="text-xs text-on-surface-variant">Authentication: Bearer Token</span>
+                  </div>
+                  <div class="rounded-xl border border-outline-variant overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-tertiary/5 border-b border-outline-variant">
+                      <span class="bg-tertiary/10 text-tertiary font-mono font-bold text-xs px-2 py-0.5 rounded-lg">200</span>
+                      <span class="text-xs text-on-surface-variant">OK</span>
+                    </div>
+                    <pre class="font-mono text-xs bg-surface-container p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "success": true,
+  "data": {{ '{' }}
+    "id": "uuid",
+    "phoneNumber": "08012345678",
+    "firstName": "Chidi",
+    "lastName": "Okafor",
+    "email": "chidi@example.com"
+  {{ '}' }}
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- PUT /account/profile -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('account-update-profile')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('PUT')">PUT</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/account/profile</span>
+                <span class="text-sm text-on-surface-variant hidden sm:block">Update user profile</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('account-update-profile')">expand_more</span>
+              </button>
+              @if (isExpanded('account-update-profile')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Updates user profile. All fields are optional — only include fields to change.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "firstName": "Chidi",
+  "lastName": "Okafor",
+  "email": "chidi@example.com",
+  "dateOfBirth": "1995-06-15",
+  "address": "12 Akin Street",
+  "city": "Lagos",
+  "state": "Lagos"
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Wallet -->
+        <section id="section-wallet">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">account_balance_wallet</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Wallet</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Balance and funding</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <!-- GET /wallets/balance -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('wallet-balance')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/wallets/balance</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('wallet-balance')">expand_more</span>
+              </button>
+              @if (isExpanded('wallet-balance')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <div class="rounded-xl border border-outline-variant overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-tertiary/5 border-b border-outline-variant">
+                      <span class="bg-tertiary/10 text-tertiary font-mono font-bold text-xs px-2 py-0.5 rounded-lg">200</span>
+                      <span class="text-xs text-on-surface-variant">OK</span>
+                    </div>
+                    <pre class="font-mono text-xs bg-surface-container p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "success": true,
+  "data": {{ '{' }}
+    "walletId": "uuid",
+    "accountNumber": "1234567890",
+    "balanceNaira": 15000.00,
+    "balanceKobo": 1500000,
+    "status": "ACTIVE"
+  {{ '}' }}
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- POST /wallets/fund -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('wallet-fund')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/wallets/fund</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('wallet-fund')">expand_more</span>
+              </button>
+              @if (isExpanded('wallet-fund')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Records an inbound bank transfer to fund the wallet.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "amountKobo": 500000,
+  "sourceBank": "GTBank",
+  "sourceAccountNumber": "0123456789",
+  "sourceAccountName": "John Doe",
+  "narration": "Wallet top-up",
+  "reference": "TRF-2026-001"
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: KYC Verification -->
+        <section id="section-kyc">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">verified_user</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">KYC Verification</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Identity verification to upgrade user tier</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <!-- POST /kyc/verify/bvn -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('kyc-bvn')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/kyc/verify/bvn</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('kyc-bvn')">expand_more</span>
+              </button>
+              @if (isExpanded('kyc-bvn')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Submits BVN for Tier 2 verification. Pattern: ^[0-9]{11}$</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">{{ '{' }} "bvn": "12345678901" {{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+            <!-- POST /kyc/verify/nin -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('kyc-nin')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/kyc/verify/nin</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('kyc-nin')">expand_more</span>
+              </button>
+              @if (isExpanded('kyc-nin')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Submits NIN for Tier 2 verification.</p>
+                </div>
+              }
+            </div>
+            <!-- GET /kyc/status -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('kyc-status')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/kyc/status</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('kyc-status')">expand_more</span>
+              </button>
+              @if (isExpanded('kyc-status')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns full verification status for the current user.</p>
+                </div>
+              }
+            </div>
+            <!-- GET /kyc/check -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('kyc-check')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/kyc/check</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('kyc-check')">expand_more</span>
+              </button>
+              @if (isExpanded('kyc-check')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Quick boolean check — has the current user completed KYC?</p>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: NIP Transfers -->
+        <section id="section-nip">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">send</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">NIP Transfers</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Interbank transfers (NIP/NBS)</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <!-- POST /transfers/nip/name-enquiry -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('nip-name')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/nip/name-enquiry</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('nip-name')">expand_more</span>
+              </button>
+              @if (isExpanded('nip-name')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Verifies an external bank account and retrieves the account holder name.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "bankCode": "058",
+  "accountNumber": "0123456789"
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+            <!-- POST /transfers/nip/fee-estimate -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('nip-fee')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/nip/fee-estimate</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('nip-fee')">expand_more</span>
+              </button>
+              @if (isExpanded('nip-fee')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns the fee and total deduction for a given transfer amount.</p>
+                </div>
+              }
+            </div>
+            <!-- POST /transfers/nip -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('nip-init')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/nip</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('nip-init')">expand_more</span>
+              </button>
+              @if (isExpanded('nip-init')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Executes the interbank transfer.</p>
+                </div>
+              }
+            </div>
+            <!-- GET /transfers/nip/banks -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('nip-banks')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/nip/banks</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('nip-banks')">expand_more</span>
+              </button>
+              @if (isExpanded('nip-banks')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns the list of all supported banks.</p>
+                </div>
+              }
+            </div>
+            <!-- GET /transfers/nip/{transferId} -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('nip-details')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/nip/{{ '{' }}transferId{{ '}' }}</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('nip-details')">expand_more</span>
+              </button>
+              @if (isExpanded('nip-details')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Retrieves full details of a specific NIP transfer.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: P2P Transfers -->
+        <section id="section-p2p">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">swap_horiz</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">P2P Transfers</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Wallet-to-wallet transfers</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <!-- POST /transfers/p2p/recipient-lookup -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('p2p-lookup')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/p2p/recipient-lookup</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('p2p-lookup')">expand_more</span>
+              </button>
+              @if (isExpanded('p2p-lookup')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Looks up a Solexpay user by phone or account number.</p>
+                </div>
+              }
+            </div>
+            <!-- POST /transfers/p2p -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('p2p-init')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/p2p</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('p2p-init')">expand_more</span>
+              </button>
+              @if (isExpanded('p2p-init')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Transfers funds between two Solexpay wallets instantly.</p>
+                </div>
+              }
+            </div>
+            <!-- GET /transfers/p2p/history -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('p2p-history')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/p2p/history</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('p2p-history')">expand_more</span>
+              </button>
+              @if (isExpanded('p2p-history')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns P2P transfer history.</p>
+                </div>
+              }
+            </div>
+            <!-- GET /transfers/p2p/{transferId} -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('p2p-details')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/p2p/{{ '{' }}transferId{{ '}' }}</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('p2p-details')">expand_more</span>
+              </button>
+              @if (isExpanded('p2p-details')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns single P2P transfer details.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Transactions -->
+        <section id="section-transactions">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">receipt_long</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Transactions</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Full transaction ledger</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <!-- GET /transactions -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('txn-list')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transactions</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('txn-list')">expand_more</span>
+              </button>
+              @if (isExpanded('txn-list')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns paginated transaction history using cursor-based pagination.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Query Parameters</p>
+                    <div class="rounded-xl border border-outline-variant overflow-hidden">
+                      <table class="w-full text-xs">
+                        <thead class="bg-surface-container">
+                          <tr>
+                            <th class="text-left px-4 py-2.5 font-semibold text-on-surface-variant">Param</th>
+                            <th class="text-left px-4 py-2.5 font-semibold text-on-surface-variant">Type</th>
+                            <th class="text-left px-4 py-2.5 font-semibold text-on-surface-variant">Required</th>
+                            <th class="text-left px-4 py-2.5 font-semibold text-on-surface-variant">Description</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant">
+                          <tr>
+                            <td class="px-4 py-2.5 font-mono text-primary">cursor</td>
+                            <td class="px-4 py-2.5 text-on-surface-variant">string</td>
+                            <td class="px-4 py-2.5 text-on-surface-variant">No</td>
+                            <td class="px-4 py-2.5 text-on-surface-variant">Cursor from previous response</td>
+                          </tr>
+                          <tr>
+                            <td class="px-4 py-2.5 font-mono text-primary">limit</td>
+                            <td class="px-4 py-2.5 text-on-surface-variant">integer</td>
+                            <td class="px-4 py-2.5 text-on-surface-variant">No</td>
+                            <td class="px-4 py-2.5 text-on-surface-variant">Items per page (default: 20)</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+            <!-- GET /transactions/{transactionId} -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('txn-details')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transactions/{{ '{' }}transactionId{{ '}' }}</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('txn-details')">expand_more</span>
+              </button>
+              @if (isExpanded('txn-details')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Single transaction response.</p>
+                </div>
+              }
+            </div>
+            <!-- GET /transactions/{transactionId}/ledger-entries -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('txn-ledger')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transactions/{{ '{' }}transactionId{{ '}' }}/ledger-entries</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('txn-ledger')">expand_more</span>
+              </button>
+              @if (isExpanded('txn-ledger')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns double-entry ledger breakdown.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Loans -->
+        <section id="section-loans">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">school</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Loans</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Education loan applications</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <!-- POST /loans/apply -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('loan-apply')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/apply</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-apply')">expand_more</span>
+              </button>
+              @if (isExpanded('loan-apply')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Student applies for a school education loan.</p>
+                  <div>
+                    <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "schoolId": "uuid",
+  "amountNaira": 150000,
+  "purpose": "Tuition Fees",
+  "academicLevel": "300 Level",
+  "academicSession": "2025/2026",
+  "idempotencyKey": "loan-key-001"
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+            <!-- Other Loan endpoints summarized -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('loan-my')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/my-loans</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-my')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('loan-id')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-id')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('loan-sched')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayment-schedule</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-sched')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('loan-accept')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/student-accept</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-accept')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('loan-cancel')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/student-cancel</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-cancel')">expand_more</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Loan Repayment -->
+        <section id="section-repayment">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">payments</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Loan Repayment</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Managing loan installments</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('repay-sched')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayments/schedule</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('repay-sched')">expand_more</span>
+              </button>
+              @if (isExpanded('repay-sched')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns the structured repayment schedule as InstallmentDto objects.</p>
+                </div>
+              }
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
+              <button (click)="toggle('repay-balance')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayments/balance</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('repay-balance')">expand_more</span>
+              </button>
+              @if (isExpanded('repay-balance')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <div class="rounded-xl border border-outline-variant overflow-hidden">
+                    <pre class="font-mono text-xs bg-surface-container p-4 overflow-x-auto text-on-surface leading-relaxed">
+{{ '{' }}
+  "success": true,
+  "data": {{ '{' }}
+    "loanId": "uuid",
+    "totalOutstanding": 103500.00,
+    "nextDueDate": "2026-05-28",
+    "nextInstallmentAmount": 28750.00
+  {{ '}' }}
+{{ '}' }}</pre>
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('repay-exec')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayments</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('repay-exec')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('repay-preview')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayments/preview</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('repay-preview')">expand_more</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Savings -->
+        <section id="section-savings">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">savings</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Savings</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">High-interest savings accounts</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('sav-create')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-create')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('sav-list')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-list')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('sav-id')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/{{ '{' }}accountId{{ '}' }}</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-id')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('sav-dep')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/deposit</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-dep')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('sav-with')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/withdraw</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-with')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('sav-close')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/{{ '{' }}accountId{{ '}' }}/close</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-close')">expand_more</span>
+              </button>
+              @if (isExpanded('sav-close')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Closes a savings account. Any remaining balance is moved to the user's wallet.</p>
+                </div>
+              }
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('sav-int')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/{{ '{' }}accountId{{ '}' }}/interest-history</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-int')">expand_more</span>
+              </button>
+              @if (isExpanded('sav-int')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Returns array of daily interest accrual records.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Bills & VTU -->
+        <section id="section-bills">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">bolt</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Bills & VTU</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Airtime, data, and utility payments</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('bill-airtime')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/airtime</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('bill-airtime')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('bill-data')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/data</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('bill-data')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('bill-query')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/{{ '{' }}paymentId{{ '}' }}/query</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('bill-query')">expand_more</span>
+              </button>
+              @if (isExpanded('bill-query')) {
+                <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
+                  <p class="text-sm text-on-surface-variant">Queries the live status of a bill payment from the provider.</p>
+                </div>
+              }
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('bill-id')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/{{ '{' }}paymentId{{ '}' }}</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('bill-id')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('bill-history')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/history</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('bill-history')">expand_more</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Notifications -->
+        <section id="section-notifications">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">notifications</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Notifications</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">In-app alerts and counts</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('notif-list')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('notif-list')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('notif-count')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications/unread-count</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('notif-count')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('notif-read')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications/{{ '{' }}notificationId{{ '}' }}/read</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('notif-read')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('notif-read-all')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications/read-all</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('notif-read-all')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('notif-del')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('DELETE')">DELETE</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications/{{ '{' }}notificationId{{ '}' }}</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('notif-del')">expand_more</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Admin Dashboard -->
+        <section id="section-admin">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">admin_panel_settings</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Admin Dashboard</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">System-wide KPIs and management</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-metrics')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/dashboard/metrics</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-metrics')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-users')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/users</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-users')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-txns')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/transactions</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-txns')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-loans')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/loans</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-loans')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-overdue')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/loans/overdue</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-overdue')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-suspend')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/users/{{ '{' }}userId{{ '}' }}/suspend</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-suspend')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-reactivate')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/users/{{ '{' }}userId{{ '}' }}/reactivate</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-reactivate')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-kyc-app')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/kyc/{{ '{' }}verificationId{{ '}' }}/approve</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-kyc-app')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('admin-broadcast')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/broadcast</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-broadcast')">expand_more</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: School Portal -->
+        <section id="section-school">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">domain</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">School Portal</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Endpoints for verified schools</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('school-login')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/school/auth/login</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('school-login')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('school-students')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/school/students</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('school-students')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('school-ver-pending')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/school/verifications/pending</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('school-ver-pending')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('school-loan-ver')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/school/loans/{{ '{' }}loanId{{ '}' }}/verify</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('school-loan-ver')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('loan-school-ver')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/school-verify</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-school-ver')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('loan-school-rej')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/school-reject</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-school-rej')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('loan-school-pend')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/school-pending</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-school-pend')">expand_more</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Loan Operations -->
+        <section id="section-ops">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">rate_review</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Loan Operations</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Internal back-office loan processing</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('ops-pending')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('GET')">GET</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/ops-pending</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('ops-pending')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('ops-approve')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/ops-approve</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('ops-approve')">expand_more</span>
+              </button>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
+              <button (click)="toggle('ops-reject')" class="w-full flex items-start gap-3 p-5 text-left">
+                <span [class]="methodBadge('POST')">POST</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/ops-reject</span>
+                <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('ops-reject')">expand_more</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Response Envelope -->
+        <section id="section-envelope">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">inventory_2</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Global Response Envelope</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Standard wrapper for all API responses</p>
+            </div>
+          </div>
+          <div class="bg-surface-container p-6 rounded-2xl">
+            <pre class="font-mono text-xs text-on-surface leading-relaxed overflow-x-auto">
+{{ '{' }}
+  "success": true,
+  "message": "Human-readable status message",
+  "data": {{ '{' }} ... {{ '}' }},
+  "timestamp": "2026-04-28T10:00:00Z"
+{{ '}' }}</pre>
+          </div>
+        </section>
+
+        <!-- Section: Schemas -->
+        <section id="section-schemas">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">data_object</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Schemas Reference</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Data models and object structures</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @for (schema of schemas; track schema.name) {
+              <div class="p-4 bg-surface-container-lowest rounded-2xl border border-outline-variant">
+                <p class="font-mono text-sm font-bold text-primary">{{ schema.name }}</p>
+                <p class="text-xs text-on-surface-variant mt-1">{{ schema.description }}</p>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Section: Error Codes -->
+        <section id="section-errors">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">error</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Error Codes</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">HTTP status codes and validation rules</p>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-outline-variant overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-surface-container">
+                <tr>
+                  <th class="text-left px-4 py-3 font-semibold text-on-surface">Status</th>
+                  <th class="text-left px-4 py-3 font-semibold text-on-surface">Name</th>
+                  <th class="text-left px-4 py-3 font-semibold text-on-surface">Description</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant">
+                <tr><td class="px-4 py-3 font-mono text-error">400</td><td class="px-4 py-3">Bad Request</td><td class="px-4 py-3 text-on-surface-variant">Validation failed or malformed JSON</td></tr>
+                <tr><td class="px-4 py-3 font-mono text-error">401</td><td class="px-4 py-3">Unauthorized</td><td class="px-4 py-3 text-on-surface-variant">Invalid or missing auth token</td></tr>
+                <tr><td class="px-4 py-3 font-mono text-error">403</td><td class="px-4 py-3">Forbidden</td><td class="px-4 py-3 text-on-surface-variant">Insufficient permissions</td></tr>
+                <tr><td class="px-4 py-3 font-mono text-error">404</td><td class="px-4 py-3">Not Found</td><td class="px-4 py-3 text-on-surface-variant">Resource doesn't exist</td></tr>
+                <tr><td class="px-4 py-3 font-mono text-error">422</td><td class="px-4 py-3">Unprocessable Entity</td><td class="px-4 py-3 text-on-surface-variant">Business logic violation</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Section: Webhooks -->
+        <section id="section-webhooks">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-[18px]">webhook</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-on-surface">Webhooks</h2>
+              <p class="text-sm text-on-surface-variant mt-0.5">Inbound events from external providers</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+              <span [class]="methodBadge('POST')">POST</span>
+              <span class="font-mono text-sm text-on-surface font-medium ml-3">/webhooks/nip/anchor</span>
+              <p class="text-sm text-on-surface-variant mt-3">Called by Anchor to report transfer status updates. Requires X-Anchor-Signature header.</p>
+            </div>
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+              <span [class]="methodBadge('POST')">POST</span>
+              <span class="font-mono text-sm text-on-surface font-medium ml-3">/kyc/webhook/{{ '{' }}provider{{ '}' }}</span>
+              <p class="text-sm text-on-surface-variant mt-3">Called by KYC providers with verification results.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-outline-variant py-8 mt-16">
+      <div class="max-w-6xl mx-auto px-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <img src="/logo-icon.png" alt="" class="h-6 w-auto" />
+          <span class="text-sm font-semibold text-on-surface">Solexpay</span>
+        </div>
+        <p class="text-xs text-on-surface-variant">© 2026 SolexPay. All rights reserved.</p>
+        <a href="http://api.solexpay.com.ng/swagger-ui/index.html" target="_blank"
+           class="text-xs text-primary hover:underline inline-flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+          Interactive API Explorer
+        </a>
+      </div>
+    </footer>
+  `,
+  styles: [`
+    :host { display: block; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+  `]
+})
+export class DocsPageComponent {
+  expanded = signal<Set<string>>(new Set());
+
+  schemas = [
+    { name: 'ProfileDto', description: 'User profile details and contact information' },
+    { name: 'WalletBalanceResponse', description: 'Current wallet state, account number and balances' },
+    { name: 'KycStatusResponse', description: 'Full record of KYC verification including tier levels' },
+    { name: 'KycVerifyResponse', description: 'Response from BVN/NIN submission' },
+    { name: 'TransactionResponse', description: 'Individual transaction record with reference and status' },
+    { name: 'LedgerEntryResponse', description: 'Double-entry ledger line for financial reconciliation' },
+    { name: 'LoanApplicationResponse', description: 'Full loan application data with all lifecycle timestamps' },
+    { name: 'LoanApplication', description: 'Raw loan entity used in school portal verifications' },
+    { name: 'LoanSummaryDto', description: 'Summarized loan record for admin and list views' },
+    { name: 'LoanRepaymentScheduleResponse', description: 'Individual installment line in a repayment schedule' },
+    { name: 'InstallmentDto', description: 'Amortization schedule line item' },
+    { name: 'OutstandingBalanceDto', description: 'Breakdown of outstanding principal, interest and penalties' },
+    { name: 'RepaymentResponse', description: 'Receipt and allocation details for a loan repayment' },
+    { name: 'SavingsAccountResponse', description: 'Current state of a savings account including accrued interest' },
+    { name: 'SavingsInterestAccrualResponse', description: 'Record of daily interest accrual and compounding' },
+    { name: 'BillPaymentResponse', description: 'Receipt for bill/VTU payment with provider reference' },
+    { name: 'DataVariationResponse', description: 'Available data bundle option for a mobile provider' },
+    { name: 'TransferReceiptResponse', description: 'Receipt for a successful P2P or NIP transfer' },
+    { name: 'NipTransferResponse', description: 'Detailed status and metadata for interbank transfers' },
+    { name: 'InitiateNipResponse', description: 'Result of a NIP transfer initiation' },
+    { name: 'NameEnquiryResponseDto', description: 'Bank account name lookup and session ID result' },
+    { name: 'FeeEstimateResponse', description: 'Breakdown of transfer fees and total deductions' },
+    { name: 'BankInfo', description: 'Bank name, code and short name for NIP transfers' },
+    { name: 'Notification', description: 'Full notification entity with channel and delivery status' },
+    { name: 'UserSummaryDto', description: 'Summarized user record for admin search and lists' },
+    { name: 'SchoolDashboardDto', description: 'KPIs and metrics for the school portal dashboard' },
+    { name: 'StudentLoanSummaryDto', description: 'Student loan history summary for schools' },
+    { name: 'DashboardMetricsDto', description: 'System-wide performance metrics for admin dashboard' },
+    { name: 'SendOtpResponse', description: 'Confirmation of OTP dispatch with reference and expiry' }
+  ];
+
+  isExpanded(id: string): boolean {
+    return this.expanded().has(id);
+  }
+
+  toggle(id: string): void {
+    const s = new Set(this.expanded());
+    if (s.has(id)) s.delete(id);
+    else s.add(id);
+    this.expanded.set(s);
+  }
+
+  scrollTo(sectionId: string): void {
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+
+  methodBadge(method: string): string {
+    const map: Record<string, string> = {
+      GET:    'bg-tertiary/10 text-tertiary',
+      POST:   'bg-primary/10 text-primary',
+      PUT:    'bg-amber-100 text-amber-800',
+      PATCH:  'bg-amber-100 text-amber-800',
+      DELETE: 'bg-error/10 text-error',
+    };
+    const color = map[method] ?? 'bg-surface-container text-on-surface-variant';
+    return `inline-flex items-center font-mono font-bold text-xs px-2.5 py-1 rounded-lg uppercase ${color}`;
+  }
+}
