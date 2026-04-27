@@ -23,6 +23,7 @@ import { LucideAngularModule, Download, LogIn } from 'lucide-angular';
             <a href="#features" class="text-on-surface-variant hover:text-primary transition-colors">Features</a>
             <a href="#how-it-works" class="text-on-surface-variant hover:text-primary transition-colors">How it Works</a>
             <a href="#loans" class="text-on-surface-variant hover:text-primary transition-colors">Loans</a>
+            <a routerLink="/docs" class="text-on-surface-variant hover:text-primary transition-colors">Developer API</a>
           </div>
         </div>
         <div class="flex items-center gap-3">

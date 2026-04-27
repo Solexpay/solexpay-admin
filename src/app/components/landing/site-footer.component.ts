@@ -63,6 +63,9 @@ import { RouterLink } from '@angular/router';
               <li class="hover:text-primary-fixed transition-colors cursor-pointer">Careers</li>
               <li class="hover:text-primary-fixed transition-colors cursor-pointer">Contact</li>
               <li>
+                <a routerLink="/docs" class="hover:text-primary-fixed transition-colors">Developer API</a>
+              </li>
+              <li>
                 <a routerLink="/privacy" class="hover:text-primary-fixed transition-colors">Privacy Policy</a>
               </li>
               <li>
@@ -102,6 +105,7 @@ import { RouterLink } from '@angular/router';
         <div class="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-outline-variant text-xs">
           <p>© 2026 SolexPay Technologies Ltd. All rights reserved.</p>
           <div class="flex gap-6">
+            <a routerLink="/docs" class="hover:text-white transition-colors">Developer API</a>
             <a routerLink="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
             <a routerLink="/terms" class="hover:text-white transition-colors">Terms of Service</a>
             <span class="hover:text-white cursor-pointer transition-colors">Help Center</span>
