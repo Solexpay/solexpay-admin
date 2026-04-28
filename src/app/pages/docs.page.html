@@ -176,9 +176,9 @@
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
                     <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "phoneNumber": "08012345678"
-{{ '}' }}</pre>
+&#125;</pre>
                   </div>
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Responses</p>
@@ -188,17 +188,17 @@
                         <span class="text-xs text-on-surface-variant">OK</span>
                       </div>
                       <pre class="font-mono text-xs bg-surface-container p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "success": true,
   "message": "OTP sent",
-  "data": {{ '{' }}
+  "data": &#123;
     "message": "OTP sent to your phone",
     "phoneNumber": "08012345678",
     "expiresAt": "2026-04-28T10:10:00Z",
     "reference": "otp-ref-abc123"
-  {{ '}' }},
+  &#125;,
   "timestamp": "2026-04-28T10:00:00Z"
-{{ '}' }}</pre>
+&#125;</pre>
                     </div>
                   </div>
                 </div>
@@ -223,12 +223,12 @@
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
                     <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "phoneNumber": "08012345678",
   "firstName": "Chidi",
   "lastName": "Okafor",
   "otpCode": "123456"
-{{ '}' }}</pre>
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -263,11 +263,11 @@
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
                     <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "phoneNumber": "08012345678",
   "otpCode": "123456",
   "pin": "1234"
-{{ '}' }}</pre>
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -291,11 +291,11 @@
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
                     <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "oldPin": "1234",
   "newPin": "5678",
   "confirmNewPin": "5678"
-{{ '}' }}</pre>
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -335,16 +335,16 @@
                       <span class="text-xs text-on-surface-variant">OK</span>
                     </div>
                     <pre class="font-mono text-xs bg-surface-container p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "success": true,
-  "data": {{ '{' }}
+  "data": &#123;
     "id": "uuid",
     "phoneNumber": "08012345678",
     "firstName": "Chidi",
     "lastName": "Okafor",
-    "email": "chidi@example.com"
-  {{ '}' }}
-{{ '}' }}</pre>
+    "email": "chidi&#64;example.com"
+  &#125;
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -364,15 +364,15 @@
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
                     <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "firstName": "Chidi",
   "lastName": "Okafor",
-  "email": "chidi@example.com",
+  "email": "chidi&#64;example.com",
   "dateOfBirth": "1995-06-15",
   "address": "12 Akin Street",
   "city": "Lagos",
   "state": "Lagos"
-{{ '}' }}</pre>
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -407,16 +407,16 @@
                       <span class="text-xs text-on-surface-variant">OK</span>
                     </div>
                     <pre class="font-mono text-xs bg-surface-container p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "success": true,
-  "data": {{ '{' }}
+  "data": &#123;
     "walletId": "uuid",
     "accountNumber": "1234567890",
     "balanceNaira": 15000.00,
     "balanceKobo": 1500000,
     "status": "ACTIVE"
-  {{ '}' }}
-{{ '}' }}</pre>
+  &#125;
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -435,14 +435,14 @@
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
                     <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "amountKobo": 500000,
   "sourceBank": "GTBank",
   "sourceAccountNumber": "0123456789",
   "sourceAccountName": "John Doe",
   "narration": "Wallet top-up",
   "reference": "TRF-2026-001"
-{{ '}' }}</pre>
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -471,10 +471,10 @@
               </button>
               @if (isExpanded('kyc-bvn')) {
                 <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
-                  <p class="text-sm text-on-surface-variant">Submits BVN for Tier 2 verification. Pattern: ^[0-9]{11}$</p>
+                  <p class="text-sm text-on-surface-variant">Submits BVN for Tier 2 verification. Pattern: ^[0-9]&#123;11&#125;$</p>
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
-                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">{{ '{' }} "bvn": "12345678901" {{ '}' }}</pre>
+                    <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">&#123; "bvn": "12345678901" &#125;</pre>
                   </div>
                 </div>
               }
@@ -546,10 +546,10 @@
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
                     <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "bankCode": "058",
   "accountNumber": "0123456789"
-{{ '}' }}</pre>
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -597,7 +597,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
               <button (click)="toggle('nip-details')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/nip/{{ '{' }}transferId{{ '}' }}</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/nip/&#123;transferId&#125;</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('nip-details')">expand_more</span>
               </button>
               @if (isExpanded('nip-details')) {
@@ -664,7 +664,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
               <button (click)="toggle('p2p-details')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/p2p/{{ '{' }}transferId{{ '}' }}</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transfers/p2p/&#123;transferId&#125;</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('p2p-details')">expand_more</span>
               </button>
               @if (isExpanded('p2p-details')) {
@@ -734,7 +734,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
               <button (click)="toggle('txn-details')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transactions/{{ '{' }}transactionId{{ '}' }}</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transactions/&#123;transactionId&#125;</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('txn-details')">expand_more</span>
               </button>
               @if (isExpanded('txn-details')) {
@@ -747,7 +747,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
               <button (click)="toggle('txn-ledger')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transactions/{{ '{' }}transactionId{{ '}' }}/ledger-entries</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/transactions/&#123;transactionId&#125;/ledger-entries</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('txn-ledger')">expand_more</span>
               </button>
               @if (isExpanded('txn-ledger')) {
@@ -784,14 +784,14 @@
                   <div>
                     <p class="text-xs font-semibold text-on-surface uppercase tracking-wider mb-2">Request Body</p>
                     <pre class="font-mono text-xs bg-surface-container rounded-xl p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "schoolId": "uuid",
   "amountNaira": 150000,
   "purpose": "Tuition Fees",
   "academicLevel": "300 Level",
   "academicSession": "2025/2026",
   "idempotencyKey": "loan-key-001"
-{{ '}' }}</pre>
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -807,28 +807,28 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('loan-id')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-id')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('loan-sched')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayment-schedule</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/repayment-schedule</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-sched')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('loan-accept')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/student-accept</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/student-accept</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-accept')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('loan-cancel')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/student-cancel</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/student-cancel</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-cancel')">expand_more</span>
               </button>
             </div>
@@ -850,7 +850,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('repay-sched')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayments/schedule</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/repayments/schedule</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('repay-sched')">expand_more</span>
               </button>
               @if (isExpanded('repay-sched')) {
@@ -862,22 +862,22 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)] hover:shadow-[0_4px_20px_rgba(25,28,29,0.1)] transition-shadow duration-200">
               <button (click)="toggle('repay-balance')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayments/balance</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/repayments/balance</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('repay-balance')">expand_more</span>
               </button>
               @if (isExpanded('repay-balance')) {
                 <div class="px-5 pb-5 border-t border-outline-variant pt-4 space-y-4">
                   <div class="rounded-xl border border-outline-variant overflow-hidden">
                     <pre class="font-mono text-xs bg-surface-container p-4 overflow-x-auto text-on-surface leading-relaxed">
-{{ '{' }}
+&#123;
   "success": true,
-  "data": {{ '{' }}
+  "data": &#123;
     "loanId": "uuid",
     "totalOutstanding": 103500.00,
     "nextDueDate": "2026-05-28",
     "nextInstallmentAmount": 28750.00
-  {{ '}' }}
-{{ '}' }}</pre>
+  &#125;
+&#125;</pre>
                   </div>
                 </div>
               }
@@ -885,14 +885,14 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('repay-exec')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayments</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/repayments</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('repay-exec')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('repay-preview')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/repayments/preview</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/repayments/preview</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('repay-preview')">expand_more</span>
               </button>
             </div>
@@ -928,7 +928,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('sav-id')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/{{ '{' }}accountId{{ '}' }}</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/&#123;accountId&#125;</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-id')">expand_more</span>
               </button>
             </div>
@@ -949,7 +949,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('sav-close')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/{{ '{' }}accountId{{ '}' }}/close</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/&#123;accountId&#125;/close</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-close')">expand_more</span>
               </button>
               @if (isExpanded('sav-close')) {
@@ -961,7 +961,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('sav-int')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/{{ '{' }}accountId{{ '}' }}/interest-history</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/savings/accounts/&#123;accountId&#125;/interest-history</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('sav-int')">expand_more</span>
               </button>
               @if (isExpanded('sav-int')) {
@@ -1002,7 +1002,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('bill-query')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/{{ '{' }}paymentId{{ '}' }}/query</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/&#123;paymentId&#125;/query</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('bill-query')">expand_more</span>
               </button>
               @if (isExpanded('bill-query')) {
@@ -1014,7 +1014,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('bill-id')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('GET')">GET</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/{{ '{' }}paymentId{{ '}' }}</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/bills/&#123;paymentId&#125;</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('bill-id')">expand_more</span>
               </button>
             </div>
@@ -1057,7 +1057,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('notif-read')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications/{{ '{' }}notificationId{{ '}' }}/read</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications/&#123;notificationId&#125;/read</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('notif-read')">expand_more</span>
               </button>
             </div>
@@ -1071,7 +1071,7 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('notif-del')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('DELETE')">DELETE</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications/{{ '{' }}notificationId{{ '}' }}</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/notifications/&#123;notificationId&#125;</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('notif-del')">expand_more</span>
               </button>
             </div>
@@ -1128,21 +1128,21 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('admin-suspend')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/users/{{ '{' }}userId{{ '}' }}/suspend</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/users/&#123;userId&#125;/suspend</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-suspend')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('admin-reactivate')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/users/{{ '{' }}userId{{ '}' }}/reactivate</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/users/&#123;userId&#125;/reactivate</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-reactivate')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('admin-kyc-app')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/kyc/{{ '{' }}verificationId{{ '}' }}/approve</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/admin/kyc/&#123;verificationId&#125;/approve</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('admin-kyc-app')">expand_more</span>
               </button>
             </div>
@@ -1192,21 +1192,21 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('school-loan-ver')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/school/loans/{{ '{' }}loanId{{ '}' }}/verify</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/school/loans/&#123;loanId&#125;/verify</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('school-loan-ver')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('loan-school-ver')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/school-verify</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/school-verify</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-school-ver')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('loan-school-rej')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/school-reject</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/school-reject</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('loan-school-rej')">expand_more</span>
               </button>
             </div>
@@ -1242,14 +1242,14 @@
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('ops-approve')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/ops-approve</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/ops-approve</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('ops-approve')">expand_more</span>
               </button>
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_2px_12px_rgba(25,28,29,0.06)]">
               <button (click)="toggle('ops-reject')" class="w-full flex items-start gap-3 p-5 text-left">
                 <span [class]="methodBadge('POST')">POST</span>
-                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/{{ '{' }}loanId{{ '}' }}/ops-reject</span>
+                <span class="font-mono text-sm text-on-surface font-medium flex-1">/loans/&#123;loanId&#125;/ops-reject</span>
                 <span class="material-symbols-outlined text-outline text-[20px] transition-transform" [class.rotate-180]="isExpanded('ops-reject')">expand_more</span>
               </button>
             </div>
@@ -1269,12 +1269,12 @@
           </div>
           <div class="bg-surface-container p-6 rounded-2xl">
             <pre class="font-mono text-xs text-on-surface leading-relaxed overflow-x-auto">
-{{ '{' }}
+&#123;
   "success": true,
   "message": "Human-readable status message",
-  "data": {{ '{' }} ... {{ '}' }},
+  "data": &#123; ... &#125;,
   "timestamp": "2026-04-28T10:00:00Z"
-{{ '}' }}</pre>
+&#125;</pre>
           </div>
         </section>
 
@@ -1349,7 +1349,7 @@
             </div>
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
               <span [class]="methodBadge('POST')">POST</span>
-              <span class="font-mono text-sm text-on-surface font-medium ml-3">/kyc/webhook/{{ '{' }}provider{{ '}' }}</span>
+              <span class="font-mono text-sm text-on-surface font-medium ml-3">/kyc/webhook/&#123;provider&#125;</span>
               <p class="text-sm text-on-surface-variant mt-3">Called by KYC providers with verification results.</p>
             </div>
           </div>
