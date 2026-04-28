@@ -509,8 +509,32 @@ code {
   scrollbar-width: none;  /* Firefox */
 }
 
-.rounded-2.5xl {
+.rounded-2-5xl {
   border-radius: 1.25rem;
+}
+
+.bg-primary-10 {
+  background-color: rgb(0 91 191 / 0.1);
+}
+
+.bg-error-10 {
+  background-color: rgb(186 26 26 / 0.1);
+}
+
+.border-primary-20 {
+  border-color: rgb(0 91 191 / 0.2);
+}
+
+.border-error-20 {
+  border-color: rgb(186 26 26 / 0.2);
+}
+
+.border-tertiary-20 {
+  border-color: rgb(104 93 0 / 0.2);
+}
+
+.ring-primary-20 {
+  --tw-ring-color: rgb(0 91 191 / 0.2);
 }
 
 /* View transitions support */
