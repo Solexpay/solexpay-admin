@@ -24,6 +24,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/privacy-policy.page').then(m => m.PrivacyPolicyPageComponent)
   },
   {
+    path: 'cookies',
+    loadComponent: () => import('./pages/cookie-policy.page').then(m => m.CookiePolicyPageComponent)
+  },
+  {
+    path: 'contact',
+    loadComponent: () => import('./pages/contact.page').then(m => m.ContactPageComponent)
+  },
+  {
     path: 'docs',
     loadComponent: () =>
       import('./pages/docs.page').then(m => m.DocsPageComponent),

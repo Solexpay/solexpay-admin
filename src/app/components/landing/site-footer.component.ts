@@ -61,7 +61,9 @@ import { RouterLink } from '@angular/router';
             <ul class="space-y-3 text-outline-variant text-sm">
               <li class="hover:text-primary-fixed transition-colors cursor-pointer">About Us</li>
               <li class="hover:text-primary-fixed transition-colors cursor-pointer">Careers</li>
-              <li class="hover:text-primary-fixed transition-colors cursor-pointer">Contact</li>
+              <li>
+                <a routerLink="/contact" class="hover:text-primary-fixed transition-colors">Contact Us</a>
+              </li>
               <li>
                 <a routerLink="/docs" class="hover:text-primary-fixed transition-colors">Developer API</a>
               </li>
@@ -70,6 +72,9 @@ import { RouterLink } from '@angular/router';
               </li>
               <li>
                 <a routerLink="/terms" class="hover:text-primary-fixed transition-colors">Terms of Service</a>
+              </li>
+              <li>
+                <a routerLink="/cookies" class="hover:text-primary-fixed transition-colors">Cookie Policy</a>
               </li>
             </ul>
           </div>
@@ -108,6 +113,7 @@ import { RouterLink } from '@angular/router';
             <a routerLink="/docs" class="hover:text-white transition-colors">Developer API</a>
             <a routerLink="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
             <a routerLink="/terms" class="hover:text-white transition-colors">Terms of Service</a>
+            <a routerLink="/cookies" class="hover:text-white transition-colors">Cookie Policy</a>
             <span class="hover:text-white cursor-pointer transition-colors">Help Center</span>
           </div>
         </div>

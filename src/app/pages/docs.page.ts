@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { API_SECTIONS, ApiSection } from './docs.data';
 import { CopyToClipboardDirective, TooltipDirective } from '../directives';
+import { SiteFooterComponent } from '../components/landing/site-footer.component';
 
 @Component({
   selector: 'app-docs',
   standalone: true,
-  imports: [CommonModule, RouterLink, CopyToClipboardDirective, TooltipDirective],
+  imports: [CommonModule, RouterLink, CopyToClipboardDirective, TooltipDirective, SiteFooterComponent],
   templateUrl: './docs.page.html'
 })
 export class DocsPageComponent implements AfterViewInit, OnDestroy {
