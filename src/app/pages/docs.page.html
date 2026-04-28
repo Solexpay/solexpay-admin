@@ -173,7 +173,7 @@
             Your API tokens carry significant privileges, so be sure to keep them secure!
           </p>
           <div class="mt-2 bg-surface-container-high p-4 rounded-2xl border border-outline-variant/50">
-            <code class="text-xs text-on-surface font-mono break-all">Authorization: Bearer <span class="text-primary font-bold">&lt;TOKEN&gt;</span></code>
+            <code ngNonBindable class="text-xs text-on-surface font-mono break-all">Authorization: Bearer &lt;TOKEN&gt;</code>
           </div>
         </div>
 
@@ -187,13 +187,13 @@
             All responses are returned as a standard JSON object. Successful requests 
             always include a <code class="bg-surface-container-high px-1 rounded text-primary">success: true</code> field.
           </p>
-          <pre class="mt-2 bg-surface-container-high p-4 rounded-2xl border border-outline-variant/50 text-[10px] font-mono leading-tight">
-&#123;
+          <pre ngNonBindable class="mt-2 bg-surface-container-high p-4 rounded-2xl border border-outline-variant/50 text-[10px] font-mono leading-tight">
+{
   "success": true,
   "message": "Successful",
-  "data": &#123; ... &#125;,
+  "data": { ... },
   "timestamp": "2026-04-28..."
-&#125;</pre>
+}</pre>
         </div>
       </div>
     </section>
@@ -306,7 +306,7 @@
                             </button>
                           </div>
                           <div class="relative group/code">
-                            <pre class="font-mono text-[11px] bg-surface-container-high text-on-surface p-5 rounded-2.5xl overflow-x-auto leading-relaxed border border-outline-variant/50 shadow-inner">
+                            <pre ngNonBindable class="font-mono text-[11px] bg-surface-container-high text-on-surface p-5 rounded-2.5xl overflow-x-auto leading-relaxed border border-outline-variant/50 shadow-inner">
 {{ endpoint.requestBody }}</pre>
                           </div>
                         </div>
@@ -341,7 +341,7 @@
                               }
                             </div>
                             @if (resp.body) {
-                              <pre class="font-mono text-[11px] bg-surface-container/10 p-5 overflow-x-auto leading-relaxed text-on-surface">
+                              <pre ngNonBindable class="font-mono text-[11px] bg-surface-container/10 p-5 overflow-x-auto leading-relaxed text-on-surface">
 {{ resp.body }}</pre>
                             }
                           </div>

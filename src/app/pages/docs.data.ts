@@ -45,7 +45,7 @@ export const API_SECTIONS: ApiSection[] = [
         summary: 'Send OTP for registration',
         description: 'Sends a 6-digit OTP to the provided phone number as the first step of user registration.',
         auth: 'None',
-        requestBody: JSON.stringify({ phoneNumber: '08012345678' }, null, 2),
+        requestBody: JSON.stringify({ phoneNumber: '08012345678' }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           {
             status: 200,
@@ -60,7 +60,7 @@ export const API_SECTIONS: ApiSection[] = [
                 reference: 'otp-ref-abc123'
               },
               timestamp: '2026-04-28T10:00:00Z'
-            }, null, 2)
+            }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;').replace(/@/g, '&#64;')
           }
         ]
       },
@@ -76,7 +76,7 @@ export const API_SECTIONS: ApiSection[] = [
           firstName: 'Chidi',
           lastName: 'Okafor',
           otpCode: '123456'
-        }, null, 2),
+        }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Registration successful' }
         ]
@@ -103,7 +103,7 @@ export const API_SECTIONS: ApiSection[] = [
           phoneNumber: '08012345678',
           otpCode: '123456',
           pin: '1234'
-        }, null, 2),
+        }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'PIN set successfully' }
         ]
@@ -119,7 +119,7 @@ export const API_SECTIONS: ApiSection[] = [
           oldPin: '1234',
           newPin: '5678',
           confirmNewPin: '5678'
-        }, null, 2),
+        }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'PIN changed successfully' }
         ]
@@ -152,7 +152,7 @@ export const API_SECTIONS: ApiSection[] = [
                 lastName: 'Okafor',
                 email: 'chidi@example.com'
               }
-            }, null, 2)
+            }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;').replace(/@/g, '&#64;')
           }
         ]
       },
@@ -171,7 +171,7 @@ export const API_SECTIONS: ApiSection[] = [
           address: '12 Akin Street',
           city: 'Lagos',
           state: 'Lagos'
-        }, null, 2),
+        }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;').replace(/@/g, '&#64;'),
         responses: [
           { status: 200, description: 'Profile updated' }
         ]
@@ -204,7 +204,7 @@ export const API_SECTIONS: ApiSection[] = [
                 balanceKobo: 1500000,
                 status: 'ACTIVE'
               }
-            }, null, 2)
+            }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;')
           }
         ]
       },
@@ -222,7 +222,7 @@ export const API_SECTIONS: ApiSection[] = [
           sourceAccountName: 'John Doe',
           narration: 'Wallet top-up',
           reference: 'TRF-2026-001'
-        }, null, 2),
+        }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Wallet funded successfully' }
         ]
@@ -240,9 +240,9 @@ export const API_SECTIONS: ApiSection[] = [
         method: 'POST',
         path: '/kyc/verify/bvn',
         summary: 'Verify BVN',
-        description: 'Submits BVN for Tier 2 verification. Pattern: ^[0-9]{11}$',
+        description: 'Submits BVN for Tier 2 verification. Pattern: ^[0-9]&#123;11&#125;$',
         auth: 'Bearer Token',
-        requestBody: JSON.stringify({ bvn: '12345678901' }, null, 2),
+        requestBody: JSON.stringify({ bvn: '12345678901' }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Verification submitted' }
         ]
@@ -254,7 +254,7 @@ export const API_SECTIONS: ApiSection[] = [
         summary: 'Verify NIN',
         description: 'Submits NIN for Tier 2 verification.',
         auth: 'Bearer Token',
-        requestBody: JSON.stringify({ nin: '12345678901' }, null, 2),
+        requestBody: JSON.stringify({ nin: '12345678901' }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Verification submitted' }
         ]
@@ -296,7 +296,7 @@ export const API_SECTIONS: ApiSection[] = [
         summary: 'Bank Name Enquiry',
         description: 'Verifies an external bank account and retrieves the account holder name.',
         auth: 'Bearer Token',
-        requestBody: JSON.stringify({ bankCode: '058', accountNumber: '0123456789' }, null, 2),
+        requestBody: JSON.stringify({ bankCode: '058', accountNumber: '0123456789' }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Account found' }
         ]
@@ -308,7 +308,7 @@ export const API_SECTIONS: ApiSection[] = [
         summary: 'Get Fee Estimate',
         description: 'Returns the fee and total deduction for a given transfer amount.',
         auth: 'Bearer Token',
-        requestBody: JSON.stringify({ amount: 50000 }, null, 2),
+        requestBody: JSON.stringify({ amount: 50000 }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Fee calculated' }
         ]
@@ -329,7 +329,7 @@ export const API_SECTIONS: ApiSection[] = [
           description: 'School fees',
           pin: '1234',
           idempotencyKey: 'unique-key-001'
-        }, null, 2),
+        }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Transfer initiated' }
         ]
@@ -348,7 +348,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'nip-details',
         method: 'GET',
-        path: '/transfers/nip/{transferId}',
+        path: '/transfers/nip/&#123;transferId&#125;',
         summary: 'Get NIP Transfer Details',
         description: 'Retrieves full details of a specific NIP transfer.',
         auth: 'Bearer Token',
@@ -388,7 +388,7 @@ export const API_SECTIONS: ApiSection[] = [
           pin: '1234',
           description: 'Sending money',
           idempotencyKey: 'key-001'
-        }, null, 2),
+        }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Transfer completed' }
         ]
@@ -407,7 +407,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'p2p-details',
         method: 'GET',
-        path: '/transfers/p2p/{transferId}',
+        path: '/transfers/p2p/&#123;transferId&#125;',
         summary: 'Get P2P Details',
         description: 'Returns single P2P transfer details.',
         auth: 'Bearer Token',
@@ -441,7 +441,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'txn-details',
         method: 'GET',
-        path: '/transactions/{transactionId}',
+        path: '/transactions/&#123;transactionId&#125;',
         summary: 'Get Transaction Details',
         description: 'Single transaction response.',
         auth: 'Bearer Token',
@@ -452,7 +452,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'txn-ledger',
         method: 'GET',
-        path: '/transactions/{transactionId}/ledger-entries',
+        path: '/transactions/&#123;transactionId&#125;/ledger-entries',
         summary: 'Get Ledger Entries',
         description: 'Returns double-entry ledger breakdown.',
         auth: 'Bearer Token',
@@ -482,7 +482,7 @@ export const API_SECTIONS: ApiSection[] = [
           academicLevel: '300 Level',
           academicSession: '2025/2026',
           idempotencyKey: 'loan-key-001'
-        }, null, 2),
+        }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Application submitted' }
         ]
@@ -501,7 +501,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'loan-id',
         method: 'GET',
-        path: '/loans/{loanId}',
+        path: '/loans/&#123;loanId&#125;',
         summary: 'Get Loan Details',
         description: 'Single loan application response with all status timestamps.',
         auth: 'Bearer Token',
@@ -512,7 +512,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'loan-sched',
         method: 'GET',
-        path: '/loans/{loanId}/repayment-schedule',
+        path: '/loans/&#123;loanId&#125;/repayment-schedule',
         summary: 'Get Repayment Schedule',
         description: 'Returns the installment-by-installment repayment schedule for an active loan.',
         auth: 'Bearer Token',
@@ -523,7 +523,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'loan-accept',
         method: 'POST',
-        path: '/loans/{loanId}/student-accept',
+        path: '/loans/&#123;loanId&#125;/student-accept',
         summary: 'Accept Loan Offer',
         description: 'Student accepts an approved loan offer.',
         auth: 'Bearer Token',
@@ -534,7 +534,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'loan-cancel',
         method: 'POST',
-        path: '/loans/{loanId}/student-cancel',
+        path: '/loans/&#123;loanId&#125;/student-cancel',
         summary: 'Cancel Loan',
         description: 'Student cancels a loan application or accepted offer.',
         auth: 'Bearer Token',
@@ -553,7 +553,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'repay-sched',
         method: 'GET',
-        path: '/loans/{loanId}/repayments/schedule',
+        path: '/loans/&#123;loanId&#125;/repayments/schedule',
         summary: 'Detailed Schedule',
         description: 'Returns the structured repayment schedule as InstallmentDto objects.',
         auth: 'Bearer Token',
@@ -564,7 +564,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'repay-balance',
         method: 'GET',
-        path: '/loans/{loanId}/repayments/balance',
+        path: '/loans/&#123;loanId&#125;/repayments/balance',
         summary: 'Get Outstanding Balance',
         description: 'Retrieves current outstanding principal, interest and next installment details.',
         auth: 'Bearer Token',
@@ -580,18 +580,18 @@ export const API_SECTIONS: ApiSection[] = [
                 nextDueDate: '2026-05-28',
                 nextInstallmentAmount: 28750.00
               }
-            }, null, 2)
+            }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;')
           }
         ]
       },
       {
         id: 'repay-exec',
         method: 'POST',
-        path: '/loans/{loanId}/repayments',
+        path: '/loans/&#123;loanId&#125;/repayments',
         summary: 'Make Repayment',
         description: 'Executes a loan repayment from the user\'s wallet.',
         auth: 'Bearer Token',
-        requestBody: JSON.stringify({ amount: 28750, idempotencyKey: 'rep-001' }, null, 2),
+        requestBody: JSON.stringify({ amount: 28750, idempotencyKey: 'rep-001' }, null, 2).replace(/{/g, '&#123;').replace(/}/g, '&#125;'),
         responses: [
           { status: 200, description: 'Repayment successful' }
         ]
@@ -599,7 +599,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'repay-preview',
         method: 'POST',
-        path: '/loans/{loanId}/repayments/preview',
+        path: '/loans/&#123;loanId&#125;/repayments/preview',
         summary: 'Preview Schedule',
         description: 'Generates a full amortization table for a hypothetical loan.',
         auth: 'Bearer Token',
@@ -640,7 +640,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'sav-id',
         method: 'GET',
-        path: '/savings/accounts/{accountId}',
+        path: '/savings/accounts/&#123;accountId&#125;',
         summary: 'Get Savings Details',
         description: 'Retrieves current balance and accrued interest for a savings account.',
         auth: 'Bearer Token',
@@ -673,7 +673,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'sav-close',
         method: 'POST',
-        path: '/savings/accounts/{accountId}/close',
+        path: '/savings/accounts/&#123;accountId&#125;/close',
         summary: 'Close Savings Account',
         description: 'Closes a savings account. Any remaining balance is moved to the user\'s wallet.',
         auth: 'Bearer Token',
@@ -684,7 +684,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'sav-int',
         method: 'GET',
-        path: '/savings/accounts/{accountId}/interest-history',
+        path: '/savings/accounts/&#123;accountId&#125;/interest-history',
         summary: 'Interest History',
         description: 'Returns array of daily interest accrual records.',
         auth: 'Bearer Token',
@@ -725,7 +725,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'bill-query',
         method: 'POST',
-        path: '/bills/{paymentId}/query',
+        path: '/bills/&#123;paymentId&#125;/query',
         summary: 'Query Status',
         description: 'Queries the live status of a bill payment from the provider.',
         auth: 'Bearer Token',
@@ -736,7 +736,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'bill-id',
         method: 'GET',
-        path: '/bills/{paymentId}',
+        path: '/bills/&#123;paymentId&#125;',
         summary: 'Get Receipt',
         description: 'Returns payment confirmation and provider reference.',
         auth: 'Bearer Token',
@@ -788,7 +788,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'notif-read',
         method: 'POST',
-        path: '/notifications/{notificationId}/read',
+        path: '/notifications/&#123;notificationId&#125;/read',
         summary: 'Mark as Read',
         description: 'Marks a single notification as read.',
         auth: 'Bearer Token',
@@ -810,7 +810,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'notif-del',
         method: 'DELETE',
-        path: '/notifications/{notificationId}',
+        path: '/notifications/&#123;notificationId&#125;',
         summary: 'Delete Notification',
         description: 'Removes a notification record.',
         auth: 'Bearer Token',
@@ -884,7 +884,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'admin-suspend',
         method: 'POST',
-        path: '/admin/users/{userId}/suspend',
+        path: '/admin/users/&#123;userId&#125;/suspend',
         summary: 'Suspend User',
         description: 'Freezes user account. Requires a reason.',
         auth: 'Admin Only',
@@ -895,7 +895,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'admin-reactivate',
         method: 'POST',
-        path: '/admin/users/{userId}/reactivate',
+        path: '/admin/users/&#123;userId&#125;/reactivate',
         summary: 'Reactivate User',
         description: 'Restores access to a suspended user account.',
         auth: 'Admin Only',
@@ -906,7 +906,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'admin-kyc-app',
         method: 'POST',
-        path: '/admin/kyc/{verificationId}/approve',
+        path: '/admin/kyc/&#123;verificationId&#125;/approve',
         summary: 'Manual KYC Approval',
         description: 'Force-approves a pending KYC request.',
         auth: 'Admin Only',
@@ -969,7 +969,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'school-loan-ver',
         method: 'POST',
-        path: '/school/loans/{loanId}/verify',
+        path: '/school/loans/&#123;loanId&#125;/verify',
         summary: 'Verify Enrollment',
         description: 'School confirms student is currently enrolled.',
         auth: 'School Only',
@@ -980,7 +980,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'loan-school-ver',
         method: 'POST',
-        path: '/loans/{loanId}/school-verify',
+        path: '/loans/&#123;loanId&#125;/school-verify',
         summary: 'Direct School Verify',
         description: 'Alias for verifying enrollment via loan route.',
         auth: 'School Only',
@@ -991,7 +991,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'loan-school-rej',
         method: 'POST',
-        path: '/loans/{loanId}/school-reject',
+        path: '/loans/&#123;loanId&#125;/school-reject',
         summary: 'Reject Application',
         description: 'School rejects loan (e.g., student not enrolled).',
         auth: 'School Only',
@@ -1032,7 +1032,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'ops-approve',
         method: 'POST',
-        path: '/loans/{loanId}/ops-approve',
+        path: '/loans/&#123;loanId&#125;/ops-approve',
         summary: 'Approve Loan',
         description: 'Internal approval after credit checks.',
         auth: 'Admin Only',
@@ -1043,7 +1043,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'ops-reject',
         method: 'POST',
-        path: '/loans/{loanId}/ops-reject',
+        path: '/loans/&#123;loanId&#125;/ops-reject',
         summary: 'Reject Loan',
         description: 'Internal rejection (e.g., credit score low).',
         auth: 'Admin Only',
@@ -1073,7 +1073,7 @@ export const API_SECTIONS: ApiSection[] = [
       {
         id: 'webhook-kyc',
         method: 'POST',
-        path: '/kyc/webhook/{provider}',
+        path: '/kyc/webhook/&#123;provider&#125;',
         summary: 'KYC Result Webhook',
         description: 'Called by KYC providers with verification results.',
         auth: 'None',
