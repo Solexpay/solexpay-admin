@@ -1,14 +1,23 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, AfterViewInit, OnDestroy, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { API_SECTIONS, ApiSection } from './docs.data';
+import { CopyToClipboardDirective, TooltipDirective } from '../directives';
 
 @Component({
   selector: 'app-docs',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, CopyToClipboardDirective, TooltipDirective],
   templateUrl: './docs.page.html'
 })
-export class DocsPageComponent {
+export class DocsPageComponent implements AfterViewInit, OnDestroy {
+  private el = inject(ElementRef);
+  
+  sections: ApiSection[] = API_SECTIONS;
   expanded = signal<Set<string>>(new Set());
+  activeSectionId = signal<string>('getting-started');
+
+  private observer: IntersectionObserver | null = null;
 
   schemas = [
     { name: 'ProfileDto', description: 'User profile details and contact information' },
@@ -42,6 +51,38 @@ export class DocsPageComponent {
     { name: 'SendOtpResponse', description: 'Confirmation of OTP dispatch with reference and expiry' }
   ];
 
+  ngAfterViewInit() {
+    this.setupScrollSpy();
+  }
+
+  ngOnDestroy() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  }
+
+  private setupScrollSpy() {
+    const options = {
+      root: null,
+      rootMargin: '-20% 0px -70% 0px',
+      threshold: 0
+    };
+
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          this.activeSectionId.set(entry.target.id);
+        }
+      });
+    }, options);
+
+    // Observe all sections including the new Getting Started one
+    const sectionElements = this.el.nativeElement.querySelectorAll('section[id]');
+    sectionElements.forEach((section: HTMLElement) => {
+      this.observer?.observe(section);
+    });
+  }
+
   isExpanded(id: string): boolean {
     return this.expanded().has(id);
   }
@@ -58,17 +99,19 @@ export class DocsPageComponent {
       behavior: 'smooth',
       block: 'start'
     });
+    // Manually set active for better immediate feedback
+    this.activeSectionId.set(sectionId);
   }
 
   methodBadge(method: string): string {
     const map: Record<string, string> = {
-      GET:    'bg-tertiary/10 text-tertiary',
-      POST:   'bg-primary/10 text-primary',
-      PUT:    'bg-amber-100 text-amber-800',
-      PATCH:  'bg-amber-100 text-amber-800',
-      DELETE: 'bg-error/10 text-error',
+      GET:    'bg-tertiary/10 text-tertiary border-tertiary/20',
+      POST:   'bg-primary/10 text-primary border-primary/20',
+      PUT:    'bg-amber-100 text-amber-800 border-amber-200',
+      PATCH:  'bg-amber-100 text-amber-800 border-amber-200',
+      DELETE: 'bg-error/10 text-error border-error/20',
     };
-    const color = map[method] ?? 'bg-surface-container text-on-surface-variant';
-    return `inline-flex items-center font-mono font-bold text-xs px-2.5 py-1 rounded-lg uppercase ${color}`;
+    const color = map[method] ?? 'bg-surface-container text-on-surface-variant border-outline-variant';
+    return `inline-flex items-center font-mono font-bold text-[10px] px-2 py-0.5 rounded-full border uppercase ${color}`;
   }
 }

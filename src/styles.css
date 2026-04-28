@@ -498,6 +498,21 @@ code {
   100% { transform: translateX(200%); }
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.rounded-2.5xl {
+  border-radius: 1.25rem;
+}
+
 /* View transitions support */
 @supports (view-transition-name: none) {
   ::view-transition-old(root) {

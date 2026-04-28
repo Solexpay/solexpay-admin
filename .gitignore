@@ -41,6 +41,7 @@ coverage
 
 # Misc
 .cache
+.angular
 temp
 tmp
 *.log

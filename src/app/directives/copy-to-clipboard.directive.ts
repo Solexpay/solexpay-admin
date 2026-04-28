@@ -1,14 +1,16 @@
-import { Directive, ElementRef, Renderer2, inject } from '@angular/core';
+import { Directive, ElementRef, Renderer2, Input, inject, OnInit } from '@angular/core';
 import { ToastService } from '../services/toast.service';
 
 @Directive({
   selector: '[copyToClipboard]',
   standalone: true,
 })
-export class CopyToClipboardDirective {
+export class CopyToClipboardDirective implements OnInit {
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);
   private toast = inject(ToastService);
+
+  @Input('copyToClipboard') customText: string | null = null;
 
   private isCopied = false;
 
@@ -16,9 +18,12 @@ export class CopyToClipboardDirective {
     const element = this.el.nativeElement;
     this.renderer.setStyle(element, 'cursor', 'pointer');
     
-    this.renderer.listen(element, 'click', () => {
-      const textToCopy = element.textContent?.trim() || '';
-      this.copyToClipboard(textToCopy);
+    this.renderer.listen(element, 'click', (event: MouseEvent) => {
+      event.stopPropagation(); // Prevent trigger parent click events (like accordion toggle)
+      const textToCopy = this.customText || element.textContent?.trim() || '';
+      if (textToCopy) {
+        this.copyToClipboard(textToCopy);
+      }
     });
   }
 
