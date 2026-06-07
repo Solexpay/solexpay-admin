@@ -15,6 +15,8 @@ import { LucideAngularModule, Download, LogIn } from "lucide-angular";
         background: rgba(248, 249, 250, 0.85);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
+        will-change: backdrop-filter, transform;
+        transform: translateZ(0);
       }
       .editorial-gradient {
         background: linear-gradient(135deg, #005bbf 0%, #1a73e8 100%);
