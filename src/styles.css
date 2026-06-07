@@ -75,7 +75,11 @@ button,
 a,
 input,
 select {
-  transition: all 0.2s ease;
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke,
+    opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
 }
 
 /* Disable default button styles */

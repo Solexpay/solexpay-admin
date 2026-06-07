@@ -31,8 +31,9 @@ export class ViewTransitionDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(
       element,
       "transition",
-      `all ${this.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+      `opacity ${this.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1), transform ${this.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`,
     );
+    this.renderer.setStyle(element, "will-change", "opacity, transform");
 
     // Handle enter animation
     this.animateIn(element);

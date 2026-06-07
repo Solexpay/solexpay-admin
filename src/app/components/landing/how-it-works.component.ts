@@ -518,7 +518,7 @@ import { Component } from "@angular/core";
               </p>
               <a
                 href="#download"
-                class="inline-flex items-center gap-3 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl text-on-primary font-bold text-sm hover:brightness-110 hover:-translate-y-0.5 transition-all"
+                class="inline-flex items-center gap-3 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl text-on-primary font-bold text-sm hover:brightness-110 hover:-translate-y-0.5 transition"
                 style="background: linear-gradient(135deg,#005bbf,#1a73e8);"
               >
                 Open Your Account

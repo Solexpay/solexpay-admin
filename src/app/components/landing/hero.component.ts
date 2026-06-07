@@ -114,7 +114,7 @@ import {
         <div class="flex flex-wrap gap-3 sm:gap-4">
           <a
             href="#download"
-            class="px-6 sm:px-8 py-3 sm:py-4 editorial-gradient text-on-primary font-bold rounded-xl shadow-xl shadow-primary/25 hover:brightness-110 hover:-translate-y-0.5 transition-all"
+            class="px-6 sm:px-8 py-3 sm:py-4 editorial-gradient text-on-primary font-bold rounded-xl shadow-xl shadow-primary/25 hover:brightness-110 hover:-translate-y-0.5 transition"
           >
             Open Your Account
           </a>
@@ -136,7 +136,7 @@ import {
             <!-- App Store badge -->
             <a
               href="#download"
-              class="flex items-center gap-3 bg-on-surface text-surface px-5 py-3 rounded-xl hover:bg-on-surface/90 transition-all"
+              class="flex items-center gap-3 bg-on-surface text-surface px-5 py-3 rounded-xl hover:bg-on-surface/90 transition"
             >
               <svg
                 class="w-7 h-7 shrink-0"
@@ -157,7 +157,7 @@ import {
             <!-- Google Play badge -->
             <a
               href="#download"
-              class="flex items-center gap-3 bg-on-surface text-surface px-5 py-3 rounded-xl hover:bg-on-surface/90 transition-all"
+              class="flex items-center gap-3 bg-on-surface text-surface px-5 py-3 rounded-xl hover:bg-on-surface/90 transition"
             >
               <svg
                 class="w-7 h-7 shrink-0"

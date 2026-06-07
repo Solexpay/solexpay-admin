@@ -78,7 +78,7 @@ import { LucideAngularModule, ShieldCheck } from "lucide-angular";
           </div>
           <a
             href="#download"
-            class="inline-block bg-white text-primary px-10 py-4 rounded-2xl font-black text-lg hover:bg-opacity-90 hover:-translate-y-0.5 transition-all shadow-xl"
+            class="inline-block bg-white text-primary px-10 py-4 rounded-2xl font-black text-lg hover:bg-opacity-90 hover:-translate-y-0.5 transition shadow-xl"
           >
             Apply for a Loan
           </a>

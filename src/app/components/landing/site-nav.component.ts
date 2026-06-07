@@ -73,7 +73,7 @@ import { LucideAngularModule, Download, LogIn } from "lucide-angular";
           </a>
           <a
             href="#download"
-            class="px-4 sm:px-6 py-2 sm:py-2.5 editorial-gradient text-on-primary font-bold text-sm rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
+            class="px-4 sm:px-6 py-2 sm:py-2.5 editorial-gradient text-on-primary font-bold text-sm rounded-xl hover:brightness-110 transition shadow-lg shadow-primary/20 flex items-center gap-2"
           >
             <lucide-icon [img]="DownloadIcon" class="w-4 h-4"></lucide-icon>
             <span class="hidden xs:inline sm:inline">Get the App</span>

@@ -59,8 +59,9 @@ describe("ViewTransitionDirective", () => {
         .viewTransitionName,
     ).toBe("custom-transition");
     expect(element.style.transition).toContain(
-      "all 500ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "opacity 500ms cubic-bezier(0.4, 0, 0.2, 1)",
     );
+    expect(element.style.willChange).toBe("opacity, transform");
   });
 
   it("should set initial invisible styles on init", () => {

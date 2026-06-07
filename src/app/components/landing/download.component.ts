@@ -31,7 +31,7 @@ import { LucideAngularModule, ExternalLink, QrCode } from "lucide-angular";
               <!-- App Store -->
               <a
                 href="#"
-                class="flex items-center gap-3 bg-on-surface text-surface px-6 py-3.5 rounded-xl hover:bg-on-surface/90 hover:-translate-y-0.5 transition-all"
+                class="flex items-center gap-3 bg-on-surface text-surface px-6 py-3.5 rounded-xl hover:bg-on-surface/90 hover:-translate-y-0.5 transition"
               >
                 <svg
                   class="w-8 h-8 shrink-0"
@@ -52,7 +52,7 @@ import { LucideAngularModule, ExternalLink, QrCode } from "lucide-angular";
               <!-- Google Play -->
               <a
                 href="#"
-                class="flex items-center gap-3 bg-on-surface text-surface px-6 py-3.5 rounded-xl hover:bg-on-surface/90 hover:-translate-y-0.5 transition-all"
+                class="flex items-center gap-3 bg-on-surface text-surface px-6 py-3.5 rounded-xl hover:bg-on-surface/90 hover:-translate-y-0.5 transition"
               >
                 <svg
                   class="w-8 h-8 shrink-0"
@@ -72,7 +72,7 @@ import { LucideAngularModule, ExternalLink, QrCode } from "lucide-angular";
               </a>
               <a
                 href="#"
-                class="flex items-center gap-3 bg-surface-container-high text-on-surface px-6 py-3.5 rounded-xl hover:bg-surface-container-highest transition-all border border-outline-variant"
+                class="flex items-center gap-3 bg-surface-container-high text-on-surface px-6 py-3.5 rounded-xl hover:bg-surface-container-highest transition border border-outline-variant"
               >
                 <lucide-icon
                   [img]="ExternalLinkIcon"

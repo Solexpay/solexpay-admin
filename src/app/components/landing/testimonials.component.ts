@@ -39,7 +39,7 @@ interface Testimonial {
           >
             @for (uni of universities; track uni.name; let i = $index) {
               <div
-                class="flex items-center gap-3 px-5 py-3 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 hover:-translate-y-0.5 transition-all duration-300 cursor-default"
+                class="flex items-center gap-3 px-5 py-3 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 hover:-translate-y-0.5 transition duration-300 cursor-default"
                 [title]="uni.fullName"
                 data-aos="fade-up"
                 [attr.data-aos-delay]="i * 60"
@@ -62,7 +62,7 @@ interface Testimonial {
         <div class="grid md:grid-cols-3 gap-6">
           @for (review of testimonials; track review.name; let i = $index) {
             <div
-              class="bg-surface-container-lowest p-8 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all"
+              class="bg-surface-container-lowest p-8 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition"
               data-aos="fade-up"
               [attr.data-aos-delay]="i * 120"
             >

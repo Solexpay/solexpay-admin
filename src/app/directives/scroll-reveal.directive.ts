@@ -27,6 +27,7 @@ export class ScrollRevealDirective implements OnInit, OnDestroy {
       "transition",
       "opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
     );
+    this.renderer.setStyle(element, "will-change", "opacity, transform");
 
     this.observer = new IntersectionObserver(
       (entries) => {
