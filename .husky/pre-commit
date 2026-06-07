@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running formatting and linting..."
+pnpm exec lint-staged
+
+echo "Running tests..."
+pnpm run test

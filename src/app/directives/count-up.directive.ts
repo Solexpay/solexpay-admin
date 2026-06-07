@@ -1,18 +1,25 @@
-import { Directive, ElementRef, Input, SimpleChanges, inject } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  Input,
+  SimpleChanges,
+  inject,
+  OnChanges,
+} from "@angular/core";
 
-@Directive({ selector: '[countUp]', standalone: true })
-export class CountUpDirective {
+@Directive({ selector: "[countUp]", standalone: true })
+export class CountUpDirective implements OnChanges {
   @Input() countUp = 0;
   @Input() duration = 1200;
-  @Input() prefix = '';
-  @Input() suffix = '';
+  @Input() prefix = "";
+  @Input() suffix = "";
   @Input() compact = false;
 
   private el = inject(ElementRef);
   private hasAnimated = false;
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['countUp'] && !this.hasAnimated) {
+    if (changes["countUp"] && !this.hasAnimated) {
       this.hasAnimated = true;
       this.animate();
     }
@@ -26,7 +33,7 @@ export class CountUpDirective {
       if (abs >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
       return `${Math.round(value)}`;
     }
-    return Math.floor(value).toLocaleString('en-NG');
+    return Math.floor(value).toLocaleString("en-NG");
   }
 
   private animate() {
@@ -36,7 +43,8 @@ export class CountUpDirective {
       const elapsed = now - start;
       const progress = Math.min(elapsed / this.duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      this.el.nativeElement.textContent = this.prefix + this.format(eased * target) + this.suffix;
+      this.el.nativeElement.textContent =
+        this.prefix + this.format(eased * target) + this.suffix;
       if (progress < 1) requestAnimationFrame(update);
     };
     requestAnimationFrame(update);

@@ -1,12 +1,12 @@
-import { Directive, ElementRef, HostListener, Input, inject } from '@angular/core';
+import { Directive, HostListener } from "@angular/core";
 
-@Directive({ selector: '[solexRipple]', standalone: true })
+@Directive({ selector: "[solexRipple]", standalone: true })
 export class RippleDirective {
-  @HostListener('click', ['$event'])
+  @HostListener("click", ["$event"])
   onClick(e: MouseEvent) {
-    const button = (e.currentTarget as HTMLElement);
+    const button = e.currentTarget as HTMLElement;
     const rect = button.getBoundingClientRect();
-    const ripple = document.createElement('span');
+    const ripple = document.createElement("span");
     const size = Math.max(rect.width, rect.height);
 
     ripple.style.cssText = `
@@ -20,8 +20,8 @@ export class RippleDirective {
       animation: ripple 0.6s linear forwards;
       pointer-events: none;
     `;
-    button.style.position = 'relative';
-    button.style.overflow = 'hidden';
+    button.style.position = "relative";
+    button.style.overflow = "hidden";
     button.appendChild(ripple);
     setTimeout(() => ripple.remove(), 600);
   }

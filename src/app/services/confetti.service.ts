@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
 interface ConfettiOptions {
   particleCount?: number;
@@ -8,17 +8,17 @@ interface ConfettiOptions {
   duration?: number;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ConfettiService {
   private defaultColors = [
-    '#005bbf', // Primary
-    '#00c853', // Tertiary (green)
-    '#ff6b00', // Secondary
-    '#ff1744', // Error
-    '#ffd600', // Warning
-    '#00b0ff', // Info
-    '#e1e3e4', // Surface
-    '#191c1d', // On surface
+    "#005bbf", // Primary
+    "#00c853", // Tertiary (green)
+    "#ff6b00", // Secondary
+    "#ff1744", // Error
+    "#ffd600", // Warning
+    "#00b0ff", // Info
+    "#e1e3e4", // Surface
+    "#191c1d", // On surface
   ];
 
   celebrate(options: ConfettiOptions = {}) {
@@ -31,7 +31,7 @@ export class ConfettiService {
     } = options;
 
     const particles: HTMLDivElement[] = [];
-    const container = document.createElement('div');
+    const container = document.createElement("div");
     container.style.cssText = `
       position: fixed;
       top: 0;
@@ -46,16 +46,16 @@ export class ConfettiService {
 
     // Create particles
     for (let i = 0; i < particleCount; i++) {
-      const particle = document.createElement('div');
+      const particle = document.createElement("div");
       const color = colors[Math.floor(Math.random() * colors.length)];
       const size = Math.random() * 10 + 5;
-      
+
       particle.style.cssText = `
         position: absolute;
         width: ${size}px;
         height: ${size}px;
         background: ${color};
-        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        border-radius: ${Math.random() > 0.5 ? "50%" : "2px"};
         left: ${origin.x !== undefined ? origin.x * 100 : 50}%;
         top: ${origin.y !== undefined ? origin.y * 100 : 60}%;
         transform: translate(-50%, -50%);
@@ -84,9 +84,9 @@ export class ConfettiService {
       const startTime = performance.now();
       const animate = (now: number) => {
         const elapsed = now - startTime;
-        
+
         if (elapsed > duration) {
-          particle.style.opacity = '0';
+          particle.style.opacity = "0";
           return;
         }
 
@@ -94,7 +94,7 @@ export class ConfettiService {
         velY += gravity;
         velX *= drag;
         velY *= drag;
-        
+
         posX += velX;
         posY += velY;
         rot += rotationSpeed;
@@ -104,10 +104,12 @@ export class ConfettiService {
           translate(calc(-50% + ${posX}px), calc(-50% + ${posY}px))
           rotate(${rot}deg)
         `;
-        
+
         // Fade out near end
         if (elapsed > duration - 500) {
-          particle.style.opacity = String(1 - (elapsed - (duration - 500)) / 500);
+          particle.style.opacity = String(
+            1 - (elapsed - (duration - 500)) / 500,
+          );
         }
 
         requestAnimationFrame(animate);
@@ -119,7 +121,7 @@ export class ConfettiService {
 
     // Cleanup
     setTimeout(() => {
-      particles.forEach(p => p.remove());
+      particles.forEach((p) => p.remove());
       container.remove();
     }, duration + 100);
   }
@@ -147,7 +149,7 @@ export class ConfettiService {
     this.celebrate({
       particleCount: 80,
       spread: 70,
-      colors: ['#00c853', '#00e676', '#69f0ae', '#005bbf', '#00b0ff'],
+      colors: ["#00c853", "#00e676", "#69f0ae", "#005bbf", "#00b0ff"],
       duration: 3000,
     });
   }

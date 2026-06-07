@@ -1,7 +1,14 @@
-import { Directive, ElementRef, Renderer2, OnInit, OnDestroy, inject } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  Renderer2,
+  OnInit,
+  OnDestroy,
+  inject,
+} from "@angular/core";
 
 @Directive({
-  selector: '[floatingLabel]',
+  selector: "[floatingLabel]",
   standalone: true,
 })
 export class FloatingLabelDirective implements OnInit, OnDestroy {
@@ -15,49 +22,53 @@ export class FloatingLabelDirective implements OnInit, OnDestroy {
   ngOnInit() {
     const input = this.el.nativeElement;
     const parent = input.parentElement;
-    
+
     if (!parent) return;
 
     // Create floating label
-    this.label = this.renderer.createElement('label');
-    const placeholder = input.getAttribute('placeholder') || '';
-    this.renderer.setProperty(this.label, 'textContent', placeholder);
-    
+    this.label = this.renderer.createElement("label");
+    const placeholder = input.getAttribute("placeholder") || "";
+    this.renderer.setProperty(this.label, "textContent", placeholder);
+
     // Style the label
-    this.renderer.setStyle(this.label, 'position', 'absolute');
-    this.renderer.setStyle(this.label, 'left', '40px');
-    this.renderer.setStyle(this.label, 'top', '50%');
-    this.renderer.setStyle(this.label, 'transform', 'translateY(-50%)');
-    this.renderer.setStyle(this.label, 'color', '#727785');
-    this.renderer.setStyle(this.label, 'fontSize', '14px');
-    this.renderer.setStyle(this.label, 'fontWeight', '500');
-    this.renderer.setStyle(this.label, 'pointerEvents', 'none');
-    this.renderer.setStyle(this.label, 'transition', 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)');
-    this.renderer.setStyle(this.label, 'background', 'transparent');
-    this.renderer.setStyle(this.label, 'padding', '0 4px');
-    
+    this.renderer.setStyle(this.label, "position", "absolute");
+    this.renderer.setStyle(this.label, "left", "40px");
+    this.renderer.setStyle(this.label, "top", "50%");
+    this.renderer.setStyle(this.label, "transform", "translateY(-50%)");
+    this.renderer.setStyle(this.label, "color", "#727785");
+    this.renderer.setStyle(this.label, "fontSize", "14px");
+    this.renderer.setStyle(this.label, "fontWeight", "500");
+    this.renderer.setStyle(this.label, "pointerEvents", "none");
+    this.renderer.setStyle(
+      this.label,
+      "transition",
+      "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    );
+    this.renderer.setStyle(this.label, "background", "transparent");
+    this.renderer.setStyle(this.label, "padding", "0 4px");
+
     // Insert label before input
     parent.insertBefore(this.label, input);
-    
+
     // Remove placeholder from input
-    input.removeAttribute('placeholder');
-    
+    input.removeAttribute("placeholder");
+
     // Add padding to input to accommodate label when floated
-    input.style.paddingTop = '20px';
-    input.style.paddingBottom = '8px';
-    
+    input.style.paddingTop = "20px";
+    input.style.paddingBottom = "8px";
+
     // Event listeners
-    this.unlistenFocus = this.renderer.listen(input, 'focus', () => {
+    this.unlistenFocus = this.renderer.listen(input, "focus", () => {
       this.floatLabel(true);
     });
-    
-    this.unlistenBlur = this.renderer.listen(input, 'blur', () => {
+
+    this.unlistenBlur = this.renderer.listen(input, "blur", () => {
       if (!input.value) {
         this.floatLabel(false);
       }
     });
-    
-    this.unlistenInput = this.renderer.listen(input, 'input', () => {
+
+    this.unlistenInput = this.renderer.listen(input, "input", () => {
       if (input.value) {
         this.floatLabel(true);
       }
@@ -71,17 +82,25 @@ export class FloatingLabelDirective implements OnInit, OnDestroy {
 
   private floatLabel(shouldFloat: boolean) {
     if (!this.label) return;
-    
+
     if (shouldFloat) {
-      this.renderer.setStyle(this.label, 'top', '12px');
-      this.renderer.setStyle(this.label, 'transform', 'translateY(0) scale(0.75)');
-      this.renderer.setStyle(this.label, 'color', '#005bbf');
-      this.renderer.setStyle(this.label, 'left', '16px');
+      this.renderer.setStyle(this.label, "top", "12px");
+      this.renderer.setStyle(
+        this.label,
+        "transform",
+        "translateY(0) scale(0.75)",
+      );
+      this.renderer.setStyle(this.label, "color", "#005bbf");
+      this.renderer.setStyle(this.label, "left", "16px");
     } else {
-      this.renderer.setStyle(this.label, 'top', '50%');
-      this.renderer.setStyle(this.label, 'transform', 'translateY(-50%) scale(1)');
-      this.renderer.setStyle(this.label, 'color', '#727785');
-      this.renderer.setStyle(this.label, 'left', '40px');
+      this.renderer.setStyle(this.label, "top", "50%");
+      this.renderer.setStyle(
+        this.label,
+        "transform",
+        "translateY(-50%) scale(1)",
+      );
+      this.renderer.setStyle(this.label, "color", "#727785");
+      this.renderer.setStyle(this.label, "left", "40px");
     }
   }
 

@@ -1,7 +1,7 @@
-import { Directive, ElementRef, Input, inject } from '@angular/core';
+import { Directive, ElementRef, Input, inject } from "@angular/core";
 
 @Directive({
-  selector: '[highlightNew]',
+  selector: "[highlightNew]",
   standalone: true,
 })
 export class HighlightNewDirective {
@@ -18,10 +18,10 @@ export class HighlightNewDirective {
   private triggerHighlight() {
     setTimeout(() => {
       const element = this.el.nativeElement;
-      element.classList.add('animate-highlight');
-      
+      element.classList.add("animate-highlight");
+
       setTimeout(() => {
-        element.classList.remove('animate-highlight');
+        element.classList.remove("animate-highlight");
       }, 1500);
     }, this.highlightDelay);
   }

@@ -1,7 +1,7 @@
-import { Directive, ElementRef, Input, inject } from '@angular/core';
+import { Directive, ElementRef, Input, inject } from "@angular/core";
 
 @Directive({
-  selector: '[shakeOnError]',
+  selector: "[shakeOnError]",
   standalone: true,
 })
 export class ShakeOnErrorDirective {
@@ -17,10 +17,10 @@ export class ShakeOnErrorDirective {
   private triggerShake() {
     this.isShaking = true;
     const element = this.el.nativeElement;
-    element.classList.add('animate-shake');
-    
+    element.classList.add("animate-shake");
+
     setTimeout(() => {
-      element.classList.remove('animate-shake');
+      element.classList.remove("animate-shake");
       this.isShaking = false;
     }, 400);
   }

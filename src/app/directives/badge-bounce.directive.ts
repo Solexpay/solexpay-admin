@@ -1,7 +1,7 @@
-import { Directive, ElementRef, Input, inject } from '@angular/core';
+import { Directive, ElementRef, Input, inject } from "@angular/core";
 
 @Directive({
-  selector: '[badgeBounce]',
+  selector: "[badgeBounce]",
   standalone: true,
 })
 export class BadgeBounceDirective {
@@ -17,15 +17,15 @@ export class BadgeBounceDirective {
 
   private triggerBounce() {
     const element = this.el.nativeElement;
-    element.classList.remove('animate-badge-bounce');
-    
+    element.classList.remove("animate-badge-bounce");
+
     // Force reflow
     void element.offsetWidth;
-    
-    element.classList.add('animate-badge-bounce');
-    
+
+    element.classList.add("animate-badge-bounce");
+
     setTimeout(() => {
-      element.classList.remove('animate-badge-bounce');
+      element.classList.remove("animate-badge-bounce");
       this.hasBounced = false;
     }, 500);
   }

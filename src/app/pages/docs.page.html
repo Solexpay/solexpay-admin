@@ -1,19 +1,30 @@
 <!-- HERO SECTION -->
-<div class="bg-gradient-to-br from-[#001d3d] to-[#003566] text-white px-6 py-20 relative overflow-hidden">
+<div
+  class="bg-gradient-to-br from-[#001d3d] to-[#003566] text-white px-6 py-20 relative overflow-hidden"
+>
   <!-- Decorative Background Glows -->
-  <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/20 blur-[120px] rounded-full"></div>
-  <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 blur-[100px] rounded-full"></div>
+  <div
+    class="absolute -top-24 -right-24 w-96 h-96 bg-primary/20 blur-[120px] rounded-full"
+  ></div>
+  <div
+    class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 blur-[100px] rounded-full"
+  ></div>
 
   <div class="max-w-6xl mx-auto relative z-10">
     <div class="flex items-center justify-between mb-8">
       <div class="flex items-center gap-3 opacity-90">
-        <img src="/logo-icon.png" alt="Solexpay" class="h-10 w-auto drop-shadow-2xl" />
+        <img
+          src="/logo-icon.png"
+          alt="Solexpay"
+          class="h-10 w-auto drop-shadow-2xl"
+        />
         <span class="text-2xl font-bold tracking-tight">Solexpay</span>
       </div>
-      
-      <a routerLink="/" 
-         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/20 
-                text-white text-sm font-bold hover:bg-white/20 transition-all hover:-translate-x-1">
+
+      <a
+        routerLink="/"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-bold hover:bg-white/20 transition-all hover:-translate-x-1"
+      >
         <span class="material-symbols-outlined text-[20px]">arrow_back</span>
         Back to Home
       </a>
@@ -25,31 +36,41 @@
           Developer API Reference
         </h1>
         <p class="text-blue-100 text-xl max-w-xl leading-relaxed opacity-80">
-          Build powerful financial experiences with our comprehensive REST API. 
+          Build powerful financial experiences with our comprehensive REST API.
           Manage wallets, process transfers, and integrate loans with ease.
         </p>
 
         <div class="flex flex-wrap gap-4 mt-10">
-          <a href="http://api.solexpay.com.ng/swagger-ui/index.html" target="_blank"
-             class="inline-flex items-center gap-2 bg-white text-[#001d3d] font-bold
-                    text-sm px-6 py-3.5 rounded-2xl hover:bg-blue-50 transition-all
-                    hover:scale-105 shadow-xl">
-            <span class="material-symbols-outlined text-[20px]">open_in_new</span>
+          <a
+            href="http://api.solexpay.com.ng/swagger-ui/index.html"
+            target="_blank"
+            class="inline-flex items-center gap-2 bg-white text-[#001d3d] font-bold text-sm px-6 py-3.5 rounded-2xl hover:bg-blue-50 transition-all hover:scale-105 shadow-xl"
+          >
+            <span class="material-symbols-outlined text-[20px]"
+              >open_in_new</span
+            >
             Interactive Swagger UI
           </a>
-          <a href="http://api.solexpay.com.ng/v3/api-docs" target="_blank"
-             class="inline-flex items-center gap-2 bg-white/10 border border-white/20
-                    text-white font-bold text-sm px-6 py-3.5 rounded-2xl
-                    hover:bg-white/20 transition-all hover:scale-105 backdrop-blur-md">
-            <span class="material-symbols-outlined text-[20px]">data_object</span>
+          <a
+            href="http://api.solexpay.com.ng/v3/api-docs"
+            target="_blank"
+            class="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-bold text-sm px-6 py-3.5 rounded-2xl hover:bg-white/20 transition-all hover:scale-105 backdrop-blur-md"
+          >
+            <span class="material-symbols-outlined text-[20px]"
+              >data_object</span
+            >
             OpenAPI JSON
           </a>
         </div>
       </div>
 
       <div class="hidden lg:block">
-        <div class="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl shadow-2xl">
-          <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-4">
+        <div
+          class="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl shadow-2xl"
+        >
+          <div
+            class="flex items-center justify-between mb-4 border-b border-white/10 pb-4"
+          >
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-red-400"></div>
               <div class="w-3 h-3 rounded-full bg-amber-400"></div>
@@ -58,17 +79,31 @@
             <span class="text-xs font-mono text-blue-300">Production API</span>
           </div>
           <div class="space-y-4 font-mono text-sm">
-            <div class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3 group">
-              <span class="text-blue-300 text-xs font-bold uppercase tracking-wider">Base</span>
-              <code class="text-white select-all">https://api.solexpay.com.ng</code>
-              <button [copyToClipboard]="'https://api.solexpay.com.ng'" 
-                      tooltip="Copy URL"
-                      class="ml-auto material-symbols-outlined text-[18px] text-white/40 hover:text-white">
+            <div
+              class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3 group"
+            >
+              <span
+                class="text-blue-300 text-xs font-bold uppercase tracking-wider"
+                >Base</span
+              >
+              <code class="text-white select-all"
+                >https://api.solexpay.com.ng</code
+              >
+              <button
+                [copyToClipboard]="'https://api.solexpay.com.ng'"
+                tooltip="Copy URL"
+                class="ml-auto material-symbols-outlined text-[18px] text-white/40 hover:text-white"
+              >
                 content_copy
               </button>
             </div>
-            <div class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3">
-              <span class="text-blue-300 text-xs font-bold uppercase tracking-wider">Ver</span>
+            <div
+              class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3"
+            >
+              <span
+                class="text-blue-300 text-xs font-bold uppercase tracking-wider"
+                >Ver</span
+              >
               <span class="text-white">v0 (OpenAPI 3.1.0)</span>
             </div>
           </div>
@@ -81,15 +116,20 @@
 <div class="max-w-6xl mx-auto px-4 py-12 flex gap-12">
   <!-- LEFT NAVIGATION SIDEBAR -->
   <aside class="hidden lg:block w-64 shrink-0">
-    <nav class="sticky top-10 max-h-[calc(100vh-6rem)] overflow-y-auto pr-4 space-y-1 no-scrollbar">
-      
+    <nav
+      class="sticky top-10 max-h-[calc(100vh-6rem)] overflow-y-auto pr-4 space-y-1 no-scrollbar"
+    >
       <!-- Static Header Links -->
-      <button (click)="scrollTo('getting-started')" 
-              [class.bg-primary-10]="activeSectionId() === 'getting-started'"
-              [class.text-primary]="activeSectionId() === 'getting-started'"
-              class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all hover:bg-surface-container group">
-        <span class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110"
-              [class.text-primary]="activeSectionId() === 'getting-started'">
+      <button
+        (click)="scrollTo('getting-started')"
+        [class.bg-primary-10]="activeSectionId() === 'getting-started'"
+        [class.text-primary]="activeSectionId() === 'getting-started'"
+        class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all hover:bg-surface-container group"
+      >
+        <span
+          class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110"
+          [class.text-primary]="activeSectionId() === 'getting-started'"
+        >
           rocket_launch
         </span>
         <span class="text-sm font-semibold">Getting Started</span>
@@ -98,45 +138,77 @@
       <div class="h-4"></div>
 
       <!-- Dynamic Sections -->
-      @for (section of sections; track section.id) {
-        @if ($index === 0) {
-          <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em] px-4 py-3 mt-4">API ENDPOINTS</p>
-        } @else if (section.id === 'section-admin') {
-          <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em] px-4 py-3 mt-8">ADMIN & OPS</p>
-        } @else if (section.id === 'section-envelope') {
-          <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em] px-4 py-3 mt-8">REFERENCE</p>
-        }
+      @for (section of sections; track section.id) { @if ($index === 0) {
+      <p
+        class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em] px-4 py-3 mt-4"
+      >
+        API ENDPOINTS
+      </p>
+      } @else if (section.id === 'section-admin') {
+      <p
+        class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em] px-4 py-3 mt-8"
+      >
+        ADMIN & OPS
+      </p>
+      } @else if (section.id === 'section-envelope') {
+      <p
+        class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em] px-4 py-3 mt-8"
+      >
+        REFERENCE
+      </p>
+      }
 
-        <button (click)="scrollTo(section.id)" 
-                [class.bg-primary-10]="activeSectionId() === section.id"
-                [class.text-primary]="activeSectionId() === section.id"
-                class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all hover:bg-surface-container group">
-          <span class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110"
-                [class.text-on-surface-variant]="activeSectionId() !== section.id">
-            {{ section.icon }}
-          </span>
-          <span class="text-sm" [class.font-semibold]="activeSectionId() === section.id">
-            {{ section.title }}
-          </span>
-        </button>
+      <button
+        (click)="scrollTo(section.id)"
+        [class.bg-primary-10]="activeSectionId() === section.id"
+        [class.text-primary]="activeSectionId() === section.id"
+        class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all hover:bg-surface-container group"
+      >
+        <span
+          class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110"
+          [class.text-on-surface-variant]="activeSectionId() !== section.id"
+        >
+          {{ section.icon }}
+        </span>
+        <span
+          class="text-sm"
+          [class.font-semibold]="activeSectionId() === section.id"
+        >
+          {{ section.title }}
+        </span>
+      </button>
       }
 
       <div class="h-8"></div>
 
       <!-- Static Reference Links -->
-      <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em] px-4 py-3">RESOURCES</p>
-      <button (click)="scrollTo('section-schemas')" 
-              [class.bg-primary-10]="activeSectionId() === 'section-schemas'"
-              [class.text-primary]="activeSectionId() === 'section-schemas'"
-              class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all hover:bg-surface-container group">
-        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">data_object</span>
+      <p
+        class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em] px-4 py-3"
+      >
+        RESOURCES
+      </p>
+      <button
+        (click)="scrollTo('section-schemas')"
+        [class.bg-primary-10]="activeSectionId() === 'section-schemas'"
+        [class.text-primary]="activeSectionId() === 'section-schemas'"
+        class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all hover:bg-surface-container group"
+      >
+        <span
+          class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform"
+          >data_object</span
+        >
         <span class="text-sm">Schemas</span>
       </button>
-      <button (click)="scrollTo('section-errors')" 
-              [class.bg-primary-10]="activeSectionId() === 'section-errors'"
-              [class.text-primary]="activeSectionId() === 'section-errors'"
-              class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all hover:bg-surface-container group">
-        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">error</span>
+      <button
+        (click)="scrollTo('section-errors')"
+        [class.bg-primary-10]="activeSectionId() === 'section-errors'"
+        [class.text-primary]="activeSectionId() === 'section-errors'"
+        class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all hover:bg-surface-container group"
+      >
+        <span
+          class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform"
+          >error</span
+        >
         <span class="text-sm">Error Codes</span>
       </button>
     </nav>
@@ -144,242 +216,359 @@
 
   <!-- MAIN CONTENT AREA -->
   <main class="flex-1 min-w-0 space-y-24">
-    
     <!-- GETTING STARTED SECTION -->
     <section id="getting-started" class="scroll-mt-10">
       <div class="mb-12">
-        <div class="inline-flex items-center gap-2 bg-primary-10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+        <div
+          class="inline-flex items-center gap-2 bg-primary-10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4"
+        >
           <span class="material-symbols-outlined text-[16px]">info</span>
           Introduction
         </div>
-        <h2 class="text-4xl font-extrabold text-on-surface mb-6 tracking-tight">Getting Started</h2>
+        <h2 class="text-4xl font-extrabold text-on-surface mb-6 tracking-tight">
+          Getting Started
+        </h2>
         <p class="text-lg text-on-surface-variant leading-relaxed max-w-3xl">
-          Welcome to the Solexpay API. Our API is organized around REST. 
-          Our API has predictable resource-oriented URLs, accepts form-encoded request bodies, 
-          returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
+          Welcome to the Solexpay API. Our API is organized around REST. Our API
+          has predictable resource-oriented URLs, accepts form-encoded request
+          bodies, returns JSON-encoded responses, and uses standard HTTP
+          response codes, authentication, and verbs.
         </p>
       </div>
 
       <div class="grid md:grid-cols-2 gap-8">
         <!-- Auth Guide -->
-        <div class="bg-surface-container p-8 rounded-[2rem] border border-outline-variant/30 flex flex-col gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
+        <div
+          class="bg-surface-container p-8 rounded-[2rem] border border-outline-variant/30 flex flex-col gap-4"
+        >
+          <div
+            class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center"
+          >
             <span class="material-symbols-outlined">lock</span>
           </div>
           <h3 class="text-xl font-bold text-on-surface">Authentication</h3>
           <p class="text-sm text-on-surface-variant leading-relaxed">
-            The Solexpay API uses Bearer tokens to authenticate requests. 
-            You can generate a token by logging in via the Auth endpoints. 
-            Your API tokens carry significant privileges, so be sure to keep them secure!
+            The Solexpay API uses Bearer tokens to authenticate requests. You
+            can generate a token by logging in via the Auth endpoints. Your API
+            tokens carry significant privileges, so be sure to keep them secure!
           </p>
-          <div class="mt-2 bg-surface-container-high p-4 rounded-2xl border border-outline-variant/50">
-            <code ngNonBindable class="text-xs text-on-surface font-mono break-all">Authorization: Bearer &lt;TOKEN&gt;</code>
+          <div
+            class="mt-2 bg-surface-container-high p-4 rounded-2xl border border-outline-variant/50"
+          >
+            <code
+              ngNonBindable
+              class="text-xs text-on-surface font-mono break-all"
+              >Authorization: Bearer &lt;TOKEN&gt;</code
+            >
           </div>
         </div>
 
         <!-- Response Envelope -->
-        <div id="section-envelope" class="bg-surface-container p-8 rounded-[2rem] border border-outline-variant/30 flex flex-col gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-tertiary/10 text-tertiary flex items-center justify-center">
+        <div
+          id="section-envelope"
+          class="bg-surface-container p-8 rounded-[2rem] border border-outline-variant/30 flex flex-col gap-4"
+        >
+          <div
+            class="w-12 h-12 rounded-2xl bg-tertiary/10 text-tertiary flex items-center justify-center"
+          >
             <span class="material-symbols-outlined">inventory_2</span>
           </div>
           <h3 class="text-xl font-bold text-on-surface">Response Format</h3>
           <p class="text-sm text-on-surface-variant leading-relaxed">
-            All responses are returned as a standard JSON object. Successful requests 
-            always include a <code class="bg-surface-container-high px-1 rounded text-primary">success: true</code> field.
+            All responses are returned as a standard JSON object. Successful
+            requests always include a
+            <code class="bg-surface-container-high px-1 rounded text-primary"
+              >success: true</code
+            >
+            field.
           </p>
-          <pre ngNonBindable class="mt-2 bg-surface-container-high p-4 rounded-2xl border border-outline-variant/50 text-[10px] font-mono leading-tight">
+          <pre
+            ngNonBindable
+            class="mt-2 bg-surface-container-high p-4 rounded-2xl border border-outline-variant/50 text-[10px] font-mono leading-tight"
+          >
 &#123;
   "success": true,
   "message": "Successful",
   "data": &#123; ... &#125;,
   "timestamp": "2026-04-28..."
-&#125;</pre>
+&#125;</pre
+          >
         </div>
       </div>
     </section>
 
     <!-- DYNAMIC API SECTIONS -->
     @for (section of sections; track section.id) {
-      <section [id]="section.id" class="scroll-mt-10">
-        <!-- Section Header -->
-        <div class="flex items-start gap-5 mb-8">
-          <div class="w-12 h-12 rounded-[1.25rem] bg-primary-10 text-primary flex items-center justify-center shrink-0 shadow-sm border border-primary-20">
-            <span class="material-symbols-outlined text-[24px]">{{ section.icon }}</span>
-          </div>
-          <div class="pt-1">
-            <h2 class="text-3xl font-extrabold text-on-surface tracking-tight">{{ section.title }}</h2>
-            <p class="text-on-surface-variant mt-2 text-lg leading-relaxed">{{ section.description }}</p>
-          </div>
+    <section [id]="section.id" class="scroll-mt-10">
+      <!-- Section Header -->
+      <div class="flex items-start gap-5 mb-8">
+        <div
+          class="w-12 h-12 rounded-[1.25rem] bg-primary-10 text-primary flex items-center justify-center shrink-0 shadow-sm border border-primary-20"
+        >
+          <span class="material-symbols-outlined text-[24px]"
+            >{{ section.icon }}</span
+          >
         </div>
+        <div class="pt-1">
+          <h2 class="text-3xl font-extrabold text-on-surface tracking-tight">
+            {{ section.title }}
+          </h2>
+          <p class="text-on-surface-variant mt-2 text-lg leading-relaxed">
+            {{ section.description }}
+          </p>
+        </div>
+      </div>
 
-        <!-- Endpoint List -->
-        <div class="space-y-4">
-          @for (endpoint of section.endpoints; track endpoint.id) {
-            <div class="bg-surface-container-lowest rounded-[2rem] border border-outline-variant/60 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group/card"
-                 [class.ring-1]="isExpanded(endpoint.id)" [class.ring-primary-20]="isExpanded(endpoint.id)">
-              
-              <!-- Endpoint Header Row -->
-              <button (click)="toggle(endpoint.id)"
-                      class="w-full flex flex-wrap items-center gap-4 p-6 text-left transition-colors hover:bg-surface-container-low">
-                <span [class]="methodBadge(endpoint.method)">{{ endpoint.method }}</span>
-                
-                <div class="flex items-center gap-2 flex-1 min-w-[200px]">
-                  <code class="font-mono text-sm text-on-surface font-semibold tracking-tight">{{ endpoint.path }}</code>
-                  <button [copyToClipboard]="endpoint.path" 
-                          tooltip="Copy path"
-                          (click)="$event.stopPropagation()"
-                          class="opacity-0 group-hover/card:opacity-100 material-symbols-outlined text-[16px] text-on-surface-variant hover:text-primary transition-opacity">
-                    content_copy
-                  </button>
-                </div>
+      <!-- Endpoint List -->
+      <div class="space-y-4">
+        @for (endpoint of section.endpoints; track endpoint.id) {
+        <div
+          class="bg-surface-container-lowest rounded-[2rem] border border-outline-variant/60 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group/card"
+          [class.ring-1]="isExpanded(endpoint.id)"
+          [class.ring-primary-20]="isExpanded(endpoint.id)"
+        >
+          <!-- Endpoint Header Row -->
+          <button
+            (click)="toggle(endpoint.id)"
+            class="w-full flex flex-wrap items-center gap-4 p-6 text-left transition-colors hover:bg-surface-container-low"
+          >
+            <span [class]="methodBadge(endpoint.method)"
+              >{{ endpoint.method }}</span
+            >
 
-                <span class="text-sm text-on-surface-variant font-medium hidden sm:block">{{ endpoint.summary }}</span>
-                
-                <span class="material-symbols-outlined text-outline text-[24px] transition-transform duration-300 ml-auto"
-                      [class.rotate-180]="isExpanded(endpoint.id)">
-                  expand_more
-                </span>
+            <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+              <code
+                class="font-mono text-sm text-on-surface font-semibold tracking-tight"
+                >{{ endpoint.path }}</code
+              >
+              <button
+                [copyToClipboard]="endpoint.path"
+                tooltip="Copy path"
+                (click)="$event.stopPropagation()"
+                class="opacity-0 group-hover/card:opacity-100 material-symbols-outlined text-[16px] text-on-surface-variant hover:text-primary transition-opacity"
+              >
+                content_copy
               </button>
+            </div>
 
-              <!-- Expanded Details Body -->
-              @if (isExpanded(endpoint.id)) {
-                <div class="px-8 pb-8 pt-2 border-t border-outline-variant/30 space-y-8 bg-surface-container-lowest/50">
-                  
-                  <!-- Metadata Chips -->
-                  <div class="flex flex-wrap gap-3">
-                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant text-[11px] font-bold border border-outline-variant/30">
-                      <span class="material-symbols-outlined text-[14px]">lock{{ endpoint.auth === 'None' ? '_open' : '' }}</span>
-                      AUTH: {{ endpoint.auth | uppercase }}
-                    </div>
-                  </div>
+            <span
+              class="text-sm text-on-surface-variant font-medium hidden sm:block"
+              >{{ endpoint.summary }}</span
+            >
 
-                  <p class="text-sm text-on-surface-variant leading-relaxed max-w-2xl">{{ endpoint.description }}</p>
+            <span
+              class="material-symbols-outlined text-outline text-[24px] transition-transform duration-300 ml-auto"
+              [class.rotate-180]="isExpanded(endpoint.id)"
+            >
+              expand_more
+            </span>
+          </button>
 
-                  <div class="grid lg:grid-cols-2 gap-10">
-                    <!-- Left Column: Request Details -->
-                    <div class="space-y-6">
-                      <!-- Query Parameters -->
-                      @if (endpoint.queryParams && endpoint.queryParams.length > 0) {
-                        <div>
-                          <h4 class="text-[10px] font-black text-on-surface uppercase tracking-[0.2em] mb-4">Query Parameters</h4>
-                          <div class="rounded-2xl border border-outline-variant/50 overflow-hidden bg-white/40">
-                            <table class="w-full text-xs text-left border-collapse">
-                              <thead class="bg-surface-container-high/50 text-[10px] uppercase font-bold text-on-surface-variant">
-                                <tr>
-                                  <th class="px-4 py-3">Param</th>
-                                  <th class="px-4 py-3">Type</th>
-                                  <th class="px-4 py-3">Req</th>
-                                </tr>
-                              </thead>
-                              <tbody class="divide-y divide-outline-variant/30">
-                                @for (param of endpoint.queryParams; track param.name) {
-                                  <tr class="hover:bg-primary/5 transition-colors">
-                                    <td class="px-4 py-3 font-mono text-primary font-bold">{{ param.name }}</td>
-                                    <td class="px-4 py-3 text-on-surface-variant">{{ param.type }}</td>
-                                    <td class="px-4 py-3">
-                                      <span [class]="param.required ? 'text-error' : 'text-on-surface-variant/40'">
-                                        {{ param.required ? 'YES' : 'NO' }}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td colspan="3" class="px-4 pb-3 text-[11px] text-on-surface-variant italic">
-                                      {{ param.description }}
-                                    </td>
-                                  </tr>
-                                }
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      }
+          <!-- Expanded Details Body -->
+          @if (isExpanded(endpoint.id)) {
+          <div
+            class="px-8 pb-8 pt-2 border-t border-outline-variant/30 space-y-8 bg-surface-container-lowest/50"
+          >
+            <!-- Metadata Chips -->
+            <div class="flex flex-wrap gap-3">
+              <div
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant text-[11px] font-bold border border-outline-variant/30"
+              >
+                <span class="material-symbols-outlined text-[14px]"
+                  >lock{{ endpoint.auth === 'None' ? '_open' : '' }}</span
+                >
+                AUTH: {{ endpoint.auth | uppercase }}
+              </div>
+            </div>
 
-                      <!-- Request Body -->
-                      @if (endpoint.requestBody) {
-                        <div>
-                          <div class="flex items-center justify-between mb-4">
-                            <h4 class="text-[10px] font-black text-on-surface uppercase tracking-[0.2em]">Request Body</h4>
-                            <button [copyToClipboard]="endpoint.requestBody" 
-                                    tooltip="Copy JSON"
-                                    class="material-symbols-outlined text-[18px] text-on-surface-variant hover:text-primary transition-colors">
-                              content_copy
-                            </button>
-                          </div>
-                          <div class="relative group/code">
-                            <!-- Use [innerText] to render pre-escaped entities from data.ts -->
-                            <pre [innerText]="endpoint.requestBody" class="font-mono text-[11px] bg-surface-container-high text-on-surface p-5 rounded-2-5xl overflow-x-auto leading-relaxed border border-outline-variant/50 shadow-inner"></pre>
-                          </div>
-                        </div>
-                      }
-                    </div>
+            <p
+              class="text-sm text-on-surface-variant leading-relaxed max-w-2xl"
+            >
+              {{ endpoint.description }}
+            </p>
 
-                    <!-- Right Column: Response Details -->
-                    <div class="space-y-6">
-                      <h4 class="text-[10px] font-black text-on-surface uppercase tracking-[0.2em] mb-4">Responses</h4>
-                      <div class="space-y-4">
-                        @for (resp of endpoint.responses; track resp.status) {
-                          <div class="rounded-2-5xl border border-outline-variant/60 overflow-hidden bg-white shadow-sm">
-                            <div class="flex items-center justify-between px-5 py-3 bg-surface-container/30 border-b border-outline-variant/30">
-                              <div class="flex items-center gap-3">
-                                <span class="font-mono font-bold text-xs px-2.5 py-1 rounded-full border"
-                                      [class.bg-emerald-100]="+resp.status < 400"
-                                      [class.text-emerald-800]="+resp.status < 400"
-                                      [class.border-emerald-200]="+resp.status < 400"
-                                      [class.bg-error-10]="+resp.status >= 400"
-                                      [class.text-error]="+resp.status >= 400"
-                                      [class.border-error-20]="+resp.status >= 400">
-                                  {{ resp.status }}
-                                </span>
-                                <span class="text-xs font-bold text-on-surface-variant">{{ resp.description }}</span>
-                              </div>
-                              @if (resp.body) {
-                                <button [copyToClipboard]="resp.body" 
-                                        tooltip="Copy Response"
-                                        class="material-symbols-outlined text-[16px] text-on-surface-variant hover:text-primary">
-                                  content_copy
-                                </button>
-                              }
-                            </div>
-                            @if (resp.body) {
-                              <pre [innerText]="resp.body" class="font-mono text-[11px] bg-surface-container/10 p-5 overflow-x-auto leading-relaxed text-on-surface"></pre>
-                            }
-                          </div>
+            <div class="grid lg:grid-cols-2 gap-10">
+              <!-- Left Column: Request Details -->
+              <div class="space-y-6">
+                <!-- Query Parameters -->
+                @if (endpoint.queryParams && endpoint.queryParams.length > 0) {
+                <div>
+                  <h4
+                    class="text-[10px] font-black text-on-surface uppercase tracking-[0.2em] mb-4"
+                  >
+                    Query Parameters
+                  </h4>
+                  <div
+                    class="rounded-2xl border border-outline-variant/50 overflow-hidden bg-white/40"
+                  >
+                    <table class="w-full text-xs text-left border-collapse">
+                      <thead
+                        class="bg-surface-container-high/50 text-[10px] uppercase font-bold text-on-surface-variant"
+                      >
+                        <tr>
+                          <th class="px-4 py-3">Param</th>
+                          <th class="px-4 py-3">Type</th>
+                          <th class="px-4 py-3">Req</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-outline-variant/30">
+                        @for (param of endpoint.queryParams; track param.name) {
+                        <tr class="hover:bg-primary/5 transition-colors">
+                          <td
+                            class="px-4 py-3 font-mono text-primary font-bold"
+                          >
+                            {{ param.name }}
+                          </td>
+                          <td class="px-4 py-3 text-on-surface-variant">
+                            {{ param.type }}
+                          </td>
+                          <td class="px-4 py-3">
+                            <span
+                              [class]="param.required ? 'text-error' : 'text-on-surface-variant/40'"
+                            >
+                              {{ param.required ? 'YES' : 'NO' }}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colspan="3"
+                            class="px-4 pb-3 text-[11px] text-on-surface-variant italic"
+                          >
+                            {{ param.description }}
+                          </td>
+                        </tr>
                         }
-                      </div>
-                    </div>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-              }
+                }
+
+                <!-- Request Body -->
+                @if (endpoint.requestBody) {
+                <div>
+                  <div class="flex items-center justify-between mb-4">
+                    <h4
+                      class="text-[10px] font-black text-on-surface uppercase tracking-[0.2em]"
+                    >
+                      Request Body
+                    </h4>
+                    <button
+                      [copyToClipboard]="endpoint.requestBody"
+                      tooltip="Copy JSON"
+                      class="material-symbols-outlined text-[18px] text-on-surface-variant hover:text-primary transition-colors"
+                    >
+                      content_copy
+                    </button>
+                  </div>
+                  <div class="relative group/code">
+                    <!-- Use [innerText] to render pre-escaped entities from data.ts -->
+                    <pre
+                      [innerText]="endpoint.requestBody"
+                      class="font-mono text-[11px] bg-surface-container-high text-on-surface p-5 rounded-2-5xl overflow-x-auto leading-relaxed border border-outline-variant/50 shadow-inner"
+                    ></pre>
+                  </div>
+                </div>
+                }
+              </div>
+
+              <!-- Right Column: Response Details -->
+              <div class="space-y-6">
+                <h4
+                  class="text-[10px] font-black text-on-surface uppercase tracking-[0.2em] mb-4"
+                >
+                  Responses
+                </h4>
+                <div class="space-y-4">
+                  @for (resp of endpoint.responses; track resp.status) {
+                  <div
+                    class="rounded-2-5xl border border-outline-variant/60 overflow-hidden bg-white shadow-sm"
+                  >
+                    <div
+                      class="flex items-center justify-between px-5 py-3 bg-surface-container/30 border-b border-outline-variant/30"
+                    >
+                      <div class="flex items-center gap-3">
+                        <span
+                          class="font-mono font-bold text-xs px-2.5 py-1 rounded-full border"
+                          [class.bg-emerald-100]="+resp.status < 400"
+                          [class.text-emerald-800]="+resp.status < 400"
+                          [class.border-emerald-200]="+resp.status < 400"
+                          [class.bg-error-10]="+resp.status >= 400"
+                          [class.text-error]="+resp.status >= 400"
+                          [class.border-error-20]="+resp.status >= 400"
+                        >
+                          {{ resp.status }}
+                        </span>
+                        <span class="text-xs font-bold text-on-surface-variant"
+                          >{{ resp.description }}</span
+                        >
+                      </div>
+                      @if (resp.body) {
+                      <button
+                        [copyToClipboard]="resp.body"
+                        tooltip="Copy Response"
+                        class="material-symbols-outlined text-[16px] text-on-surface-variant hover:text-primary"
+                      >
+                        content_copy
+                      </button>
+                      }
+                    </div>
+                    @if (resp.body) {
+                    <pre
+                      [innerText]="resp.body"
+                      class="font-mono text-[11px] bg-surface-container/10 p-5 overflow-x-auto leading-relaxed text-on-surface"
+                    ></pre>
+                    }
+                  </div>
+                  }
+                </div>
+              </div>
             </div>
+          </div>
           }
         </div>
-      </section>
+        }
+      </div>
+    </section>
     }
 
     <!-- SCHEMAS REFERENCE -->
     <section id="section-schemas" class="scroll-mt-10">
       <div class="flex items-start gap-5 mb-10">
-        <div class="w-12 h-12 rounded-[1.25rem] bg-tertiary/10 text-tertiary flex items-center justify-center shrink-0 border border-tertiary-20">
+        <div
+          class="w-12 h-12 rounded-[1.25rem] bg-tertiary/10 text-tertiary flex items-center justify-center shrink-0 border border-tertiary-20"
+        >
           <span class="material-symbols-outlined text-[24px]">data_object</span>
         </div>
         <div class="pt-1">
-          <h2 class="text-3xl font-extrabold text-on-surface tracking-tight">Schemas Reference</h2>
-          <p class="text-on-surface-variant mt-2 text-lg leading-relaxed max-w-2xl">
+          <h2 class="text-3xl font-extrabold text-on-surface tracking-tight">
+            Schemas Reference
+          </h2>
+          <p
+            class="text-on-surface-variant mt-2 text-lg leading-relaxed max-w-2xl"
+          >
             Detailed definitions for all objects returned by the API.
           </p>
         </div>
       </div>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (schema of schemas; track schema.name) {
-          <div class="group p-5 bg-surface-container-lowest rounded-2-5xl border border-outline-variant/50 hover:border-primary/40 hover:shadow-md transition-all cursor-default">
-            <p class="font-mono text-xs font-black text-primary uppercase tracking-wider mb-2 group-hover:scale-105 transition-transform origin-left">
-              {{ schema.name }}
-            </p>
-            <p class="text-[11px] leading-relaxed text-on-surface-variant font-medium">
-              {{ schema.description }}
-            </p>
-          </div>
+        <div
+          class="group p-5 bg-surface-container-lowest rounded-2-5xl border border-outline-variant/50 hover:border-primary/40 hover:shadow-md transition-all cursor-default"
+        >
+          <p
+            class="font-mono text-xs font-black text-primary uppercase tracking-wider mb-2 group-hover:scale-105 transition-transform origin-left"
+          >
+            {{ schema.name }}
+          </p>
+          <p
+            class="text-[11px] leading-relaxed text-on-surface-variant font-medium"
+          >
+            {{ schema.description }}
+          </p>
+        </div>
         }
       </div>
     </section>
@@ -387,20 +576,30 @@
     <!-- ERROR CODES -->
     <section id="section-errors" class="scroll-mt-10">
       <div class="flex items-start gap-5 mb-10">
-        <div class="w-12 h-12 rounded-[1.25rem] bg-error-10 text-error flex items-center justify-center shrink-0 border border-error-20">
+        <div
+          class="w-12 h-12 rounded-[1.25rem] bg-error-10 text-error flex items-center justify-center shrink-0 border border-error-20"
+        >
           <span class="material-symbols-outlined text-[24px]">error</span>
         </div>
         <div class="pt-1">
-          <h2 class="text-3xl font-extrabold text-on-surface tracking-tight">Error Codes</h2>
-          <p class="text-on-surface-variant mt-2 text-lg leading-relaxed max-w-2xl">
+          <h2 class="text-3xl font-extrabold text-on-surface tracking-tight">
+            Error Codes
+          </h2>
+          <p
+            class="text-on-surface-variant mt-2 text-lg leading-relaxed max-w-2xl"
+          >
             How our API communicates errors and validation failures.
           </p>
         </div>
       </div>
 
-      <div class="rounded-[2.5rem] border border-outline-variant/60 overflow-hidden bg-white shadow-sm">
+      <div
+        class="rounded-[2.5rem] border border-outline-variant/60 overflow-hidden bg-white shadow-sm"
+      >
         <table class="w-full text-sm text-left">
-          <thead class="bg-surface-container/40 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
+          <thead
+            class="bg-surface-container/40 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant"
+          >
             <tr>
               <th class="px-8 py-5">Status</th>
               <th class="px-8 py-5">Name</th>
@@ -411,33 +610,43 @@
             <tr class="hover:bg-error/5 transition-colors">
               <td class="px-8 py-5 font-mono font-bold text-error">400</td>
               <td class="px-8 py-5 font-bold text-on-surface">Bad Request</td>
-              <td class="px-8 py-5 text-on-surface-variant text-sm">Validation failed or malformed JSON body.</td>
+              <td class="px-8 py-5 text-on-surface-variant text-sm">
+                Validation failed or malformed JSON body.
+              </td>
             </tr>
             <tr class="hover:bg-error/5 transition-colors">
               <td class="px-8 py-5 font-mono font-bold text-error">401</td>
               <td class="px-8 py-5 font-bold text-on-surface">Unauthorized</td>
-              <td class="px-8 py-5 text-on-surface-variant text-sm">Invalid or missing Authorization header.</td>
+              <td class="px-8 py-5 text-on-surface-variant text-sm">
+                Invalid or missing Authorization header.
+              </td>
             </tr>
             <tr class="hover:bg-error/5 transition-colors">
               <td class="px-8 py-5 font-mono font-bold text-error">403</td>
               <td class="px-8 py-5 font-bold text-on-surface">Forbidden</td>
-              <td class="px-8 py-5 text-on-surface-variant text-sm">Auth is valid but you lack required permissions (e.g., non-admin calling admin route).</td>
+              <td class="px-8 py-5 text-on-surface-variant text-sm">
+                Auth is valid but you lack required permissions (e.g., non-admin
+                calling admin route).
+              </td>
             </tr>
             <tr class="hover:bg-error/5 transition-colors">
               <td class="px-8 py-5 font-mono font-bold text-error">404</td>
               <td class="px-8 py-5 font-bold text-on-surface">Not Found</td>
-              <td class="px-8 py-5 text-on-surface-variant text-sm">The requested resource or endpoint does not exist.</td>
+              <td class="px-8 py-5 text-on-surface-variant text-sm">
+                The requested resource or endpoint does not exist.
+              </td>
             </tr>
             <tr class="hover:bg-error/5 transition-colors">
               <td class="px-8 py-5 font-mono font-bold text-error">422</td>
               <td class="px-8 py-5 font-bold text-on-surface">Unprocessable</td>
-              <td class="px-8 py-5 text-on-surface-variant text-sm">Business logic violation (e.g., insufficient funds).</td>
+              <td class="px-8 py-5 text-on-surface-variant text-sm">
+                Business logic violation (e.g., insufficient funds).
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
-
   </main>
 </div>
 
