@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { createError, type H3Event, getHeaders, getRequestIP } from "h3";
 
 declare const process: { env: Record<string, string | undefined> };
@@ -114,10 +115,21 @@ export function resolveClientIP(event: H3Event): string | undefined {
 }
 
 /**
+ * Hex HMAC-SHA256 over "<ip>\n<unix seconds>", matching the Go backend's
+ * httpx.SignClientIP. The backend can't trust this app's X-Forwarded-For
+ * (Vercel has no fixed egress IPs to list in TRUSTED_PROXIES), so the client
+ * IP is vouched for with a signature under the shared BFF_SHARED_SECRET.
+ */
+export function signClientIP(secret: string, ip: string, ts: number): string {
+  return createHmac("sha256", secret).update(`${ip}\n${ts}`).digest("hex");
+}
+
+/**
  * Extracts and forwards headers from the incoming H3 event to the backend:
  * - Authorization (Bearer token)
  * - X-Idempotency-Key
  * - X-Forwarded-For (client IP, see resolveClientIP)
+ * - X-Solex-Client-Ip(-Ts/-Sig): the same IP, signed, when BFF_SHARED_SECRET is set
  * - User-Agent
  */
 export function forwardHeaders(
@@ -140,6 +152,13 @@ export function forwardHeaders(
   const clientIP = resolveClientIP(event);
   if (clientIP) {
     out["X-Forwarded-For"] = clientIP;
+    const secret = process.env["BFF_SHARED_SECRET"];
+    if (secret) {
+      const ts = Math.floor(Date.now() / 1000);
+      out["X-Solex-Client-Ip"] = clientIP;
+      out["X-Solex-Client-Ip-Ts"] = String(ts);
+      out["X-Solex-Client-Ip-Sig"] = signClientIP(secret, clientIP, ts);
+    }
   }
 
   const userAgent = incoming["user-agent"] || incoming["User-Agent"];

@@ -318,6 +318,10 @@ NODE_ENV=development
 # (Vercel does). The BFF then forwards the LAST entry as the client IP; otherwise
 # it forwards the socket peer and never trusts a browser-supplied header.
 BFF_BEHIND_PROXY=false
+# Same value as the backend's BFF_SHARED_SECRET (32+ characters). The BFF then
+# signs the client IP so the backend's per-IP admin login limit applies per
+# admin rather than to this app's shared egress IP. Leave unset to disable.
+BFF_SHARED_SECRET=
 ```
 
 The admin refresh token lives only in the HttpOnly `sx_admin_rt` cookie set by

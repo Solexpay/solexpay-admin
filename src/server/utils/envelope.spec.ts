@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import type { H3Event } from "h3";
-import { unwrapGoEnvelope, forwardHeaders, buildQueryString } from "./envelope";
+import {
+  unwrapGoEnvelope,
+  forwardHeaders,
+  buildQueryString,
+  signClientIP,
+} from "./envelope";
 
 describe("envelope helper", () => {
   describe("unwrapGoEnvelope", () => {
@@ -197,6 +202,46 @@ describe("envelope helper", () => {
       const headers = forwardHeaders(fakeEvent);
       expect(headers["X-Forwarded-For"]).toBe("192.168.1.100");
       expect(headers["User-Agent"]).toBe("SolexPay-Client");
+    });
+  });
+
+  describe("signed client IP", () => {
+    // Same vector as the Go backend's TestSignClientIPVector.
+    it("matches the backend's signature format", () => {
+      expect(
+        signClientIP(
+          "0123456789abcdef0123456789abcdef",
+          "198.51.100.7",
+          1800000000,
+        ),
+      ).toBe(
+        "b825d0aec4cb51c1616b770848ab0b201bffef8887863f6dcbd0a8d4e0c3cc8e",
+      );
+    });
+
+    it("signs the forwarded IP only when BFF_SHARED_SECRET is set", () => {
+      const fakeEvent = {
+        context: {},
+        node: {
+          req: { headers: {}, socket: { remoteAddress: "198.51.100.7" } },
+        },
+      } as unknown as H3Event;
+
+      expect(forwardHeaders(fakeEvent)["X-Solex-Client-Ip"]).toBeUndefined();
+
+      const secret = "0123456789abcdef0123456789abcdef";
+      process.env["BFF_SHARED_SECRET"] = secret;
+      try {
+        const headers = forwardHeaders(fakeEvent);
+        expect(headers["X-Solex-Client-Ip"]).toBe("198.51.100.7");
+        const ts = Number(headers["X-Solex-Client-Ip-Ts"]);
+        expect(Math.abs(ts - Date.now() / 1000)).toBeLessThan(5);
+        expect(headers["X-Solex-Client-Ip-Sig"]).toBe(
+          signClientIP(secret, "198.51.100.7", ts),
+        );
+      } finally {
+        delete process.env["BFF_SHARED_SECRET"];
+      }
     });
   });
 
