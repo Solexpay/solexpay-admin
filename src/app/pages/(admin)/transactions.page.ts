@@ -82,7 +82,7 @@ import { StatusChipComponent } from "../../components/ui/status-chip.component";
         <input
           type="date"
           [ngModel]="dateFrom()"
-          (ngModelChange)="dateFrom.set($event)"
+          (ngModelChange)="onDateChange($event)"
           class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none w-full sm:w-auto"
         />
       </div>
@@ -281,6 +281,30 @@ import { StatusChipComponent } from "../../components/ui/status-chip.component";
             </p>
           </div>
         }
+
+        @if (hasMore()) {
+          <div
+            class="flex justify-center p-4 border-t border-surface-container"
+          >
+            <button
+              (click)="loadMore()"
+              [disabled]="isLoadingMore()"
+              class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
+            >
+              @if (isLoadingMore()) {
+                <span
+                  class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                ></span>
+                <span>Loading...</span>
+              } @else {
+                <span>Load more</span>
+                <span class="material-symbols-outlined text-sm"
+                  >expand_more</span
+                >
+              }
+            </button>
+          </div>
+        }
       </div>
     </div>
   `,
@@ -299,24 +323,79 @@ export class TransactionsPageComponent {
     queryKey: ["transactions", { from: this.dateFrom() }],
     queryFn: () =>
       lastValueFrom(
-        this.adminService.getTransactions(0, 100, this.dateFrom() || undefined),
+        this.adminService.getTransactions({
+          limit: 20,
+          from: this.dateFrom() || undefined,
+        }),
       ),
     placeholderData: keepPreviousData,
   }));
 
   loading = computed(() => this.transactionsQuery.isPending());
 
+  rawAppendedTransactions = signal<Transaction[]>([]);
+  rawHasMore = signal<boolean | null>(null);
+  hasMore = computed(() => {
+    if (this.rawHasMore() !== null) return this.rawHasMore()!;
+    return this.transactionsQuery.data()?.hasMore ?? false;
+  });
+  nextCursor = signal<string | null>(null);
+  isLoadingMore = signal(false);
+
   transactions = computed<Transaction[]>(() => {
     const response = this.transactionsQuery.data();
-    if (response?.content) return response.content;
-    if (response && Array.isArray(response)) return response;
-    return [];
+    const queryItems =
+      response?.items ||
+      (response as unknown as { content?: Transaction[] })?.content ||
+      [];
+    const all = [...queryItems, ...this.rawAppendedTransactions()];
+    return all;
   });
 
   totalItems = computed(
-    () => this.transactionsQuery.data()?.totalElements || 0,
+    () =>
+      (this.transactionsQuery.data() as unknown as { totalElements?: number })
+        ?.totalElements || this.transactions().length,
   );
-  totalPages = computed(() => this.transactionsQuery.data()?.totalPages || 1);
+  totalPages = computed(
+    () =>
+      (this.transactionsQuery.data() as unknown as { totalPages?: number })
+        ?.totalPages || 1,
+  );
+
+  onDateChange(val: string) {
+    this.dateFrom.set(val);
+    this.rawAppendedTransactions.set([]);
+    this.rawHasMore.set(null);
+    this.nextCursor.set(null);
+  }
+
+  loadMore() {
+    const cursor =
+      this.nextCursor() ?? this.transactionsQuery.data()?.nextCursor;
+    if (!cursor || this.isLoadingMore()) return;
+    this.isLoadingMore.set(true);
+    this.adminService
+      .getTransactions({
+        limit: 20,
+        cursor,
+        from: this.dateFrom() || undefined,
+      })
+      .subscribe({
+        next: (res) => {
+          this.rawAppendedTransactions.update((prev) => [
+            ...prev,
+            ...(res.items || []),
+          ]);
+          this.nextCursor.set(res.nextCursor);
+          this.rawHasMore.set(res.hasMore);
+          this.isLoadingMore.set(false);
+        },
+        error: () => {
+          this.isLoadingMore.set(false);
+        },
+      });
+  }
 
   filteredTransactions = computed(() => {
     let result = this.transactions();

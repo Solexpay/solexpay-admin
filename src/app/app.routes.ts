@@ -1,5 +1,4 @@
 import { authGuard } from "./guards/auth.guard";
-
 import { Routes } from "@angular/router";
 
 export const routes: Routes = [
@@ -13,13 +12,6 @@ export const routes: Routes = [
     path: "login",
     loadComponent: () =>
       import("./pages/login.page").then((m) => m.LoginPageComponent),
-  },
-  {
-    path: "reset-password",
-    loadComponent: () =>
-      import("./pages/reset-password.page").then(
-        (m) => m.ResetPasswordPageComponent,
-      ),
   },
   {
     path: "terms",
@@ -99,6 +91,39 @@ export const routes: Routes = [
         loadComponent: () =>
           import("./pages/(admin)/schools.page").then(
             (m) => m.SchoolsPageComponent,
+          ),
+      },
+      {
+        path: "gift-cards",
+        loadComponent: () =>
+          import("./pages/(admin)/gift-cards.page").then(
+            (m) => m.GiftCardsPageComponent,
+          ),
+      },
+      {
+        path: "nip-transfers",
+        loadComponent: () =>
+          import("./pages/(admin)/nip-transfers.page").then(
+            (m) => m.NipTransfersPageComponent,
+          ),
+      },
+      {
+        path: "ops",
+        loadComponent: () =>
+          import("./pages/(admin)/ops.page").then((m) => m.OpsPageComponent),
+      },
+      {
+        path: "audit",
+        loadComponent: () =>
+          import("./pages/(admin)/audit.page").then(
+            (m) => m.AuditPageComponent,
+          ),
+      },
+      {
+        path: "admins",
+        loadComponent: () =>
+          import("./pages/(admin)/admins.page").then(
+            (m) => m.AdminsPageComponent,
           ),
       },
       {

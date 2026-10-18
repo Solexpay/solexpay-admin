@@ -12,12 +12,7 @@ import {
 } from "@tanstack/angular-query-experimental";
 import { RouterTestingModule } from "@angular/router/testing";
 import { UsersPageComponent } from "./users.page";
-import {
-  AdminService,
-  User,
-  UserDetail,
-  Page,
-} from "../../services/admin.service";
+import { AdminService, User, UserDetail } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
 import { of } from "rxjs";
 import { vi } from "vitest";
@@ -65,14 +60,10 @@ describe("UsersPageComponent", () => {
     const mockAdminService = {
       getUsers: vi.fn().mockReturnValue(
         of({
-          content: mockUsers,
-          totalElements: 2,
-          totalPages: 1,
-          size: 20,
-          number: 0,
-          first: true,
-          last: true,
-        } as Page<User>),
+          items: mockUsers,
+          nextCursor: null,
+          hasMore: false,
+        }),
       ),
       suspendUser: vi.fn().mockReturnValue(of({ success: true })),
       reactivateUser: vi.fn().mockReturnValue(of({ success: true })),
@@ -113,20 +104,14 @@ describe("UsersPageComponent", () => {
       [
         "users",
         {
-          page: 0,
-          size: 20,
           search: "",
           status: "",
         },
       ],
       {
-        content: mockUsers,
-        totalElements: 2,
-        totalPages: 1,
-        size: 20,
-        number: 0,
-        first: true,
-        last: true,
+        items: mockUsers,
+        nextCursor: null,
+        hasMore: false,
       },
     );
     queryClient.setQueryData(["user-detail", "usr-1"], {

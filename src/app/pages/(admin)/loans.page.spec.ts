@@ -11,7 +11,7 @@ import {
   QueryClient,
 } from "@tanstack/angular-query-experimental";
 import { LoansPageComponent } from "./loans.page";
-import { AdminService, Loan, Page } from "../../services/admin.service";
+import { AdminService, Loan } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
 import { of } from "rxjs";
 import { vi } from "vitest";
@@ -57,25 +57,17 @@ describe("LoansPageComponent", () => {
     const mockAdminService = {
       getLoans: vi.fn().mockReturnValue(
         of({
-          content: mockLoans,
-          totalElements: 2,
-          totalPages: 1,
-          size: 50,
-          number: 0,
-          first: true,
-          last: true,
-        } as Page<Loan>),
+          items: mockLoans,
+          nextCursor: null,
+          hasMore: false,
+        }),
       ),
       getOverdueLoans: vi.fn().mockReturnValue(
         of({
-          content: [],
-          totalElements: 0,
-          totalPages: 1,
-          size: 20,
-          number: 0,
-          first: true,
-          last: true,
-        } as Page<Loan>),
+          items: [],
+          nextCursor: null,
+          hasMore: false,
+        }),
       ),
       approveLoan: vi.fn().mockReturnValue(of({ success: true })),
       rejectLoan: vi.fn().mockReturnValue(of({ success: true })),
@@ -94,31 +86,19 @@ describe("LoansPageComponent", () => {
       },
     });
     queryClient.setQueryData(["loans", { status: "ALL" }], {
-      content: mockLoans,
-      totalElements: 2,
-      totalPages: 1,
-      size: 50,
-      number: 0,
-      first: true,
-      last: true,
+      items: mockLoans,
+      nextCursor: null,
+      hasMore: false,
     });
     queryClient.setQueryData(["loans", { status: "PENDING" }], {
-      content: [mockLoans[0]],
-      totalElements: 1,
-      totalPages: 1,
-      size: 50,
-      number: 0,
-      first: true,
-      last: true,
+      items: [mockLoans[0]],
+      nextCursor: null,
+      hasMore: false,
     });
     queryClient.setQueryData(["loans-overdue"], {
-      content: [],
-      totalElements: 0,
-      totalPages: 1,
-      size: 20,
-      number: 0,
-      first: true,
-      last: true,
+      items: [],
+      nextCursor: null,
+      hasMore: false,
     });
 
     TestBed.resetTestingModule();

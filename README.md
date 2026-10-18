@@ -309,9 +309,19 @@ vercel --prod
 Create `.env.local` for local development:
 
 ```env
-VITE_API_URL=https://api.solexpay.com.ng/v3
+# Go backend base URL the BFF (src/server) calls; it serves routes at / and /api/v1.
+API_URL=http://localhost:3000
 VITE_DEV_MODE=false
+# "development" drops the Secure flag on the admin refresh-token cookie for http://localhost.
+NODE_ENV=development
+# Set to true only behind a proxy that appends the client IP to X-Forwarded-For
+# (Vercel does). The BFF then forwards the LAST entry as the client IP; otherwise
+# it forwards the socket peer and never trusts a browser-supplied header.
+BFF_BEHIND_PROXY=false
 ```
+
+The admin refresh token lives only in the HttpOnly `sx_admin_rt` cookie set by
+the BFF; the browser never sees it.
 
 ## 🤝 Contributing
 

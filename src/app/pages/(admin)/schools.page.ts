@@ -1,4 +1,4 @@
-import { Component, inject, computed } from "@angular/core";
+import { Component, inject, computed, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
@@ -276,6 +276,28 @@ import { RippleDirective } from "../../directives/ripple.directive";
               </p>
             </div>
           }
+
+          @if (hasMore()) {
+            <div class="md:col-span-2 lg:col-span-3 flex justify-center py-4">
+              <button
+                (click)="loadMore()"
+                [disabled]="isLoadingMore()"
+                class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
+              >
+                @if (isLoadingMore()) {
+                  <span
+                    class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                  ></span>
+                  <span>Loading...</span>
+                } @else {
+                  <span>Load more</span>
+                  <span class="material-symbols-outlined text-sm"
+                    >expand_more</span
+                  >
+                }
+              </button>
+            </div>
+          }
         </div>
       }
     </div>
@@ -432,9 +454,22 @@ export class SchoolsPageComponent {
     onError: () => this.toast.show("error", "Failed to add school"),
   }));
 
+  rawAppendedSchools = signal<School[]>([]);
+  rawHasMore = signal<boolean | null>(null);
+  hasMore = computed(() => {
+    if (this.rawHasMore() !== null) return this.rawHasMore()!;
+    return this.schoolsQuery.data()?.hasMore ?? false;
+  });
+  nextCursor = signal<string | null>(null);
+  isLoadingMore = signal(false);
+
   schools = computed<School[]>(() => {
     const response = this.schoolsQuery.data();
-    return response || [];
+    const initial =
+      response?.items ||
+      (response as unknown as { content?: School[] })?.content ||
+      (Array.isArray(response) ? response : []);
+    return [...initial, ...this.rawAppendedSchools()];
   });
 
   filteredSchools = computed(() => {
@@ -446,7 +481,7 @@ export class SchoolsPageComponent {
         (s) =>
           s.name.toLowerCase().includes(query) ||
           s.email.toLowerCase().includes(query) ||
-          s.state.toLowerCase().includes(query),
+          (s.state && s.state.toLowerCase().includes(query)),
       );
     }
 
@@ -462,16 +497,17 @@ export class SchoolsPageComponent {
   });
 
   totalStudents = computed(() =>
-    this.schools().reduce((sum, s) => sum + s.studentCount, 0),
+    this.schools().reduce((sum, s) => sum + (s.studentCount || 0), 0),
   );
   totalActiveLoans = computed(() =>
-    this.schools().reduce((sum, s) => sum + s.activeLoans, 0),
+    this.schools().reduce((sum, s) => sum + (s.activeLoans || 0), 0),
   );
   totalDisbursed = computed(() =>
-    this.schools().reduce((sum, s) => sum + s.totalDisbursed, 0),
+    this.schools().reduce((sum, s) => sum + (s.totalDisbursed || 0), 0),
   );
 
-  maskToken(token: string): string {
+  maskToken(token?: string): string {
+    if (!token) return "N/A";
     if (token.length <= 12) return token;
     return token.slice(0, 8) + "..." + token.slice(-4);
   }
@@ -495,5 +531,32 @@ export class SchoolsPageComponent {
       return;
     }
     this.addSchoolMutation.mutate(this.newSchool);
+  }
+
+  loadMore() {
+    const cursor = this.nextCursor() ?? this.schoolsQuery.data()?.nextCursor;
+    if (!cursor || this.isLoadingMore()) return;
+    this.isLoadingMore.set(true);
+    this.adminService
+      .getSchools({
+        status: this.statusFilter || undefined,
+        limit: 20,
+        cursor,
+      })
+      .subscribe({
+        next: (res) => {
+          this.rawAppendedSchools.update((prev: School[]) => [
+            ...prev,
+            ...(res.items || []),
+          ]);
+          this.nextCursor.set(res.nextCursor);
+          this.rawHasMore.set(res.hasMore);
+          this.isLoadingMore.set(false);
+        },
+        error: () => {
+          this.isLoadingMore.set(false);
+          this.toast.show("error", "Failed to load more schools");
+        },
+      });
   }
 }

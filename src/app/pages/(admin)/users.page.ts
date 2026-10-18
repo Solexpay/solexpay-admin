@@ -344,30 +344,30 @@ import { MagneticDirective } from "../../directives/magnetic.directive";
         }
       </div>
 
-      <!-- Pagination -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+      <!-- Pagination / Load More -->
+      <div
+        class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4"
+      >
         <p class="text-sm text-on-surface-variant">
-          Showing {{ users().length }} of {{ totalItems() }} users
+          Showing {{ users().length }} users
         </p>
-        <div class="flex items-center gap-2">
+        @if (hasMore()) {
           <button
-            [disabled]="currentPage() === 0"
-            (click)="prevPage()"
-            class="px-3 py-2 rounded-lg bg-surface-container-high text-on-surface-variant hover:bg-surface-container disabled:opacity-50 transition-colors"
+            (click)="loadMore()"
+            [disabled]="isLoadingMore()"
+            class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
           >
-            <span class="material-symbols-outlined text-sm">chevron_left</span>
+            @if (isLoadingMore()) {
+              <span
+                class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
+              ></span>
+              <span>Loading...</span>
+            } @else {
+              <span>Load more</span>
+              <span class="material-symbols-outlined text-sm">expand_more</span>
+            }
           </button>
-          <span class="text-sm text-on-surface px-2 whitespace-nowrap"
-            >Page {{ currentPage() + 1 }} of {{ totalPages() }}</span
-          >
-          <button
-            [disabled]="currentPage() >= totalPages() - 1"
-            (click)="nextPage()"
-            class="px-3 py-2 rounded-lg bg-surface-container-high text-on-surface-variant hover:bg-surface-container disabled:opacity-50 transition-colors"
-          >
-            <span class="material-symbols-outlined text-sm">chevron_right</span>
-          </button>
-        </div>
+        }
       </div>
     </div>
 
@@ -661,20 +661,17 @@ export class UsersPageComponent {
     queryKey: [
       "users",
       {
-        page: this.currentPage(),
-        size: this.pageSize,
         search: this.searchQuery(),
         status: this.statusFilter(),
       },
     ],
     queryFn: () =>
       lastValueFrom(
-        this.adminService.getUsers(
-          this.currentPage(),
-          this.pageSize,
-          this.searchQuery() || undefined,
-          this.statusFilter() || undefined,
-        ),
+        this.adminService.getUsers({
+          phoneNumber: this.searchQuery() || undefined,
+          status: this.statusFilter() || undefined,
+          limit: this.pageSize,
+        }),
       ),
     placeholderData: keepPreviousData,
   }));
@@ -686,7 +683,27 @@ export class UsersPageComponent {
       this.toast.show("success", `${userName} suspended`);
       this.queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: () => this.toast.show("error", "Failed to suspend user"),
+    onError: (err: unknown) => {
+      const httpErr = err as {
+        status?: number;
+        statusCode?: number;
+        error?: { message?: string };
+        message?: string;
+      };
+      if (httpErr?.status === 403 || httpErr?.statusCode === 403) {
+        this.toast.show(
+          "error",
+          "Insufficient role: only OPS and COMPLIANCE can suspend users.",
+        );
+      } else {
+        this.toast.show(
+          "error",
+          httpErr?.error?.message ||
+            httpErr?.message ||
+            "Failed to suspend user",
+        );
+      }
+    },
   }));
 
   reactivateMutation = injectMutation(() => ({
@@ -696,51 +713,127 @@ export class UsersPageComponent {
       this.toast.show("success", `${userName} reactivated`);
       this.queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: () => this.toast.show("error", "Failed to reactivate user"),
+    onError: (err: unknown) => {
+      const httpErr = err as {
+        status?: number;
+        statusCode?: number;
+        error?: { message?: string };
+        message?: string;
+      };
+      if (httpErr?.status === 403 || httpErr?.statusCode === 403) {
+        this.toast.show(
+          "error",
+          "Insufficient role: only OPS and COMPLIANCE can reactivate users.",
+        );
+      } else {
+        this.toast.show(
+          "error",
+          httpErr?.error?.message ||
+            httpErr?.message ||
+            "Failed to reactivate user",
+        );
+      }
+    },
   }));
 
   loading = computed(() => this.usersQuery.isPending());
 
+  rawAppendedUsers = signal<User[]>([]);
+  rawHasMore = signal<boolean | null>(null);
+  hasMore = computed(() => {
+    if (this.rawHasMore() !== null) return this.rawHasMore()!;
+    return this.usersQuery.data()?.hasMore ?? false;
+  });
+  nextCursor = signal<string | null>(null);
+  isLoadingMore = signal(false);
+
   users = computed(() => {
     const response = this.usersQuery.data();
-    if (response?.content) {
-      let filtered = response.content.map((u: User) => ({
-        id: u.id,
-        firstName: u.firstName || "User",
-        lastName: u.lastName || "",
-        email: u.email,
-        phone: u.phoneNumber || "N/A",
-        status: u.status || "ACTIVE",
-        kycStatus:
-          u.kycTier === "TIER_2"
-            ? "VERIFIED"
-            : u.kycTier === "TIER_1"
-              ? "PENDING"
-              : "UNVERIFIED",
-        createdAt: u.createdAt,
-        walletBalance: u.walletBalance || 0,
-      }));
+    const queryItems =
+      response?.items ||
+      (response as unknown as { content?: User[] })?.content ||
+      [];
+    const all = [...queryItems, ...this.rawAppendedUsers()];
 
-      const kycF = this.kycFilter();
-      if (kycF) {
-        filtered = filtered.filter((u) => u.kycStatus === kycF);
-      }
-      return filtered;
+    let filtered = all.map((u: User) => ({
+      id: u.id,
+      firstName: u.firstName || "User",
+      lastName: u.lastName || "",
+      email: u.email,
+      phone: u.phoneNumber || "N/A",
+      status: u.status || "ACTIVE",
+      kycStatus:
+        u.kycTier === "TIER_2"
+          ? "VERIFIED"
+          : u.kycTier === "TIER_1"
+            ? "PENDING"
+            : "UNVERIFIED",
+      createdAt: u.createdAt,
+      walletBalance: u.walletBalance || 0,
+    }));
+
+    const kycF = this.kycFilter();
+    if (kycF) {
+      filtered = filtered.filter((u) => u.kycStatus === kycF);
     }
-    return [];
+    return filtered;
   });
 
-  totalItems = computed(() => this.usersQuery.data()?.totalElements || 0);
-  totalPages = computed(() => this.usersQuery.data()?.totalPages || 1);
+  totalItems = computed(() => {
+    const data = this.usersQuery.data();
+    return (
+      (data as unknown as { totalElements?: number })?.totalElements ||
+      this.users().length
+    );
+  });
+  totalPages = computed(
+    () =>
+      (this.usersQuery.data() as unknown as { totalPages?: number })
+        ?.totalPages || 1,
+  );
 
   onSearch(value: string) {
     this.searchQuery.set(value);
     this.currentPage.set(0);
+    this.rawAppendedUsers.set([]);
+    this.rawHasMore.set(null);
+    this.nextCursor.set(null);
   }
 
   onStatusChange(value: string) {
     this.statusFilter.set(value);
     this.currentPage.set(0);
+    this.rawAppendedUsers.set([]);
+    this.rawHasMore.set(null);
+    this.nextCursor.set(null);
+  }
+
+  loadMore() {
+    const cursor = this.nextCursor() ?? this.usersQuery.data()?.nextCursor;
+    if (!cursor || this.isLoadingMore()) return;
+    this.isLoadingMore.set(true);
+    this.adminService
+      .getUsers({
+        phoneNumber: this.searchQuery() || undefined,
+        status: this.statusFilter() || undefined,
+        limit: this.pageSize,
+        cursor,
+      })
+      .subscribe({
+        next: (res) => {
+          this.rawAppendedUsers.update((prev) => [
+            ...prev,
+            ...(res.items || []),
+          ]);
+          this.nextCursor.set(res.nextCursor);
+          this.rawHasMore.set(res.hasMore);
+          this.isLoadingMore.set(false);
+        },
+        error: () => {
+          this.isLoadingMore.set(false);
+          this.toast.show("error", "Failed to load more users");
+        },
+      });
   }
 
   prevPage() {

@@ -1,30 +1,14 @@
-import {
-  defineEventHandler,
-  getHeaders,
-  getRouterParam,
-  readBody,
-  createError,
-} from "h3";
+import { defineEventHandler, getRouterParam, readBody } from "h3";
 import { assertUuid, assertNonEmptyString } from "../../../../utils/validate";
+import { callBackend } from "../../../../utils/envelope";
 
 export default defineEventHandler(async (event) => {
-  const { authorization } = getHeaders(event);
-  if (!authorization)
-    throw createError({ statusCode: 401, message: "Unauthorized" });
-
-  const id = assertUuid(getRouterParam(event, "id"));
+  const id = assertUuid(getRouterParam(event, "id"), "kycId");
   const body = await readBody(event);
-  const reason = assertNonEmptyString(body?.reason, "reason", 512);
+  const reason = assertNonEmptyString(body?.reason, "reason", 500);
 
-  const res = await fetch(`${process.env["API_URL"]}/admin/kyc/${id}/reject`, {
+  return callBackend(event, `/admin/kyc/${id}/reject`, {
     method: "POST",
-    headers: {
-      Authorization: authorization,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ reason }),
   });
-  if (!res.ok)
-    throw createError({ statusCode: res.status, message: await res.text() });
-  return res.json();
 });

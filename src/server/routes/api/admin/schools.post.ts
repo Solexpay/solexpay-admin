@@ -1,22 +1,21 @@
-import { defineEventHandler, getHeaders, readBody, createError } from "h3";
+import { defineEventHandler, readBody } from "h3";
+import { assertEmail, assertNonEmptyString } from "../../../utils/validate";
+import { callBackend } from "../../../utils/envelope";
 
 export default defineEventHandler(async (event) => {
-  const { authorization } = getHeaders(event);
-  if (!authorization)
-    throw createError({ statusCode: 401, message: "Unauthorized" });
-
   const body = await readBody(event);
 
-  const res = await fetch(`${process.env["API_URL"]}/admin/schools`, {
-    method: "POST",
-    headers: {
-      Authorization: authorization,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const name = assertNonEmptyString(body?.name, "name", 255);
+  const email = assertEmail(body?.email);
 
-  if (!res.ok)
-    throw createError({ statusCode: res.status, message: await res.text() });
-  return res.json();
+  return callBackend(event, "/admin/schools", {
+    method: "POST",
+    body: JSON.stringify({
+      name,
+      email,
+      phone: body?.phone || undefined,
+      address: body?.address || undefined,
+      state: body?.state || undefined,
+    }),
+  });
 });

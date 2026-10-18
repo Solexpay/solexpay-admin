@@ -4,14 +4,16 @@ import { RouterLink, RouterLinkActive, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { filter, map } from "rxjs/operators";
 import { NavigationEnd } from "@angular/router";
+import { AuthService } from "../../services/auth.service";
 import { TooltipDirective } from "../../directives/tooltip.directive";
 import { PulseAnimationDirective } from "../../directives/pulse-animation.directive";
 import { HoverScaleDirective } from "../../directives/hover-scale.directive";
 
-interface NavItem {
+export interface NavItem {
   route: string;
   label: string;
   icon: string;
+  roles?: string[];
 }
 
 @Component({
@@ -49,7 +51,7 @@ interface NavItem {
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 py-4 px-3 relative">
+      <nav class="flex-1 py-4 px-3 relative overflow-y-auto">
         <!-- Sliding indicator pill -->
         <div
           class="absolute left-0 w-1 bg-primary rounded-r-full transition-all duration-300 ease-out"
@@ -96,10 +98,15 @@ interface NavItem {
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-on-surface truncate">
-              Admin User
+              {{
+                currentAdmin()?.firstName
+                  ? currentAdmin()!.firstName + " " + currentAdmin()!.lastName
+                  : "Admin User"
+              }}
             </p>
             <p class="text-xs text-on-surface-variant truncate">
-              admin&#64;solexpay.com
+              {{ currentAdmin()?.role || "ADMIN" }} ·
+              {{ currentAdmin()?.email || "admin@solexpay.com" }}
             </p>
           </div>
         </div>
@@ -109,16 +116,86 @@ interface NavItem {
 })
 export class SidebarComponent {
   private router = inject(Router);
+  private auth = inject(AuthService);
   closeSidebar = output<void>();
 
-  navItems: NavItem[] = [
+  readonly allNavItems: NavItem[] = [
     { route: "/dashboard", label: "Dashboard", icon: "dashboard" },
-    { route: "/users", label: "Users", icon: "people" },
-    { route: "/kyc", label: "KYC Queue", icon: "verified_user" },
-    { route: "/loans", label: "Loans", icon: "credit_card" },
-    { route: "/transactions", label: "Transactions", icon: "receipt_long" },
-    { route: "/schools", label: "Schools", icon: "school" },
+    {
+      route: "/users",
+      label: "Users",
+      icon: "people",
+      roles: ["SUPPORT", "OPS", "COMPLIANCE"],
+    },
+    {
+      route: "/transactions",
+      label: "Transactions",
+      icon: "receipt_long",
+      roles: ["SUPPORT", "OPS", "COMPLIANCE"],
+    },
+    {
+      route: "/loans",
+      label: "Loans",
+      icon: "credit_card",
+      roles: ["SUPPORT", "OPS", "COMPLIANCE"],
+    },
+    {
+      route: "/nip-transfers",
+      label: "NIP Transfers",
+      icon: "send_money",
+      roles: ["SUPPORT", "OPS", "COMPLIANCE"],
+    },
+    {
+      route: "/gift-cards",
+      label: "Gift Cards",
+      icon: "card_membership",
+      roles: ["OPS"],
+    },
+    { route: "/schools", label: "Schools", icon: "school", roles: ["OPS"] },
+    {
+      route: "/ops",
+      label: "Operations",
+      icon: "manufacturing",
+      roles: ["OPS", "COMPLIANCE"],
+    },
+    {
+      route: "/kyc",
+      label: "KYC Queue",
+      icon: "verified_user",
+      roles: ["COMPLIANCE"],
+    },
+    {
+      route: "/audit",
+      label: "Audit Ledger",
+      icon: "history_edu",
+      roles: ["COMPLIANCE"],
+    },
+    {
+      route: "/admins",
+      label: "Admins",
+      icon: "admin_panel_settings",
+      roles: ["SUPER_ADMIN"],
+    },
   ];
+
+  get navItems(): NavItem[] {
+    const role =
+      typeof this.auth?.getAdminRole === "function"
+        ? this.auth.getAdminRole()
+        : null;
+    if (!role) {
+      return this.allNavItems;
+    }
+    return this.allNavItems.filter(
+      (item) =>
+        !item.roles ||
+        (typeof this.auth?.canAccess === "function"
+          ? this.auth.canAccess(item.roles)
+          : true),
+    );
+  }
+
+  currentAdmin = computed(() => this.auth.getAdmin());
 
   activeRoute = toSignal(
     this.router.events.pipe(
@@ -135,7 +212,7 @@ export class SidebarComponent {
 
   activePillTop = computed(() => {
     const index = this.activeIndex();
-    return index >= 0 ? 16 + index * 56 : 0; // 16px initial padding + 56px per item
+    return index >= 0 ? 16 + index * 56 : 0;
   });
 
   isActive(route: string): boolean {

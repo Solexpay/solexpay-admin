@@ -23,6 +23,9 @@ describe("AdminLayoutComponent", () => {
     const mockAuth = {
       logout: vi.fn(),
       currentUser: signal({ firstName: "Admin" }),
+      getAdminRole: vi.fn().mockReturnValue("SUPER_ADMIN"),
+      getAdmin: vi.fn().mockReturnValue(null),
+      canAccess: vi.fn().mockReturnValue(true),
     };
 
     const mockToast = {

@@ -7,7 +7,25 @@ import type {
   School,
   Profile,
   NotificationSettings,
+  CursorPage,
+  GiftCardOrder,
+  NipTransfer,
+  DeadOutbox,
+  ComplianceFlag,
+  AuditLog,
+  AdminUser,
 } from "../app/services/admin.service";
+import type { LoginSuccessResponse } from "../app/services/auth.service";
+
+export const mockCursorPage = <T>(
+  items: T[],
+  nextCursor: string | null = null,
+  hasMore = false,
+): CursorPage<T> => ({
+  items,
+  nextCursor,
+  hasMore,
+});
 
 export const mockDashboardMetrics = (
   overrides: Partial<DashboardMetrics> = {},
@@ -114,11 +132,124 @@ export const mockSchool = (overrides: Partial<School> = {}): School => ({
   ...overrides,
 });
 
+export const mockGiftCardOrder = (
+  overrides: Partial<GiftCardOrder> = {},
+): GiftCardOrder => ({
+  id: "order-test-001",
+  reference: "GC-20260418001",
+  userId: "usr-test-001",
+  userName: "Test User",
+  productName: "Steam $50 Gift Card",
+  faceValue: "$50",
+  status: "UNKNOWN",
+  price: 75000,
+  codesStored: false,
+  createdAt: "2026-04-18T12:00:00Z",
+  ...overrides,
+});
+
+export const mockNipTransfer = (
+  overrides: Partial<NipTransfer> = {},
+): NipTransfer => ({
+  id: "nip-test-001",
+  reference: "NIP-20260418001",
+  userId: "usr-test-001",
+  userName: "Test User",
+  amount: 25000,
+  fee: 2688,
+  bankName: "Guaranty Trust Bank",
+  accountNumber: "******1234",
+  accountName: "John Doe",
+  status: "PENDING",
+  createdAt: "2026-04-18T12:00:00Z",
+  updatedAt: "2026-04-18T12:00:00Z",
+  ...overrides,
+});
+
+export const mockDeadOutbox = (
+  overrides: Partial<DeadOutbox> = {},
+): DeadOutbox => ({
+  id: "outbox-test-001",
+  topic: "ops.notification.sms.dead",
+  payload: { to: "+2348000000000", message: "OTP" },
+  attempts: 12,
+  lastError: "Connection timeout to Termii",
+  createdAt: "2026-04-18T12:00:00Z",
+  ...overrides,
+});
+
+export const mockComplianceFlag = (
+  overrides: Partial<ComplianceFlag> = {},
+): ComplianceFlag => ({
+  id: "flag-test-001",
+  userId: "usr-test-001",
+  userName: "Test User",
+  phoneNumber: "+2348000000000",
+  kind: "TIER_LIMIT_EXCEEDED",
+  detail: { limit: 50000, inflow: 100000 },
+  status: "OPEN",
+  createdAt: "2026-04-18T12:00:00Z",
+  ...overrides,
+});
+
+export const mockAuditLog = (overrides: Partial<AuditLog> = {}): AuditLog => ({
+  seq: 1,
+  id: "audit-test-001",
+  actorType: "ADMIN",
+  actorId: "admin-001",
+  action: "USER_SUSPENDED",
+  entityType: "USER",
+  entityId: "usr-test-001",
+  ip: "127.0.0.1",
+  userAgent: "Mozilla/5.0",
+  data: { reason: "Suspicious activity" },
+  createdAt: "2026-04-18T12:00:00Z",
+  chainSeq: 1,
+  hash: "a1b2c3d4e5f6...",
+  ...overrides,
+});
+
+export const mockAdminUser = (
+  overrides: Partial<AdminUser> = {},
+): AdminUser => ({
+  id: "admin-test-001",
+  email: "super@solexpay.com",
+  firstName: "Super",
+  lastName: "Admin",
+  role: "SUPER_ADMIN",
+  status: "ACTIVE",
+  createdAt: "2026-01-01T00:00:00Z",
+  ...overrides,
+});
+
+export const mockLoginSuccessResponse = (
+  overrides: Partial<LoginSuccessResponse> = {},
+): LoginSuccessResponse => ({
+  token: "mock-access-token",
+  refreshToken: "mock-refresh-token",
+  expiresIn: 900,
+  admin: {
+    id: "admin-001",
+    email: "super@solexpay.com",
+    firstName: "Super",
+    lastName: "Admin",
+    role: "SUPER_ADMIN",
+  },
+  user: {
+    id: "admin-001",
+    email: "super@solexpay.com",
+    role: "ADMIN",
+    firstName: "Super",
+    lastName: "Admin",
+  },
+  ...overrides,
+});
+
 export const mockProfile = (overrides: Partial<Profile> = {}): Profile => ({
   firstName: "Admin",
   lastName: "User",
   email: "admin@solexpay.com",
-  phone: "+2348000000000",
+  phone: "+2348012345678",
   ...overrides,
 });
 

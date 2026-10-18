@@ -1,22 +1,26 @@
-import { defineEventHandler, getHeaders, readBody, createError } from "h3";
+import { defineEventHandler, readBody, getHeader, createError } from "h3";
+import { assertNonEmptyString } from "../../../utils/validate";
+import { callBackend } from "../../../utils/envelope";
 
 export default defineEventHandler(async (event) => {
-  const { authorization } = getHeaders(event);
-  if (!authorization)
-    throw createError({ statusCode: 401, message: "Unauthorized" });
+  const idempotencyKey =
+    getHeader(event, "x-idempotency-key") ||
+    getHeader(event, "X-Idempotency-Key");
+
+  if (!idempotencyKey) {
+    throw createError({
+      statusCode: 400,
+      message: "X-Idempotency-Key header is required for broadcast.",
+    });
+  }
 
   const body = await readBody(event);
+  const title = assertNonEmptyString(body?.title, "title", 120);
+  const message = assertNonEmptyString(body?.message, "message", 1000);
+  const targetAudience = body?.targetAudience || "ALL";
 
-  const res = await fetch(`${process.env["API_URL"]}/admin/broadcast`, {
+  return callBackend(event, "/admin/broadcast", {
     method: "POST",
-    headers: {
-      Authorization: authorization,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ title, message, targetAudience }),
   });
-
-  if (!res.ok)
-    throw createError({ statusCode: res.status, message: await res.text() });
-  return res.json();
 });

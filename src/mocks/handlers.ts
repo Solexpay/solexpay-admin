@@ -1,31 +1,36 @@
 import { http, HttpResponse } from "msw";
 
-// Helper to simulate page responses
-const page = <T>(items: T[], size = 10) => ({
-  content: items,
-  totalElements: items.length,
-  totalPages: 1,
-  size,
-  number: 0,
-  first: true,
-  last: true,
+// Helper to simulate cursor page responses
+const cursorPage = <T>(
+  items: T[],
+  nextCursor: string | null = null,
+  hasMore = false,
+) => ({
+  items,
+  nextCursor,
+  hasMore,
 });
 
 // Explicit types for MSW handlers
 interface AuthLoginRequest {
   email?: string;
   password?: string;
+  totpCode?: string;
 }
-interface ForgotPasswordRequest {
-  email?: string;
+interface TOTPEnrollRequest {
+  enrollmentToken?: string;
 }
-interface ResetPasswordRequest {
-  token?: string;
-  email?: string;
-  newPassword?: string;
+interface TOTPConfirmRequest {
+  enrollmentToken?: string;
+  code?: string;
+}
+interface RefreshTokenRequest {
+  refreshToken?: string;
 }
 interface OpsRejectLoanRequest {
+  reviewedBy?: string;
   rejectionReason?: string;
+  reason?: string;
 }
 interface RejectKycRequest {
   reason?: string;
@@ -43,7 +48,7 @@ interface CreateSchoolRequest {
   state?: string;
 }
 interface ToggleSchoolStatusRequest {
-  status: "ACTIVE" | "INACTIVE";
+  status: string;
 }
 interface UpdateProfileRequest {
   firstName?: string;
@@ -58,8 +63,15 @@ interface UpdateNotificationSettingsRequest {
   systemAlerts?: boolean;
   browserNotifications?: boolean;
 }
+interface CreateAdminRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  phone?: string;
+}
 
-// Mock database states so changes (suspending user, approving loan, approving KYC) persist in browser memory
+// Mock database states so changes persist in memory
 const mockUsers = [
   {
     id: "usr-001",
@@ -327,6 +339,179 @@ const mockKyc = [
   },
 ];
 
+const mockSchools = [
+  {
+    id: "SCH-001",
+    name: "University of Lagos",
+    email: "bursar@unilag.edu.ng",
+    phone: "+2348012345678",
+    address: "Akoka, Yaba, Lagos",
+    state: "Lagos",
+    studentCount: 45000,
+    activeLoans: 1250,
+    totalDisbursed: 125000000,
+    status: "ACTIVE",
+    apiToken: "sk_live_51H7x8jK8Q2mN9pR5",
+    createdAt: "2023-01-15T00:00:00Z",
+    logoUrl: "/logos/unilag.png",
+  },
+  {
+    id: "SCH-002",
+    name: "Covenant University",
+    email: "finance@covenantuniversity.edu.ng",
+    phone: "+2348098765432",
+    address: "KM 10 Idiroko Road, Ota",
+    state: "Ogun",
+    studentCount: 8500,
+    activeLoans: 450,
+    totalDisbursed: 45000000,
+    status: "ACTIVE",
+    apiToken: "sk_live_51H8y9kL9Q3mO0qS6",
+    createdAt: "2023-02-20T00:00:00Z",
+    logoUrl: "/logos/cu.png",
+  },
+];
+
+const mockGamingOrders = [
+  {
+    id: "ord-001",
+    reference: "GC-20260418001",
+    userId: "usr-001",
+    userName: "Chidi Okafor",
+    productName: "Steam $50 Gift Card",
+    faceValue: "$50",
+    status: "UNKNOWN",
+    price: 75000,
+    providerOrderName: "WUPEX-9988",
+    codesStored: false,
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: "ord-002",
+    reference: "GC-20260418002",
+    userId: "usr-002",
+    userName: "Amaka Eze",
+    productName: "Apple $25 Gift Card",
+    faceValue: "$25",
+    status: "DELIVERED",
+    price: 37500,
+    providerOrderName: "WUPEX-9989",
+    codesStored: true,
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+    completedAt: new Date(Date.now() - 3600000).toISOString(),
+  },
+];
+
+const mockNipTransfers = [
+  {
+    id: "nip-001",
+    reference: "NIP-20260418001",
+    userId: "usr-001",
+    userName: "Chidi Okafor",
+    amount: 50000,
+    fee: 2688,
+    bankName: "Guaranty Trust Bank",
+    accountNumber: "******1234",
+    accountName: "John Doe",
+    status: "PENDING",
+    anchorTransferId: "anch-tf-001",
+    createdAt: new Date(Date.now() - 1800000).toISOString(),
+    updatedAt: new Date(Date.now() - 1800000).toISOString(),
+  },
+  {
+    id: "nip-002",
+    reference: "NIP-20260418002",
+    userId: "usr-002",
+    userName: "Amaka Eze",
+    amount: 12000,
+    fee: 2688,
+    bankName: "Access Bank",
+    accountNumber: "******5678",
+    accountName: "Jane Smith",
+    status: "COMPLETED",
+    anchorTransferId: "anch-tf-002",
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 3000000).toISOString(),
+  },
+];
+
+const mockDeadOutboxList = [
+  {
+    id: "out-001",
+    topic: "ops.notification.sms.dead",
+    payload: { to: "+2348011111111", message: "Your OTP is 123456" },
+    attempts: 12,
+    lastError: "Termii provider gateway timeout",
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+  },
+];
+
+const mockComplianceFlagList = [
+  {
+    id: "flag-001",
+    userId: "usr-001",
+    userName: "Chidi Okafor",
+    phoneNumber: "08011111111",
+    kind: "TIER_LIMIT_EXCEEDED",
+    detail: { inflow: 500000, maxLimit: 300000 },
+    status: "OPEN",
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+  },
+];
+
+const mockAuditList = [
+  {
+    seq: 1,
+    id: "aud-001",
+    actorType: "ADMIN",
+    actorId: "admin-super-001",
+    action: "USER_SUSPENDED",
+    entityType: "USER",
+    entityId: "usr-003",
+    ip: "192.168.1.1",
+    userAgent: "AdminPortal/1.0",
+    data: { reason: "Suspicious transaction activity" },
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    chainSeq: 1,
+    hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  },
+];
+
+const mockAdminUsers: {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  role: string;
+  status: string;
+  lastLoginAt: string | null;
+  createdAt: string;
+}[] = [
+  {
+    id: "admin-001",
+    email: "super@solexpay.com",
+    firstName: "Super",
+    lastName: "Admin",
+    phone: "+2348000000001",
+    role: "SUPER_ADMIN",
+    status: "ACTIVE",
+    lastLoginAt: new Date().toISOString(),
+    createdAt: "2026-01-01T00:00:00Z",
+  },
+  {
+    id: "admin-002",
+    email: "ops@solexpay.com",
+    firstName: "Ops",
+    lastName: "Lead",
+    phone: "+2348000000002",
+    role: "OPS",
+    status: "ACTIVE",
+    lastLoginAt: new Date().toISOString(),
+    createdAt: "2026-01-15T00:00:00Z",
+  },
+];
+
 const mockDashboard = {
   totalUsers: 1482,
   totalVolume: 48200000,
@@ -403,95 +588,8 @@ const mockDashboard = {
       createdAt: new Date(Date.now() - 3600000).toISOString(),
       userName: "Jane Smith",
     },
-    {
-      id: "3",
-      type: "NIP_TRANSFER",
-      amount: 25000,
-      status: "PENDING",
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-      userName: "Mike Johnson",
-    },
-    {
-      id: "4",
-      type: "LOAN_REPAYMENT",
-      amount: 12500,
-      status: "SUCCESS",
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      userName: "Sarah Williams",
-    },
-    {
-      id: "5",
-      type: "BILL_PAYMENT",
-      amount: 5000,
-      status: "FAILED",
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-      userName: "Tom Brown",
-    },
   ],
 };
-
-const mockSchools = [
-  {
-    id: "SCH-001",
-    name: "University of Lagos",
-    email: "bursar@unilag.edu.ng",
-    phone: "+2348012345678",
-    address: "Akoka, Yaba, Lagos",
-    state: "Lagos",
-    studentCount: 45000,
-    activeLoans: 1250,
-    totalDisbursed: 125000000,
-    status: "ACTIVE",
-    apiToken: "sk_live_51H7x8jK8Q2mN9pR5",
-    createdAt: "2023-01-15",
-    logoUrl: "/logos/unilag.png",
-  },
-  {
-    id: "SCH-002",
-    name: "Covenant University",
-    email: "finance@covenantuniversity.edu.ng",
-    phone: "+2348098765432",
-    address: "KM 10 Idiroko Road, Ota",
-    state: "Ogun",
-    studentCount: 8500,
-    activeLoans: 450,
-    totalDisbursed: 45000000,
-    status: "ACTIVE",
-    apiToken: "sk_live_51H8y9kL9Q3mO0qS6",
-    createdAt: "2023-02-20",
-    logoUrl: "/logos/cu.png",
-  },
-  {
-    id: "SCH-003",
-    name: "University of Ibadan",
-    email: "bursar@ui.edu.ng",
-    phone: "+2348055512345",
-    address: "Ibadan, Oyo State",
-    state: "Oyo",
-    studentCount: 33000,
-    activeLoans: 890,
-    totalDisbursed: 89000000,
-    status: "ACTIVE",
-    apiToken: "sk_live_51H9z0mM0Q4mP1rT7",
-    createdAt: "2023-03-10",
-    logoUrl: "/logos/ui.png",
-  },
-  {
-    id: "SCH-004",
-    name: "University of Abuja",
-    email: "bursar@uniabuja.edu.ng",
-    phone: "+2348077723456",
-    address: "Airport Road, Abuja",
-    state: "Abuja",
-    studentCount: 15000,
-    activeLoans: 320,
-    totalDisbursed: 32000000,
-    status: "INACTIVE",
-    apiToken: "sk_live_51H0a1nN1Q5mQ2sU8",
-    createdAt: "2023-04-05",
-    logoUrl: "/logos/uniabuja.png",
-  },
-];
 
 const mockProfile = {
   firstName: "Admin",
@@ -517,10 +615,27 @@ export const handlers = [
     if (!body?.email || !body?.password) {
       return new HttpResponse("Email and password required", { status: 400 });
     }
+
+    if (body.email === "totp-enroll@solexpay.com") {
+      return HttpResponse.json({
+        enrollmentRequired: true,
+        enrollmentToken: "mock-enrollment-token-12345",
+      });
+    }
+
     return HttpResponse.json({
       token: "dev.mock.jwt.token",
+      refreshToken: "dev.mock.refresh.token",
+      expiresIn: 900,
+      admin: {
+        id: "admin-001",
+        email: body.email,
+        firstName: "Dev",
+        lastName: "Admin",
+        role: "SUPER_ADMIN",
+      },
       user: {
-        id: "usr-001",
+        id: "admin-001",
         email: body.email,
         role: "ADMIN",
         firstName: "Dev",
@@ -529,79 +644,90 @@ export const handlers = [
     });
   }),
 
-  http.post("*/api/auth/school/login", async ({ request }) => {
-    const body = (await request.json()) as AuthLoginRequest;
-    if (!body?.email || !body?.password) {
-      return new HttpResponse("Email and password required", { status: 400 });
+  // TOTP routes
+  http.post("*/api/auth/totp/enroll", async ({ request }) => {
+    const body = (await request.json()) as TOTPEnrollRequest;
+    if (!body?.enrollmentToken) {
+      return new HttpResponse("enrollmentToken required", { status: 400 });
     }
     return HttpResponse.json({
-      token: "dev.mock.jwt.token",
+      secret: "JBSWY3DPEHPK3PXP",
+      otpauthUrl:
+        "otpauth://totp/SolexPay:admin@solexpay.com?secret=JBSWY3DPEHPK3PXP&issuer=SolexPay",
+    });
+  }),
+
+  http.post("*/api/auth/totp/confirm", async ({ request }) => {
+    const body = (await request.json()) as TOTPConfirmRequest;
+    if (!body?.enrollmentToken || !body?.code) {
+      return new HttpResponse("enrollmentToken and code required", {
+        status: 400,
+      });
+    }
+    return HttpResponse.json({
+      token: "dev.mock.confirmed.jwt.token",
+      refreshToken: "dev.mock.confirmed.refresh.token",
+      expiresIn: 900,
+      admin: {
+        id: "admin-001",
+        email: "enrolled@solexpay.com",
+        firstName: "Dev",
+        lastName: "Admin",
+        role: "SUPER_ADMIN",
+      },
       user: {
-        id: "usr-school-001",
-        email: body.email,
-        role: "SCHOOL",
-        firstName: "School",
+        id: "admin-001",
+        email: "enrolled@solexpay.com",
+        role: "ADMIN",
+        firstName: "Dev",
         lastName: "Admin",
       },
     });
   }),
 
-  // 2. Forgot Password
-  http.post("*/api/auth/forgot-password", async ({ request }) => {
-    const body = (await request.json()) as ForgotPasswordRequest;
-    const email = body?.email;
-    if (!email) {
-      return new HttpResponse("Email is required", { status: 400 });
+  // Refresh
+  http.post("*/api/auth/refresh", async ({ request }) => {
+    const body = (await request.json()) as RefreshTokenRequest;
+    if (!body?.refreshToken) {
+      return new HttpResponse("refreshToken required", { status: 400 });
     }
-    const mockResetToken =
-      "mock-reset-token-" + Math.random().toString(36).substring(2, 15);
-    const resetLink = `http://localhost:5173/reset-password?token=${mockResetToken}&email=${encodeURIComponent(email)}`;
     return HttpResponse.json({
-      message: "If the email exists, a reset link has been sent.",
-      email: email,
-      resetLink,
-      resetToken: mockResetToken,
-      expiresIn: "24h",
-      sentAt: new Date().toISOString(),
-      _devNote:
-        "DEV MODE: Use the reset link above to test the flow. Token expires in 24 hours.",
+      token: "dev.mock.refreshed.jwt.token",
+      refreshToken: "dev.mock.new.refresh.token",
+      expiresIn: 900,
+      admin: {
+        id: "admin-001",
+        email: "refreshed@solexpay.com",
+        firstName: "Dev",
+        lastName: "Admin",
+        role: "SUPER_ADMIN",
+      },
+      user: {
+        id: "admin-001",
+        email: "refreshed@solexpay.com",
+        role: "ADMIN",
+        firstName: "Dev",
+        lastName: "Admin",
+      },
     });
   }),
 
-  // 3. Reset Password
-  http.post("*/api/auth/reset-password", async ({ request }) => {
-    const body = (await request.json()) as ResetPasswordRequest;
-    const token = body?.token;
-    const email = body?.email;
-    const password = body?.newPassword;
-    if (!token || !email || !password) {
-      return new HttpResponse("Token, email, and newPassword are required", {
-        status: 400,
-      });
-    }
-    if (!token.startsWith("mock-reset-token-")) {
-      return HttpResponse.json(
-        { message: "Invalid or expired reset token" },
-        { status: 400 },
-      );
-    }
-    return HttpResponse.json({
-      message:
-        "Password reset successful. You can now sign in with your new password.",
-    });
+  // Logout
+  http.post("*/api/auth/logout", () => {
+    return new HttpResponse(null, { status: 204 });
   }),
 
-  // 4. Dashboard Metrics
+  // Dashboard Metrics
   http.get("*/api/admin/dashboard", () => {
     return HttpResponse.json(mockDashboard);
   }),
 
-  // 5. Users List
+  // Users List (CursorPage)
   http.get("*/api/admin/users", ({ request }) => {
     const url = new URL(request.url);
-    const search = url.searchParams.get("phoneNumber");
+    const search =
+      url.searchParams.get("phoneNumber") || url.searchParams.get("search");
     const status = url.searchParams.get("status");
-    const size = parseInt(url.searchParams.get("size") || "20", 10);
 
     let filtered = [...mockUsers];
     if (search) {
@@ -616,10 +742,10 @@ export const handlers = [
     if (status) {
       filtered = filtered.filter((u) => u.status === status);
     }
-    return HttpResponse.json(page(filtered, size));
+    return HttpResponse.json(cursorPage(filtered));
   }),
 
-  // 5b. User Detail
+  // User Detail
   http.get("*/api/admin/users/:userId", ({ params }) => {
     const { userId } = params;
     const user = mockUsers.find(
@@ -698,23 +824,28 @@ export const handlers = [
     });
   }),
 
-  // 6. Suspend User
-  http.post("*/api/admin/users/:userId/suspend", ({ params, request }) => {
-    const { userId } = params;
-    const url = new URL(request.url);
-    const reason = url.searchParams.get("reason") || "Suspended by admin";
-    const user = mockUsers.find((u) => u.id === userId);
-    if (user) {
-      user.status = "SUSPENDED";
-    }
-    return HttpResponse.json({
-      success: true,
-      message: `User suspended: ${reason}`,
-      user,
-    });
-  }),
+  // Suspend User
+  http.post(
+    "*/api/admin/users/:userId/suspend",
+    async ({ params, request }) => {
+      const { userId } = params;
+      const body = (await request.json().catch(() => ({}))) as {
+        reason?: string;
+      };
+      const reason = body?.reason || "Suspended by admin";
+      const user = mockUsers.find((u) => u.id === userId);
+      if (user) {
+        user.status = "SUSPENDED";
+      }
+      return HttpResponse.json({
+        success: true,
+        message: `User suspended: ${reason}`,
+        user,
+      });
+    },
+  ),
 
-  // 7. Reactivate User
+  // Reactivate User
   http.post("*/api/admin/users/:userId/reactivate", ({ params }) => {
     const { userId } = params;
     const user = mockUsers.find((u) => u.id === userId);
@@ -728,27 +859,29 @@ export const handlers = [
     });
   }),
 
-  // 8. Loans List
+  // Loans List (CursorPage)
   http.get("*/api/admin/loans", ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status");
-    const size = parseInt(url.searchParams.get("size") || "50", 10);
-
     let filtered = [...mockLoans];
     if (status) {
       filtered = filtered.filter((l) => l.status === status);
     }
-    return HttpResponse.json(page(filtered, size));
+    return HttpResponse.json(cursorPage(filtered));
   }),
 
-  // 9. Overdue Loans List
-  http.get("*/api/admin/loans/overdue", ({ request }) => {
-    const url = new URL(request.url);
-    const size = parseInt(url.searchParams.get("size") || "20", 10);
-    return HttpResponse.json(page(mockOverdueLoans, size));
+  // Overdue Loans List
+  http.get("*/api/admin/loans/overdue", () => {
+    return HttpResponse.json(cursorPage(mockOverdueLoans));
   }),
 
-  // 10. Approve Loan
+  // Ops Pending Loans List
+  http.get("*/api/loans/ops-pending", () => {
+    const pending = mockLoans.filter((l) => l.status === "OPS_REVIEW");
+    return HttpResponse.json(cursorPage(pending));
+  }),
+
+  // Approve Loan
   http.post("*/api/loans/:loanId/ops-approve", ({ params }) => {
     const { loanId } = params;
     const loan = mockLoans.find((l) => l.id === loanId);
@@ -762,11 +895,12 @@ export const handlers = [
     });
   }),
 
-  // 11. Reject Loan
+  // Reject Loan
   http.post("*/api/loans/:loanId/ops-reject", async ({ params, request }) => {
     const { loanId } = params;
     const body = (await request.json()) as OpsRejectLoanRequest;
-    const rejectionReason = body?.rejectionReason || "Rejected by Ops";
+    const rejectionReason =
+      body?.rejectionReason || body?.reason || "Rejected by Ops";
     const loan = mockLoans.find((l) => l.id === loanId);
     if (loan) {
       loan.status = "REJECTED";
@@ -778,12 +912,11 @@ export const handlers = [
     });
   }),
 
-  // 12. Transactions List
+  // Transactions List (CursorPage)
   http.get("*/api/admin/transactions", ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status");
     const type = url.searchParams.get("type");
-    const size = parseInt(url.searchParams.get("size") || "50", 10);
 
     let filtered = [...mockTransactions];
     if (status) {
@@ -792,20 +925,18 @@ export const handlers = [
     if (type) {
       filtered = filtered.filter((t) => t.type === type);
     }
-    return HttpResponse.json(page(filtered, size));
+    return HttpResponse.json(cursorPage(filtered));
   }),
 
-  // 13. KYC Queue
+  // KYC Queue (CursorPage)
   http.get("*/api/admin/kyc", ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status") || "PENDING";
-    const size = parseInt(url.searchParams.get("size") || "50", 10);
-
     const filtered = mockKyc.filter((k) => k.status === status);
-    return HttpResponse.json(page(filtered, size));
+    return HttpResponse.json(cursorPage(filtered));
   }),
 
-  // 14. Approve KYC
+  // Approve KYC
   http.post("*/api/admin/kyc/:verificationId/approve", ({ params }) => {
     const { verificationId } = params;
     const kycItem = mockKyc.find((k) => k.id === verificationId);
@@ -823,7 +954,7 @@ export const handlers = [
     });
   }),
 
-  // 15. Reject KYC
+  // Reject KYC
   http.post(
     "*/api/admin/kyc/:verificationId/reject",
     async ({ params, request }) => {
@@ -842,19 +973,20 @@ export const handlers = [
     },
   ),
 
-  // 16. Broadcast Notification
+  // Broadcast Notification
   http.post("*/api/admin/broadcast", async ({ request }) => {
     const body = (await request.json()) as BroadcastRequest;
     const { title, targetAudience } = body || {};
     return HttpResponse.json({
       success: true,
+      eventId: "ev-broadcast-001",
       message: `Notification broadcasted to ${targetAudience}: ${title}`,
     });
   }),
 
-  // 17. Schools API
+  // Schools API (CursorPage)
   http.get("*/api/admin/schools", () => {
-    return HttpResponse.json(mockSchools);
+    return HttpResponse.json(cursorPage(mockSchools));
   }),
 
   http.post("*/api/admin/schools", async ({ request }) => {
@@ -901,7 +1033,137 @@ export const handlers = [
     },
   ),
 
-  // 18. Profile API
+  // Gaming / Gift Card Orders (CursorPage)
+  http.get("*/api/admin/gaming/orders", ({ request }) => {
+    const url = new URL(request.url);
+    const status = url.searchParams.get("status") || "UNKNOWN";
+    const filtered = mockGamingOrders.filter((o) => o.status === status);
+    return HttpResponse.json(cursorPage(filtered));
+  }),
+
+  http.get("*/api/admin/gaming/orders/:id", ({ params }) => {
+    const { id } = params;
+    const order = mockGamingOrders.find((o) => o.id === id);
+    if (!order) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json(order);
+  }),
+
+  http.post("*/api/admin/gaming/orders/:id/resolve-delivered", ({ params }) => {
+    const { id } = params;
+    const order = mockGamingOrders.find((o) => o.id === id);
+    if (order) {
+      order.status = "DELIVERED";
+      order.codesStored = true;
+    }
+    return HttpResponse.json({ success: true, order });
+  }),
+
+  http.post("*/api/admin/gaming/orders/:id/resolve-failed", ({ params }) => {
+    const { id } = params;
+    const order = mockGamingOrders.find((o) => o.id === id);
+    if (order) {
+      order.status = "FAILED";
+    }
+    return HttpResponse.json({ success: true, order });
+  }),
+
+  // NIP Transfers (CursorPage)
+  http.get("*/api/admin/nip/transfers", ({ request }) => {
+    const url = new URL(request.url);
+    const status = url.searchParams.get("status") || "PENDING";
+    const filtered = mockNipTransfers.filter((t) => t.status === status);
+    return HttpResponse.json(cursorPage(filtered));
+  }),
+
+  http.get("*/api/admin/nip/transfers/:id", ({ params }) => {
+    const { id } = params;
+    const item = mockNipTransfers.find((t) => t.id === id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json(item);
+  }),
+
+  // Ops Console (Dead Outbox & Compliance Flags)
+  http.get("*/api/admin/ops/outbox/dead", () => {
+    return HttpResponse.json(cursorPage(mockDeadOutboxList));
+  }),
+
+  http.post("*/api/admin/ops/outbox/:id/requeue", ({ params }) => {
+    const { id } = params;
+    return HttpResponse.json({
+      success: true,
+      message: `Message ${id} requeued`,
+    });
+  }),
+
+  http.get("*/api/admin/ops/compliance-flags", () => {
+    return HttpResponse.json(cursorPage(mockComplianceFlagList));
+  }),
+
+  http.post("*/api/admin/ops/compliance-flags/:id/resolve", ({ params }) => {
+    const { id } = params;
+    const flag = mockComplianceFlagList.find((f) => f.id === id);
+    if (flag) {
+      flag.status = "RESOLVED";
+    }
+    return HttpResponse.json({
+      success: true,
+      message: "Compliance flag resolved",
+    });
+  }),
+
+  // Audit Logs
+  http.get("*/api/admin/audit", () => {
+    return HttpResponse.json(cursorPage(mockAuditList));
+  }),
+
+  http.get("*/api/admin/audit/verify", () => {
+    return HttpResponse.json({
+      checked: 1,
+      ok: true,
+      firstBrokenChainSeq: 0,
+      firstBrokenAuditId: "",
+    });
+  }),
+
+  // Admins Management
+  http.get("*/api/admin/admins", () => {
+    return HttpResponse.json(cursorPage(mockAdminUsers));
+  }),
+
+  http.post("*/api/admin/admins", async ({ request }) => {
+    const body = (await request.json()) as CreateAdminRequest;
+    const admin = {
+      id: "admin-" + (mockAdminUsers.length + 1).toString().padStart(3, "0"),
+      email: body.email,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      phone: body.phone || null,
+      role: body.role,
+      status: "ACTIVE",
+      lastLoginAt: null,
+      createdAt: new Date().toISOString(),
+    };
+    mockAdminUsers.push(admin);
+    return HttpResponse.json({
+      admin,
+      temporaryPassword: "TempPassword!123",
+    });
+  }),
+
+  http.post("*/api/admin/admins/:id/disable", ({ params }) => {
+    const { id } = params;
+    const admin = mockAdminUsers.find((a) => a.id === id);
+    if (admin) {
+      admin.status = "DISABLED";
+    }
+    return HttpResponse.json({ success: true, message: "Admin disabled" });
+  }),
+
+  http.post("*/api/admin/admins/:id/reset-totp", () => {
+    return HttpResponse.json({ success: true, message: "Admin TOTP reset" });
+  }),
+
+  // Profile API
   http.get("*/api/admin/profile", () => {
     return HttpResponse.json(mockProfile);
   }),
@@ -915,7 +1177,7 @@ export const handlers = [
     return HttpResponse.json({ success: true, profile: mockProfile });
   }),
 
-  // 19. Notification Settings API
+  // Notification Settings API
   http.get("*/api/admin/settings/notifications", () => {
     return HttpResponse.json(mockNotificationSettings);
   }),

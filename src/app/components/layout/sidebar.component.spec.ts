@@ -12,6 +12,8 @@ import { SidebarComponent } from "./sidebar.component";
 import { vi } from "vitest";
 import { Component } from "@angular/core";
 
+import { provideHttpClient } from "@angular/common/http";
+
 @Component({ standalone: true, template: "" })
 class DummyComponent {}
 
@@ -34,6 +36,7 @@ describe("SidebarComponent", () => {
           { path: "schools", component: DummyComponent },
         ]),
       ],
+      providers: [provideHttpClient()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SidebarComponent);

@@ -33,7 +33,10 @@ describe("AuthService", () => {
     const res = await firstValueFrom(
       service.login({ email: "admin@test.com", password: "password" }),
     );
-    expect(res.token).toBe("dev.mock.jwt.token");
+    expect("token" in res).toBe(true);
+    if ("token" in res) {
+      expect(res.token).toBe("dev.mock.jwt.token");
+    }
     expect(service.isAuthenticated()).toBe(true);
   });
 

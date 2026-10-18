@@ -57,7 +57,13 @@ describe("SchoolsPageComponent", () => {
 
   beforeEach(() => {
     const mockAdminService = {
-      getSchools: vi.fn().mockReturnValue(of(mockSchools)),
+      getSchools: vi.fn().mockReturnValue(
+        of({
+          items: mockSchools,
+          nextCursor: null,
+          hasMore: false,
+        }),
+      ),
       regenerateSchoolToken: vi
         .fn()
         .mockReturnValue(of({ success: true, apiToken: "new-token" })),
@@ -93,7 +99,11 @@ describe("SchoolsPageComponent", () => {
         },
       },
     });
-    queryClient.setQueryData(["schools"], mockSchools);
+    queryClient.setQueryData(["schools"], {
+      items: mockSchools,
+      nextCursor: null,
+      hasMore: false,
+    });
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({

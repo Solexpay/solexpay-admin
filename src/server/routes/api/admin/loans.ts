@@ -1,24 +1,9 @@
-import { defineEventHandler, getHeaders, getQuery, createError } from "h3";
-import { allowQueryParams } from "../../../utils/validate";
+import { defineEventHandler, getQuery } from "h3";
+import { buildQueryString, callBackend } from "../../../utils/envelope";
 
 export default defineEventHandler(async (event) => {
-  const { authorization } = getHeaders(event);
-  if (!authorization)
-    throw createError({ statusCode: 401, message: "Unauthorized" });
+  const query = getQuery(event);
+  const qs = buildQueryString(query, ["status", "limit", "cursor"]);
 
-  const params = allowQueryParams(getQuery(event), [
-    "page",
-    "size",
-    "status",
-    "userId",
-    "sort",
-  ]);
-
-  const res = await fetch(`${process.env["API_URL"]}/admin/loans?${params}`, {
-    headers: { Authorization: authorization },
-  });
-
-  if (!res.ok)
-    throw createError({ statusCode: res.status, message: await res.text() });
-  return res.json();
+  return callBackend(event, `/admin/loans${qs}`);
 });

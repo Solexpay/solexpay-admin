@@ -42,7 +42,7 @@ describe("AdminService", () => {
 
   it("should get schools list", async () => {
     const schools = await firstValueFrom(service.getSchools());
-    expect(schools.length).toBeGreaterThan(0);
-    expect(schools[0]!.name).toBeDefined();
+    expect(schools.items.length).toBeGreaterThan(0);
+    expect(schools.items[0]!.name).toBeDefined();
   });
 });

@@ -1,29 +1,17 @@
-import {
-  defineEventHandler,
-  getHeaders,
-  getRouterParam,
-  getQuery,
-  createError,
-} from "h3";
-import { assertUuid, assertNonEmptyString } from "../../../../utils/validate";
+import { defineEventHandler, getRouterParam, getQuery, readBody } from "h3";
+import { assertUuid } from "../../../../utils/validate";
+import { callBackend } from "../../../../utils/envelope";
 
 export default defineEventHandler(async (event) => {
-  const { authorization } = getHeaders(event);
-  if (!authorization)
-    throw createError({ statusCode: 401, message: "Unauthorized" });
+  const id = assertUuid(getRouterParam(event, "id"), "userId");
+  const body = await readBody(event).catch(() => ({}));
+  const query = getQuery(event);
 
-  const id = assertUuid(getRouterParam(event, "id"));
-  const { reason } = getQuery(event);
-  const safeReason = reason
-    ? assertNonEmptyString(reason, "reason", 256)
-    : "Suspended by admin";
+  const reason =
+    body?.reason || query["reason"] || "Suspended by administrator";
 
-  const res = await fetch(
-    `${process.env["API_URL"]}/admin/users/${id}/suspend?reason=${encodeURIComponent(safeReason)}`,
-    { method: "POST", headers: { Authorization: authorization } },
-  );
-
-  if (!res.ok)
-    throw createError({ statusCode: res.status, message: await res.text() });
-  return res.json();
+  return callBackend(event, `/admin/users/${id}/suspend`, {
+    method: "POST",
+    body: JSON.stringify({ reason: String(reason).trim() }),
+  });
 });

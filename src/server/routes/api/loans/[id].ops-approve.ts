@@ -1,37 +1,17 @@
-import {
-  defineEventHandler,
-  getHeaders,
-  getRouterParam,
-  readBody,
-  createError,
-} from "h3";
-import { assertUuid, assertNonEmptyString } from "../../../utils/validate";
+import { defineEventHandler, getRouterParam, readBody } from "h3";
+import { assertUuid } from "../../../utils/validate";
+import { callBackend } from "../../../utils/envelope";
 
 export default defineEventHandler(async (event) => {
-  const { authorization } = getHeaders(event);
-  if (!authorization)
-    throw createError({ statusCode: 401, message: "Unauthorized" });
+  const id = assertUuid(getRouterParam(event, "id"), "loanId");
+  const body = await readBody(event).catch(() => ({}));
 
-  const id = assertUuid(getRouterParam(event, "id"));
-  const body = await readBody(event);
+  const reviewedBy = body?.reviewedBy ? String(body.reviewedBy) : "OPS";
+  const coolingOffHours =
+    typeof body?.coolingOffHours === "number" ? body.coolingOffHours : 24;
 
-  const safeNote = body?.note
-    ? assertNonEmptyString(body.note, "note", 512)
-    : undefined;
-
-  const res = await fetch(`${process.env["API_URL"]}/loans/${id}/ops-approve`, {
+  return callBackend(event, `/loans/${id}/ops-approve`, {
     method: "POST",
-    headers: {
-      Authorization: authorization,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      reviewedBy: "OPS",
-      ...(safeNote ? { note: safeNote } : {}),
-    }),
+    body: JSON.stringify({ reviewedBy, coolingOffHours }),
   });
-
-  if (!res.ok)
-    throw createError({ statusCode: res.status, message: await res.text() });
-  return res.json();
 });

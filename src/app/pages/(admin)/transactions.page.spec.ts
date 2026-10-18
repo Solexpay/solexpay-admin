@@ -11,7 +11,7 @@ import {
   QueryClient,
 } from "@tanstack/angular-query-experimental";
 import { TransactionsPageComponent } from "./transactions.page";
-import { AdminService, Transaction, Page } from "../../services/admin.service";
+import { AdminService, Transaction } from "../../services/admin.service";
 import { of } from "rxjs";
 import { vi } from "vitest";
 
@@ -48,12 +48,10 @@ describe("TransactionsPageComponent", () => {
     const mockAdminService = {
       getTransactions: vi.fn().mockReturnValue(
         of({
-          content: mockTransactions,
-          totalElements: 2,
-          totalPages: 1,
-          size: 100,
-          number: 0,
-        } as Page<Transaction>),
+          items: mockTransactions,
+          nextCursor: null,
+          hasMore: false,
+        }),
       ),
     };
 
@@ -66,11 +64,9 @@ describe("TransactionsPageComponent", () => {
       },
     });
     queryClient.setQueryData(["transactions", { from: "" }], {
-      content: mockTransactions,
-      totalElements: 2,
-      totalPages: 1,
-      size: 100,
-      number: 0,
+      items: mockTransactions,
+      nextCursor: null,
+      hasMore: false,
     });
 
     TestBed.resetTestingModule();

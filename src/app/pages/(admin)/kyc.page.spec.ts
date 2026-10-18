@@ -11,7 +11,7 @@ import {
   QueryClient,
 } from "@tanstack/angular-query-experimental";
 import { KycPageComponent } from "./kyc.page";
-import { AdminService, KycItem, Page } from "../../services/admin.service";
+import { AdminService, KycItem } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
 import { ConfettiService } from "../../services/confetti.service";
 import { of } from "rxjs";
@@ -58,11 +58,10 @@ describe("KycPageComponent", () => {
     const mockAdminService = {
       getKycQueue: vi.fn().mockReturnValue(
         of({
-          content: mockKycItems,
-          totalElements: 2,
-          size: 10,
-          number: 0,
-        } as Page<KycItem>),
+          items: mockKycItems,
+          nextCursor: null,
+          hasMore: false,
+        }),
       ),
       approveKyc: vi
         .fn()
@@ -89,10 +88,9 @@ describe("KycPageComponent", () => {
       },
     });
     queryClient.setQueryData(["kyc-queue"], {
-      content: mockKycItems,
-      totalElements: 2,
-      size: 10,
-      number: 0,
+      items: mockKycItems,
+      nextCursor: null,
+      hasMore: false,
     });
 
     TestBed.resetTestingModule();

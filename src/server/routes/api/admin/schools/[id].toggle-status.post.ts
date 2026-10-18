@@ -1,33 +1,14 @@
-import {
-  defineEventHandler,
-  getHeaders,
-  getRouterParam,
-  readBody,
-  createError,
-} from "h3";
-import { assertUuid } from "../../../../utils/validate";
+import { defineEventHandler, getRouterParam, readBody } from "h3";
+import { assertUuid, assertNonEmptyString } from "../../../../utils/validate";
+import { callBackend } from "../../../../utils/envelope";
 
 export default defineEventHandler(async (event) => {
-  const { authorization } = getHeaders(event);
-  if (!authorization)
-    throw createError({ statusCode: 401, message: "Unauthorized" });
-
-  const id = assertUuid(getRouterParam(event, "id"));
+  const id = assertUuid(getRouterParam(event, "id"), "schoolId");
   const body = await readBody(event);
+  const status = assertNonEmptyString(body?.status, "status", 32);
 
-  const res = await fetch(
-    `${process.env["API_URL"]}/admin/schools/${id}/toggle-status`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: authorization,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    },
-  );
-
-  if (!res.ok)
-    throw createError({ statusCode: res.status, message: await res.text() });
-  return res.json();
+  return callBackend(event, `/admin/schools/${id}/toggle-status`, {
+    method: "POST",
+    body: JSON.stringify({ status }),
+  });
 });

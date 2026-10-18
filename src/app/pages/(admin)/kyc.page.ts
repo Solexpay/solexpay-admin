@@ -1,4 +1,4 @@
-import { Component, inject, computed } from "@angular/core";
+import { Component, inject, computed, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
@@ -270,6 +270,28 @@ import { MagneticDirective } from "../../directives/magnetic.directive";
               </p>
             </div>
           }
+
+          @if (hasMore()) {
+            <div class="lg:col-span-2 flex justify-center py-4">
+              <button
+                (click)="loadMore()"
+                [disabled]="isLoadingMore()"
+                class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
+              >
+                @if (isLoadingMore()) {
+                  <span
+                    class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                  ></span>
+                  <span>Loading...</span>
+                } @else {
+                  <span>Load more</span>
+                  <span class="material-symbols-outlined text-sm"
+                    >expand_more</span
+                  >
+                }
+              </button>
+            </div>
+          }
         </div>
       }
     </div>
@@ -309,11 +331,22 @@ export class KycPageComponent {
 
   loading = computed(() => this.kycQuery.isPending());
 
+  rawAppendedKyc = signal<KycItem[]>([]);
+  rawHasMore = signal<boolean | null>(null);
+  hasMore = computed(() => {
+    if (this.rawHasMore() !== null) return this.rawHasMore()!;
+    return this.kycQuery.data()?.hasMore ?? false;
+  });
+  nextCursor = signal<string | null>(null);
+  isLoadingMore = signal(false);
+
   kycQueue = computed<KycItem[]>(() => {
     const response = this.kycQuery.data();
-    if (response?.content) return response.content;
-    if (Array.isArray(response)) return response;
-    return [];
+    const initial =
+      response?.items ||
+      (response as unknown as { content?: KycItem[] })?.content ||
+      (Array.isArray(response) ? response : []);
+    return [...initial, ...this.rawAppendedKyc()];
   });
 
   pendingCount = computed(
@@ -330,6 +363,30 @@ export class KycPageComponent {
   maskNumber(number: string): string {
     if (number.length <= 4) return number;
     return "*".repeat(number.length - 4) + number.slice(-4);
+  }
+
+  loadMore() {
+    const cursor = this.nextCursor() ?? this.kycQuery.data()?.nextCursor;
+    if (!cursor || this.isLoadingMore()) return;
+    this.isLoadingMore.set(true);
+    this.adminService
+      .getKycQueue({
+        status: "PENDING",
+        limit: 20,
+        cursor,
+      })
+      .subscribe({
+        next: (res) => {
+          this.rawAppendedKyc.update((prev) => [...prev, ...(res.items || [])]);
+          this.nextCursor.set(res.nextCursor);
+          this.rawHasMore.set(res.hasMore);
+          this.isLoadingMore.set(false);
+        },
+        error: () => {
+          this.isLoadingMore.set(false);
+          this.toast.show("error", "Failed to load more KYC submissions");
+        },
+      });
   }
 
   viewDetails(item: KycItem) {

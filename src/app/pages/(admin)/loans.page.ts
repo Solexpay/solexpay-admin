@@ -96,7 +96,7 @@ import { CountUpDirective } from "../../directives/count-up.directive";
         <div class="flex gap-2 p-1 bg-surface-container rounded-xl">
           @for (tab of statusTabs; track tab.value) {
             <button
-              (click)="statusFilter.set(tab.value)"
+              (click)="onStatusFilterChange(tab.value)"
               class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
               [class]="
                 statusFilter() === tab.value
@@ -329,6 +329,30 @@ import { CountUpDirective } from "../../directives/count-up.directive";
             </p>
           </div>
         }
+
+        @if (hasMore()) {
+          <div
+            class="flex justify-center p-4 border-t border-surface-container"
+          >
+            <button
+              (click)="loadMore()"
+              [disabled]="isLoadingMore()"
+              class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
+            >
+              @if (isLoadingMore()) {
+                <span
+                  class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                ></span>
+                <span>Loading...</span>
+              } @else {
+                <span>Load more</span>
+                <span class="material-symbols-outlined text-sm"
+                  >expand_more</span
+                >
+              }
+            </button>
+          </div>
+        }
       </div>
     </div>
   `,
@@ -351,11 +375,11 @@ export class LoansPageComponent {
     queryKey: ["loans", { status: this.statusFilter() }],
     queryFn: () =>
       lastValueFrom(
-        this.adminService.getLoans(
-          0,
-          50,
-          this.statusFilter() === "ALL" ? undefined : this.statusFilter(),
-        ),
+        this.adminService.getLoans({
+          limit: 20,
+          status:
+            this.statusFilter() === "ALL" ? undefined : this.statusFilter(),
+        }),
       ),
   }));
 
@@ -389,21 +413,45 @@ export class LoansPageComponent {
 
   loading = computed(() => this.loansQuery.isPending());
 
+  rawAppendedLoans = signal<Loan[]>([]);
+  rawHasMore = signal<boolean | null>(null);
+  hasMore = computed(() => {
+    if (this.rawHasMore() !== null) return this.rawHasMore()!;
+    return this.loansQuery.data()?.hasMore ?? false;
+  });
+  nextCursor = signal<string | null>(null);
+  isLoadingMore = signal(false);
+
   loans = computed<Loan[]>(() => {
     const response = this.loansQuery.data();
-    if (response?.content) return response.content;
-    if (response && Array.isArray(response)) return response;
-    return [];
+    const queryItems =
+      response?.items ||
+      (response as unknown as { content?: Loan[] })?.content ||
+      [];
+    const all = [...queryItems, ...this.rawAppendedLoans()];
+    return all;
   });
 
-  totalItems = computed(() => this.loansQuery.data()?.totalElements || 0);
-  totalPages = computed(() => this.loansQuery.data()?.totalPages || 1);
+  totalItems = computed(
+    () =>
+      (this.loansQuery.data() as unknown as { totalElements?: number })
+        ?.totalElements || this.loans().length,
+  );
+  totalPages = computed(
+    () =>
+      (this.loansQuery.data() as unknown as { totalPages?: number })
+        ?.totalPages || 1,
+  );
 
   metrics = computed(() => {
     const overdue = this.overdueQuery.data();
+    const overdueList =
+      overdue?.items ||
+      (overdue as unknown as { content?: Loan[] })?.content ||
+      [];
     return {
       active: 204,
-      overdue: overdue?.content?.length != null ? overdue.content.length : 18,
+      overdue: overdueList.length,
       totalDisbursed: 15600000,
     };
   });
@@ -429,9 +477,46 @@ export class LoansPageComponent {
   );
   overdueCount = computed(() => {
     const overdue = this.overdueQuery.data();
-    if (overdue?.content?.length != null) return overdue.content.length;
-    return 0;
+    const overdueList =
+      overdue?.items ||
+      (overdue as unknown as { content?: Loan[] })?.content ||
+      [];
+    return overdueList.length;
   });
+
+  onStatusFilterChange(val: "ALL" | "PENDING" | "OPS_REVIEW" | "APPROVED") {
+    this.statusFilter.set(val);
+    this.rawAppendedLoans.set([]);
+    this.rawHasMore.set(null);
+    this.nextCursor.set(null);
+  }
+
+  loadMore() {
+    const cursor = this.nextCursor() ?? this.loansQuery.data()?.nextCursor;
+    if (!cursor || this.isLoadingMore()) return;
+    this.isLoadingMore.set(true);
+    this.adminService
+      .getLoans({
+        status: this.statusFilter() === "ALL" ? undefined : this.statusFilter(),
+        limit: 20,
+        cursor,
+      })
+      .subscribe({
+        next: (res) => {
+          this.rawAppendedLoans.update((prev) => [
+            ...prev,
+            ...(res.items || []),
+          ]);
+          this.nextCursor.set(res.nextCursor);
+          this.rawHasMore.set(res.hasMore);
+          this.isLoadingMore.set(false);
+        },
+        error: () => {
+          this.isLoadingMore.set(false);
+          this.toast.show("error", "Failed to load more loans");
+        },
+      });
+  }
 
   viewLoan(loan: Loan) {
     this.toast.show("info", `Viewing loan: ${loan.id}`);
