@@ -560,6 +560,125 @@ import { MagneticDirective } from "../../directives/magnetic.directive";
                 }
               </div>
 
+              <!-- Restricted compliance activity: backend enforces the role. -->
+              <div class="mb-5 rounded-xl border border-outline-variant p-4">
+                <h3
+                  class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3"
+                >
+                  Security &amp; transfer activity ·
+                  {{ activityWindowDays }} days
+                </h3>
+                @if (userActivityQuery.isPending()) {
+                  <p class="text-sm text-on-surface-variant">
+                    Loading restricted activity…
+                  </p>
+                } @else if (userActivityQuery.isError()) {
+                  <p class="text-sm text-on-surface-variant">
+                    Activity details require Compliance access. Access attempts
+                    are audited.
+                  </p>
+                } @else {
+                  @if (userActivityQuery.data(); as activity) {
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                      <div class="bg-surface-container rounded-lg p-2.5">
+                        <p class="text-xs text-on-surface-variant">
+                          Completed transfers
+                        </p>
+                        <p class="font-semibold">
+                          {{ activity.transferProfile.count }}
+                        </p>
+                      </div>
+                      <div class="bg-surface-container rounded-lg p-2.5">
+                        <p class="text-xs text-on-surface-variant">
+                          Usual amount (median)
+                        </p>
+                        <p class="font-semibold">
+                          ₦{{
+                            activity.transferProfile.median
+                              | number: "1.0-0" : "en-NG"
+                          }}
+                        </p>
+                      </div>
+                      <div class="bg-surface-container rounded-lg p-2.5">
+                        <p class="text-xs text-on-surface-variant">
+                          Average amount
+                        </p>
+                        <p class="font-semibold">
+                          ₦{{
+                            activity.transferProfile.average
+                              | number: "1.0-0" : "en-NG"
+                          }}
+                        </p>
+                      </div>
+                      <div class="bg-surface-container rounded-lg p-2.5">
+                        <p class="text-xs text-on-surface-variant">
+                          Total sent
+                        </p>
+                        <p class="font-semibold">
+                          ₦{{
+                            activity.transferProfile.total
+                              | number: "1.0-0" : "en-NG"
+                          }}
+                        </p>
+                      </div>
+                      <div class="bg-surface-container rounded-lg p-2.5">
+                        <p class="text-xs text-on-surface-variant">
+                          Largest transfer
+                        </p>
+                        <p class="font-semibold">
+                          ₦{{
+                            activity.transferProfile.largest
+                              | number: "1.0-0" : "en-NG"
+                          }}
+                        </p>
+                      </div>
+                    </div>
+                    <p class="text-xs text-on-surface-variant mb-2">
+                      Recent login attempts · source IP is shown to Compliance
+                      only
+                    </p>
+                    @if (activity.loginEvents.length === 0) {
+                      <p class="text-sm text-on-surface-variant">
+                        No login events in this period
+                      </p>
+                    } @else {
+                      <div class="space-y-2">
+                        @for (
+                          event of activity.loginEvents.slice(0, 10);
+                          track $index
+                        ) {
+                          <div
+                            class="flex items-start justify-between gap-3 bg-surface-container rounded-lg p-2.5"
+                          >
+                            <div class="min-w-0">
+                              <p class="text-sm font-medium">
+                                {{
+                                  event.outcome === "LOGIN_SUCCEEDED"
+                                    ? "Successful login"
+                                    : "Failed login"
+                                }}
+                              </p>
+                              <p class="text-xs text-on-surface-variant">
+                                {{ event.occurredAt | date: "short" }} ·
+                                {{ event.sourceIp || "IP unavailable" }}
+                              </p>
+                              <p
+                                class="text-xs text-on-surface-variant truncate"
+                              >
+                                {{
+                                  event.userAgent ||
+                                    "Device details unavailable"
+                                }}
+                              </p>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  }
+                }
+              </div>
+
               <!-- Loans -->
               <div class="mb-5">
                 <h3
@@ -756,6 +875,14 @@ export class UsersPageComponent {
     queryKey: ["user-detail", this.selectedUserId()],
     queryFn: () =>
       lastValueFrom(this.adminService.getUserDetail(this.selectedUserId()!)),
+    enabled: () => !!this.selectedUserId(),
+  }));
+
+  activityWindowDays = 90;
+  userActivityQuery = injectQuery(() => ({
+    queryKey: ["user-activity", this.selectedUserId()],
+    queryFn: () =>
+      lastValueFrom(this.adminService.getUserActivity(this.selectedUserId()!)),
     enabled: () => !!this.selectedUserId(),
   }));
 

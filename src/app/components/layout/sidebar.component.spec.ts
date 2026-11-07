@@ -27,6 +27,7 @@ describe("SidebarComponent", () => {
         SidebarComponent,
         RouterTestingModule.withRoutes([
           { path: "dashboard", component: DummyComponent },
+          { path: "analytics", component: DummyComponent },
           { path: "users", component: DummyComponent },
           { path: "kyc", component: DummyComponent },
           { path: "loans", component: DummyComponent },
@@ -71,7 +72,7 @@ describe("SidebarComponent", () => {
     router.navigateByUrl("/users");
     tick();
     fixture.detectChanges();
-    expect(component.activeIndex()).toBe(1); // '/users' is second item
+    expect(component.activeIndex()).toBe(2); // '/users' follows '/analytics'
   }));
 
   it("should emit closeSidebar output when navigation link clicked", () => {

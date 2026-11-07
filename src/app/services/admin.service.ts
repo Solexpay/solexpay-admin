@@ -104,6 +104,42 @@ export interface UserDetail extends User {
   loans: LoanSummary[];
   kycVerifications: KycSummary[];
 }
+export interface UserActivity {
+  windowDays: number;
+  transferProfile: {
+    count: number;
+    total: number;
+    average: number;
+    median: number;
+    largest: number;
+  };
+  loginEvents: {
+    occurredAt: string;
+    outcome: "LOGIN_SUCCEEDED" | "LOGIN_FAILED";
+    deviceId: string | null;
+    sourceIp: string | null;
+    userAgent: string | null;
+  }[];
+}
+
+export interface UsageAnalytics {
+  windowDays: number;
+  activeUsers?: number;
+  avgLoginsPerActiveUser?: number;
+  avgForegroundSessionSeconds?: number;
+  medianForegroundSessionSeconds?: number;
+  dailyActive: { date: string; users: number }[];
+  featureUsage: { feature: string; events: number; users: number }[];
+  flowUsage: {
+    flow: string;
+    started: number;
+    completed: number;
+    failed: number;
+    abandoned: number;
+    users: number;
+    completionRate: number;
+  }[];
+}
 export interface Loan {
   id: string;
   userId: string;
@@ -190,6 +226,12 @@ export class AdminService {
     return this.http.get<DashboardMetrics>(`${BFF}/admin/dashboard`);
   }
 
+  getUsageAnalytics(days: 7 | 30 | 90): Observable<UsageAnalytics> {
+    return this.http.get<UsageAnalytics>(`${BFF}/admin/analytics/usage`, {
+      params: new HttpParams().set("days", days),
+    });
+  }
+
   getUsers(
     page = 0,
     size = 20,
@@ -204,6 +246,10 @@ export class AdminService {
 
   getUserDetail(userId: string): Observable<UserDetail> {
     return this.http.get<UserDetail>(`${BFF}/admin/users/${userId}`);
+  }
+
+  getUserActivity(userId: string): Observable<UserActivity> {
+    return this.http.get<UserActivity>(`${BFF}/admin/users/${userId}/activity`);
   }
 
   suspendUser(
