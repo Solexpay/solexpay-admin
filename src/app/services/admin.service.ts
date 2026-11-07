@@ -104,6 +104,23 @@ export interface UserDetail extends User {
   loans: LoanSummary[];
   kycVerifications: KycSummary[];
 }
+export interface UserActivity {
+  windowDays: number;
+  transferProfile: {
+    count: number;
+    total: number;
+    average: number;
+    median: number;
+    largest: number;
+  };
+  loginEvents: {
+    occurredAt: string;
+    outcome: "LOGIN_SUCCEEDED" | "LOGIN_FAILED";
+    deviceId: string | null;
+    sourceIp: string | null;
+    userAgent: string | null;
+  }[];
+}
 export interface Loan {
   id: string;
   userId: string;
@@ -204,6 +221,10 @@ export class AdminService {
 
   getUserDetail(userId: string): Observable<UserDetail> {
     return this.http.get<UserDetail>(`${BFF}/admin/users/${userId}`);
+  }
+
+  getUserActivity(userId: string): Observable<UserActivity> {
+    return this.http.get<UserActivity>(`${BFF}/admin/users/${userId}/activity`);
   }
 
   suspendUser(
