@@ -113,6 +113,7 @@ export class SidebarComponent {
 
   navItems: NavItem[] = [
     { route: "/dashboard", label: "Dashboard", icon: "dashboard" },
+    { route: "/analytics", label: "Product usage", icon: "query_stats" },
     { route: "/users", label: "Users", icon: "people" },
     { route: "/kyc", label: "KYC Queue", icon: "verified_user" },
     { route: "/loans", label: "Loans", icon: "credit_card" },

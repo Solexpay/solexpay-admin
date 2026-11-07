@@ -121,6 +121,25 @@ export interface UserActivity {
     userAgent: string | null;
   }[];
 }
+
+export interface UsageAnalytics {
+  windowDays: number;
+  activeUsers?: number;
+  avgLoginsPerActiveUser?: number;
+  avgForegroundSessionSeconds?: number;
+  medianForegroundSessionSeconds?: number;
+  dailyActive: { date: string; users: number }[];
+  featureUsage: { feature: string; events: number; users: number }[];
+  flowUsage: {
+    flow: string;
+    started: number;
+    completed: number;
+    failed: number;
+    abandoned: number;
+    users: number;
+    completionRate: number;
+  }[];
+}
 export interface Loan {
   id: string;
   userId: string;
@@ -205,6 +224,12 @@ export class AdminService {
 
   getDashboardMetrics(): Observable<DashboardMetrics> {
     return this.http.get<DashboardMetrics>(`${BFF}/admin/dashboard`);
+  }
+
+  getUsageAnalytics(days: 7 | 30 | 90): Observable<UsageAnalytics> {
+    return this.http.get<UsageAnalytics>(`${BFF}/admin/analytics/usage`, {
+      params: new HttpParams().set("days", days),
+    });
   }
 
   getUsers(

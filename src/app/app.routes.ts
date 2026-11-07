@@ -69,6 +69,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: "analytics",
+        loadComponent: () =>
+          import("./pages/(admin)/analytics.page").then(
+            (m) => m.AnalyticsPageComponent,
+          ),
+      },
+      {
         path: "users",
         loadComponent: () =>
           import("./pages/(admin)/users.page").then(
