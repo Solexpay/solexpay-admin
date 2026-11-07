@@ -581,6 +581,18 @@ import { MagneticDirective } from "../../directives/magnetic.directive";
                       <p class="text-xs text-on-surface-variant">Usual amount (median)</p>
                       <p class="font-semibold">₦{{ activity.transferProfile.median | number: "1.0-0" : "en-NG" }}</p>
                     </div>
+                    <div class="bg-surface-container rounded-lg p-2.5">
+                      <p class="text-xs text-on-surface-variant">Average amount</p>
+                      <p class="font-semibold">₦{{ activity.transferProfile.average | number: "1.0-0" : "en-NG" }}</p>
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-2.5">
+                      <p class="text-xs text-on-surface-variant">Total sent</p>
+                      <p class="font-semibold">₦{{ activity.transferProfile.total | number: "1.0-0" : "en-NG" }}</p>
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-2.5">
+                      <p class="text-xs text-on-surface-variant">Largest transfer</p>
+                      <p class="font-semibold">₦{{ activity.transferProfile.largest | number: "1.0-0" : "en-NG" }}</p>
+                    </div>
                   </div>
                   <p class="text-xs text-on-surface-variant mb-2">Recent login attempts · source IP is shown to Compliance only</p>
                   @if (activity.loginEvents.length === 0) {
