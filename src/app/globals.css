@@ -1,0 +1,632 @@
+/* Inter is loaded by next/font in src/app/layout.tsx (self-hosted at build). */
+
+/* Only scan the app's own sources for classes (not .claude/, docs, dist). */
+@import "tailwindcss" source(none);
+@source "../";
+
+/* ── Theme ────────────────────────────────────────────────────────────────
+   Console design system (see the "ui-" components below). The page sits on
+   frame; sidebar and sections are rail panels holding white cards. Accent
+   is the app's brand blue. Each token becomes bg-ui-*, text-ui-*, etc. */
+
+@theme {
+  --color-ui-frame: #eef0f3;
+  --color-ui-rail: #f7f8fa;
+  --color-ui-sunken: #f4f5f7;
+  --color-ui-line: #e8eaee;
+  --color-ui-line-strong: #d9dde3;
+  --color-ui-ink: #111827;
+  --color-ui-body: #374151;
+  --color-ui-muted: #6b7280;
+  --color-ui-faint: #9ca3af;
+  --color-ui-accent: #0e5fd8;
+  --color-ui-accent-hover: #0b4fb6;
+  --color-ui-accent-soft: #eaf1fd;
+  --color-ui-accent-line: #c9dbf9;
+  --color-ui-success: #15803d;
+  --color-ui-success-soft: #ecfdf3;
+  --color-ui-success-line: #c6efd5;
+  --color-ui-warning: #b45309;
+  --color-ui-warning-soft: #fffaeb;
+  --color-ui-warning-line: #f9e4a8;
+  --color-ui-danger: #dc2626;
+  --color-ui-danger-soft: #fef2f2;
+  --color-ui-danger-line: #fbd2d2;
+
+  --font-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+
+  /* Motion: strong ease-out for things entering or responding to a press,
+     the iOS drawer curve for panels sliding in. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+
+@layer base {
+  /* Tailwind 4 defaults borders to currentColor; the console's hairlines
+     are ui-line unless a class says otherwise. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-ui-line);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-ui-frame text-sm text-ui-body;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ui-accent);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-ui-faint);
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #fff inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-ui-line-strong;
+  }
+
+  /* Lucide icons render as a bare <svg [lucideIcon]>; keep them inline
+     next to text and never squeezed by flex rows. Stroke width is set in
+     app.config.ts (provideLucideConfig). */
+  svg.lucide {
+    display: inline-block;
+    flex-shrink: 0;
+  }
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── Console components ───────────────────────────────────────────────────
+   A page is a white panel on the grey frame. Inside it, a section is a
+   rail-grey panel (ui-panel) with a title row and white content
+   (ui-panel-body, ui-stat, tables). These sit in the components layer so
+   any utility on the same element (ui-input h-8) still wins. */
+
+@layer components {
+  /* Sections */
+  .ui-panel {
+    @apply rounded-2xl border border-ui-line bg-ui-rail p-1.5;
+  }
+
+  .ui-panel-head {
+    @apply flex min-h-[44px] flex-wrap items-center justify-between gap-3 px-3 pt-1.5 pb-2;
+  }
+
+  .ui-panel-title {
+    @apply text-[15px] font-semibold text-ui-ink;
+  }
+
+  .ui-panel-body {
+    @apply rounded-xl border border-ui-line bg-white;
+  }
+
+  .ui-card {
+    @apply rounded-xl border border-ui-line bg-white p-4;
+  }
+
+  /* Text */
+  .ui-meta {
+    @apply text-xs text-ui-muted;
+  }
+
+  .ui-label {
+    @apply mb-1.5 block text-[13px] font-medium text-ui-body;
+  }
+
+  .ui-dl {
+    @apply grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2;
+  }
+
+  .ui-dt {
+    @apply text-xs text-ui-muted;
+  }
+
+  .ui-dd {
+    @apply mt-0.5 text-sm font-medium wrap-break-word text-ui-ink;
+  }
+
+  /* Buttons */
+  .ui-btn {
+    @apply inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-ui-line bg-white px-3.5 text-sm font-medium whitespace-nowrap text-ui-ink shadow-[0_1px_2px_rgba(16,24,40,0.05)] transition-colors hover:bg-ui-sunken disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .ui-btn-primary {
+    @apply border-ui-accent bg-ui-accent text-white hover:border-ui-accent-hover hover:bg-ui-accent-hover;
+  }
+
+  .ui-btn-danger {
+    @apply border-ui-danger bg-ui-danger text-white hover:bg-red-700;
+  }
+
+  .ui-btn-ghost {
+    @apply border-transparent bg-transparent shadow-none hover:bg-ui-sunken;
+  }
+
+  .ui-btn-sm {
+    @apply h-8 px-2.5 text-[13px];
+  }
+
+  .ui-icon-btn {
+    @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ui-muted transition-colors hover:bg-ui-sunken hover:text-ui-ink disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* Form controls */
+  .ui-input {
+    @apply h-9 w-full rounded-lg border border-ui-line bg-white px-3 text-sm text-ui-ink outline-hidden transition-[border-color,box-shadow] placeholder:text-ui-faint focus:border-ui-accent focus:ring-4 focus:ring-ui-accent/10 disabled:bg-ui-sunken disabled:text-ui-muted;
+  }
+
+  textarea.ui-input {
+    @apply h-auto py-2;
+  }
+
+  select.ui-input {
+    @apply cursor-pointer pr-8;
+  }
+
+  /* <div class="ui-search"><svg [lucideIcon] …></svg><input class="ui-input" /></div> */
+  .ui-search {
+    @apply relative;
+  }
+
+  .ui-search > svg {
+    @apply pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ui-faint;
+  }
+
+  .ui-search > .ui-input {
+    @apply pl-9;
+  }
+
+  /* Filter tabs */
+  .ui-tabs {
+    @apply no-scrollbar flex items-center gap-1 overflow-x-auto;
+  }
+
+  .ui-tab {
+    @apply inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium whitespace-nowrap text-ui-body transition-colors hover:bg-white hover:text-ui-ink;
+  }
+
+  .ui-tab-active {
+    @apply bg-ui-accent text-white hover:bg-ui-accent hover:text-white;
+  }
+
+  /* Tables: wrap in <div class="ui-table-wrap"> inside a ui-panel-body. */
+  .ui-table-wrap {
+    @apply overflow-x-auto;
+  }
+
+  .ui-table {
+    @apply w-full text-sm;
+  }
+
+  .ui-table th {
+    @apply px-4 py-3 text-left text-[13px] font-normal whitespace-nowrap text-ui-muted;
+  }
+
+  .ui-table td {
+    @apply border-t border-ui-line px-4 py-3 align-middle text-ui-body;
+  }
+
+  .ui-table tbody tr {
+    @apply transition-colors hover:bg-ui-rail;
+  }
+
+  .ui-table-foot {
+    @apply flex flex-wrap items-center justify-between gap-3 border-t border-ui-line px-4 py-3 text-[13px] text-ui-muted;
+  }
+
+  .ui-page-btn {
+    @apply inline-flex h-7 min-w-[28px] items-center justify-center rounded-md px-2 text-[13px] text-ui-body hover:bg-ui-sunken disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  .ui-page-btn-active {
+    @apply bg-ui-accent text-white hover:bg-ui-accent;
+  }
+
+  /* Status badges (prefer <app-status-chip>) */
+  .ui-badge {
+    @apply inline-flex min-w-[72px] items-center justify-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap;
+  }
+
+  .ui-badge-success {
+    @apply border-ui-success-line bg-ui-success-soft text-ui-success;
+  }
+
+  .ui-badge-warning {
+    @apply border-ui-warning-line bg-ui-warning-soft text-ui-warning;
+  }
+
+  .ui-badge-danger {
+    @apply border-ui-danger-line bg-ui-danger-soft text-ui-danger;
+  }
+
+  .ui-badge-info {
+    @apply border-ui-accent-line bg-ui-accent-soft text-ui-accent;
+  }
+
+  .ui-badge-neutral {
+    @apply border-ui-line bg-ui-sunken text-ui-muted;
+  }
+
+  /* People and things */
+  .ui-avatar {
+    @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ui-accent-soft text-xs font-semibold text-ui-accent uppercase;
+  }
+
+  .ui-icon-tile {
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-ui-line bg-white text-ui-muted;
+  }
+
+  /* Loading and empty states */
+  .ui-skel {
+    @apply animate-pulse rounded-md bg-ui-sunken;
+  }
+
+  .ui-empty {
+    @apply flex flex-col items-center justify-center gap-2 px-4 py-12 text-center text-sm text-ui-muted;
+  }
+
+  /* Alerts inside a page */
+  .ui-alert {
+    @apply flex items-start gap-2.5 rounded-xl border px-3.5 py-3 text-sm;
+  }
+
+  .ui-alert-danger {
+    @apply border-ui-danger-line bg-ui-danger-soft text-ui-danger;
+  }
+
+  .ui-alert-warning {
+    @apply border-ui-warning-line bg-ui-warning-soft text-ui-warning;
+  }
+
+  .ui-alert-info {
+    @apply border-ui-accent-line bg-ui-accent-soft text-ui-accent;
+  }
+
+  /* Modals and drawers:
+     <div class="ui-overlay"> backdrop + <div class="ui-modal"> or ui-drawer */
+  .ui-overlay {
+    @apply fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4;
+  }
+
+  .ui-backdrop {
+    @apply absolute inset-0 bg-ui-ink/30 backdrop-blur-[2px];
+    transition: opacity 200ms ease;
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  .ui-modal {
+    @apply relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-ui-line bg-white shadow-[0_24px_48px_-12px_rgba(16,24,40,0.2)] sm:max-w-lg sm:rounded-2xl;
+  }
+
+  .ui-drawer {
+    @apply fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-ui-line bg-white shadow-[0_24px_48px_-12px_rgba(16,24,40,0.2)];
+  }
+
+  .ui-modal-head {
+    @apply flex items-center justify-between gap-3 border-b border-ui-line px-5 py-4;
+  }
+
+  .ui-modal-title {
+    @apply text-base font-semibold text-ui-ink;
+  }
+
+  .ui-modal-body {
+    @apply flex-1 overflow-y-auto px-5 py-4;
+  }
+
+  .ui-modal-foot {
+    @apply flex flex-wrap justify-end gap-2 border-t border-ui-line bg-ui-rail px-5 py-3.5;
+  }
+}
+
+/* Motion (after Emil Kowalski's design-engineering notes): pressables
+   shrink a touch on press, dialogs and toasts rise in under 300ms using
+   transitions (interruptible) rather than keyframes, exits are quicker than
+   entrances, and reduced motion keeps the fades but drops the movement. */
+:root {
+  --motion-shift: 8px;
+  --motion-press: 0.97;
+}
+
+.ui-btn,
+.ui-icon-btn,
+.ui-tab {
+  transition-property:
+    color, background-color, border-color, box-shadow, transform;
+  transition-duration: 150ms, 150ms, 150ms, 150ms, 160ms;
+  transition-timing-function: ease, ease, ease, ease, var(--ease-out);
+}
+
+.ui-btn:active:not(:disabled),
+.ui-icon-btn:active:not(:disabled),
+.ui-tab:active {
+  transform: scale(var(--motion-press));
+}
+
+.ui-pop,
+.ui-modal {
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(var(--motion-shift)) scale(0.98);
+  }
+}
+
+.ui-toast {
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(var(--motion-shift));
+  }
+}
+
+.ui-toast-leave {
+  opacity: 0;
+  transform: translateX(var(--motion-shift));
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+/* "Did you know?" tips (DidYouKnowComponent): each new tip fades up with a
+   touch of blur so the swap reads as one change, not two overlapping. */
+.dyk-swap {
+  transition:
+    opacity 240ms ease,
+    transform 240ms var(--ease-out),
+    filter 240ms ease;
+  @starting-style {
+    opacity: 0;
+    transform: translateY(var(--motion-shift));
+    filter: blur(2px);
+  }
+}
+.dyk-card {
+  background: color-mix(in srgb, var(--accent) 10%, #fff);
+  transition: background-color 520ms ease-in-out;
+}
+.dyk-halo {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  transition: background-color 520ms ease-in-out;
+}
+.dyk-dot {
+  background: var(--accent);
+  transition:
+    width 520ms var(--ease-out),
+    opacity 520ms ease,
+    background-color 520ms ease;
+}
+.dyk-art {
+  transition:
+    opacity 520ms ease,
+    transform 520ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+}
+@keyframes dyk-float {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.dyk-float {
+  animation: dyk-float 6.4s ease-in-out infinite;
+}
+
+/* Tooltip (TooltipDirective) and copy feedback (CopyToClipboardDirective) */
+@keyframes tooltip-in {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-tooltip-in {
+  animation: tooltip-in 0.15s ease-out forwards;
+}
+
+@keyframes copy-feedback {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-copy-feedback {
+  animation: copy-feedback 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-shift: 0px;
+    --motion-press: 1;
+  }
+
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must beat component animations */
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Gift card orders: stat cards, segmented filter, brand tiles. */
+.gc-stat {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid var(--color-ui-line);
+  background: #fff;
+  padding: 14px 16px;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms var(--ease-out);
+}
+.gc-stat:hover {
+  border-color: var(--color-ui-line-strong);
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06);
+}
+.gc-stat:active {
+  transform: scale(0.99);
+}
+.gc-stat-on {
+  border-color: var(--color-ui-accent-line);
+  box-shadow: 0 0 0 3px rgba(14, 95, 216, 0.08);
+}
+.gc-stat-dot {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+.gc-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--color-ui-sunken);
+  border: 1px solid var(--color-ui-line);
+  overflow-x: auto;
+}
+.gc-seg-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--color-ui-muted);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+.gc-seg-item:hover {
+  color: var(--color-ui-ink);
+}
+.gc-seg-on {
+  background: #fff;
+  color: var(--color-ui-ink);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.1);
+}
+.gc-seg-count {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-ui-line);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.gc-seg-on .gc-seg-count {
+  background: var(--color-ui-accent-soft);
+  color: var(--color-ui-accent);
+}
+.gc-tile {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--brand) 82%, #fff),
+    var(--brand)
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.gc-avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-ui-body);
+  background: var(--color-ui-sunken);
+  border: 1px solid var(--color-ui-line);
+}
+.gc-empty-art {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  color: var(--color-ui-accent);
+  background: var(--color-ui-accent-soft);
+}

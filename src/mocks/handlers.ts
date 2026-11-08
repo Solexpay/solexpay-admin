@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
 
 // Helper to simulate cursor page responses
 const cursorPage = <T>(
@@ -990,7 +990,7 @@ export const handlers = [
   http.post("*/admin/schools", async ({ request }) => {
     const body = (await request.json()) as CreateSchoolRequest;
     const school = {
-      id: "SCH-" + (mockSchools.length + 1).toString().padStart(3, "0"),
+      id: `SCH-${(mockSchools.length + 1).toString().padStart(3, "0")}`,
       name: body.name,
       email: body.email,
       phone: body.phone || "N/A",
@@ -1000,7 +1000,7 @@ export const handlers = [
       activeLoans: 0,
       totalDisbursed: 0,
       status: "ACTIVE" as const,
-      apiToken: "sk_live_" + Math.random().toString(36).substring(2, 15),
+      apiToken: `sk_live_${Math.random().toString(36).substring(2, 15)}`,
       createdAt: new Date().toISOString(),
       // No upload yet: the console falls back to a bundled crest or initials.
       logoUrl: "",
@@ -1017,7 +1017,7 @@ export const handlers = [
       success: true,
       data: {
         school_id: schoolId,
-        temporary_password: Math.random().toString(36).slice(2, 12) + "A1!",
+        temporary_password: `${Math.random().toString(36).slice(2, 12)}A1!`,
       },
     });
   }),
@@ -1135,7 +1135,7 @@ export const handlers = [
   http.post("*/admin/admins", async ({ request }) => {
     const body = (await request.json()) as CreateAdminRequest;
     const admin = {
-      id: "admin-" + (mockAdminUsers.length + 1).toString().padStart(3, "0"),
+      id: `admin-${(mockAdminUsers.length + 1).toString().padStart(3, "0")}`,
       email: body.email,
       firstName: body.firstName,
       lastName: body.lastName,
