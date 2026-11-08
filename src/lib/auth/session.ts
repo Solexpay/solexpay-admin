@@ -11,15 +11,20 @@ import type {
 } from "../types";
 
 export type SessionStatus = "loading" | "authenticated" | "anonymous";
+
 interface State {
   status: SessionStatus;
   admin: AdminProfile | null;
-  token: string | null;
 }
-let state: State = { status: "loading", admin: null, token: null };
+
+let state: State = { status: "loading", admin: null };
 let refreshFlight: Promise<LoginSuccessResponse> | null = null;
-let initialized = false;
+let initFlight: Promise<void> | null = null;
 let sessionVersion = 0;
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+let lastRefreshTime = 0;
+let channel: BroadcastChannel | null = null;
+
 const listeners = new Set<() => void>();
 const emit = () => {
   for (const listener of listeners) listener();
@@ -30,14 +35,80 @@ const subscribe = (listener: () => void) => {
 };
 const snapshot = () => state;
 
+function getBroadcastChannel(): BroadcastChannel | null {
+  if (typeof BroadcastChannel === "undefined") return null;
+  if (!channel) {
+    try {
+      channel = new BroadcastChannel("sx-admin-session");
+      channel.onmessage = (event: MessageEvent<unknown>) => {
+        if (event.data === "logout") {
+          clearLocalSession();
+        } else if (event.data === "login") {
+          void initialize(true);
+        }
+      };
+    } catch {
+      channel = null;
+    }
+  }
+  return channel;
+}
+
+function broadcastSession(type: "login" | "logout"): void {
+  try {
+    getBroadcastChannel()?.postMessage(type);
+  } catch {
+    // BroadcastChannel error ignored
+  }
+}
+
+function clearRefreshTimer(): void {
+  if (refreshTimer !== null) {
+    clearTimeout(refreshTimer);
+    refreshTimer = null;
+  }
+}
+
+function scheduleProactiveRefresh(expiresIn: number): void {
+  clearRefreshTimer();
+  const delaySeconds = Math.max(30, expiresIn - 90);
+  refreshTimer = setTimeout(() => {
+    void refreshSession().catch(() => {
+      /* Refresh error already clears session if still current */
+    });
+  }, delaySeconds * 1000);
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("focus", () => {
+    if (
+      state.status === "authenticated" &&
+      Date.now() - lastRefreshTime > 10 * 60 * 1000
+    ) {
+      void refreshSession().catch(() => {});
+    }
+  });
+}
+
+export function isAuthenticated(): boolean {
+  return state.status === "authenticated";
+}
+
+export function clearLocalSession(): void {
+  sessionVersion += 1;
+  state = { status: "anonymous", admin: null };
+  clearRefreshTimer();
+  emit();
+}
+
 function setSession(session: LoginSuccessResponse): void {
   sessionVersion += 1;
   state = {
     status: "authenticated",
     admin: session.admin,
-    token: session.token,
   };
-  initialized = true;
+  lastRefreshTime = Date.now();
+  scheduleProactiveRefresh(session.expiresIn);
   emit();
 }
 
@@ -53,15 +124,38 @@ function unwrap<T>(value: unknown): T {
   return value as T;
 }
 
-async function authRequest<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${ADMIN_AUTH}${path}`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+async function authRequest<T>(
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown,
+): Promise<T> {
+  const origin =
+    typeof window !== "undefined" && window.location?.origin
+      ? window.location.origin
+      : "http://localhost";
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const url = new URL(`${ADMIN_AUTH}${normalized}`, origin);
+
+  const headers = new Headers();
+  headers.set("Accept", "application/json");
+  if (method !== "GET") {
+    headers.set("X-SX-CSRF", "1");
+  }
+  if (body !== undefined) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(url, {
+    method,
+    credentials: "same-origin",
+    cache: "no-store",
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
+
   const payload: unknown =
     response.status === 204 ? null : await response.json().catch(() => null);
+
   if (!response.ok) {
     const error = new Error(errorMessage(payload, response.status)) as Error & {
       status?: number;
@@ -99,20 +193,40 @@ function errorMessage(payload: unknown, status: number): string {
   return `Request failed (${status})`;
 }
 
-export function getAccessToken(): string | null {
-  return state.token;
+/**
+ * Runs `task` while holding a cross-tab Web Lock, so only one tab refreshes at
+ * a time. The backend rotates refresh tokens and revokes the whole session
+ * family when an old one is replayed, so concurrent refreshes would log the
+ * admin out. Falls back to running directly where Web Locks are unavailable.
+ */
+function withRefreshLock<T>(task: () => Promise<T>): Promise<T> {
+  const locks =
+    typeof navigator !== "undefined"
+      ? (navigator as Navigator & { locks?: LockManager }).locks
+      : undefined;
+  if (!locks) return task();
+  return locks.request("sx-admin-refresh", task) as Promise<T>;
 }
+
+/** Below this many seconds of access-token life a refresh is needed. */
+const REFRESH_MARGIN_S = 120;
 
 export function refreshSession(): Promise<LoginSuccessResponse> {
   if (refreshFlight) return refreshFlight;
   const versionAtStart = sessionVersion;
-  refreshFlight = authRequest<LoginSuccessResponse>("/refresh", {})
+  refreshFlight = withRefreshLock(async () => {
+    // Another tab may have refreshed while we waited for the lock: the cookie
+    // is shared, so re-read the session before spending the refresh token.
+    const current = await authRequest<LoginSuccessResponse>("GET", "/session");
+    if (current.expiresIn > REFRESH_MARGIN_S) return current;
+    return authRequest<LoginSuccessResponse>("POST", "/refresh", {});
+  })
     .then((result) => {
       if (sessionVersion === versionAtStart) setSession(result);
       return result;
     })
     .catch((error: unknown) => {
-      if (sessionVersion === versionAtStart) clearState();
+      if (sessionVersion === versionAtStart) clearLocalSession();
       throw error;
     })
     .finally(() => {
@@ -121,30 +235,38 @@ export function refreshSession(): Promise<LoginSuccessResponse> {
   return refreshFlight;
 }
 
-async function initialize(): Promise<void> {
-  if (initialized || typeof window === "undefined") return;
-  initialized = true;
-  try {
-    await refreshSession();
-  } catch {
-    // refreshSession clears the store when no newer login superseded it.
-  }
-}
+export async function initialize(force = false): Promise<void> {
+  if (typeof window === "undefined") return;
+  getBroadcastChannel();
+  if (initFlight) return initFlight;
+  if (state.status !== "loading" && !force) return;
 
-function clearState(): void {
-  sessionVersion += 1;
-  state = { status: "anonymous", admin: null, token: null };
-  initialized = true;
-  emit();
+  initFlight = (async () => {
+    try {
+      const session = await authRequest<LoginSuccessResponse>(
+        "GET",
+        "/session",
+      );
+      if (session.expiresIn > REFRESH_MARGIN_S) setSession(session);
+      else await refreshSession();
+    } catch {
+      clearLocalSession();
+    } finally {
+      initFlight = null;
+    }
+  })();
+
+  return initFlight;
 }
 
 export async function logout(): Promise<void> {
   try {
-    await authRequest<unknown>("/logout", {});
+    await authRequest<unknown>("POST", "/logout", {});
   } catch {
     /* Local logout must finish even when revocation is unavailable. */
   }
-  clearState();
+  clearLocalSession();
+  broadcastSession("logout");
 }
 
 export function useAdminSession(): {
@@ -167,26 +289,45 @@ export function useAdminSession(): {
     status: current.status,
     admin: current.admin,
     login: async (email: string, password: string) => {
-      const result = await authRequest<LoginResult>("/login", {
+      const result = await authRequest<LoginResult>("POST", "/login", {
         email,
         password,
       } satisfies LoginRequest);
-      if ("token" in result && result.token) setSession(result);
-      else if ((result as EnrollmentRequiredResponse).enrollmentRequired)
-        clearState();
+      if ("admin" in result && result.admin) {
+        setSession(result);
+        broadcastSession("login");
+      } else if ((result as EnrollmentRequiredResponse).enrollmentRequired) {
+        clearLocalSession();
+      }
       return result;
     },
     confirmTotp: async (enrollmentToken: string, code: string) => {
-      const result = await authRequest<LoginSuccessResponse>("/totp/confirm", {
-        enrollmentToken,
-        code,
-      });
+      const result = await authRequest<LoginSuccessResponse>(
+        "POST",
+        "/totp/confirm",
+        {
+          enrollmentToken,
+          code,
+        },
+      );
       setSession(result);
+      broadcastSession("login");
       return result;
     },
     enrollTotp: (enrollmentToken: string) =>
-      authRequest<TOTPEnrollResponse>("/totp/enroll", { enrollmentToken }),
+      authRequest<TOTPEnrollResponse>("POST", "/totp/enroll", {
+        enrollmentToken,
+      }),
     logout,
     canAccess: (section: string) => roleCanAccess(current.admin?.role, section),
   };
+}
+
+export function __resetSessionForTests(): void {
+  clearRefreshTimer();
+  state = { status: "loading", admin: null };
+  refreshFlight = null;
+  initFlight = null;
+  sessionVersion = 0;
+  lastRefreshTime = 0;
 }

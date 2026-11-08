@@ -1,5 +1,5 @@
 import { API_BASE } from "./api-base";
-import { getAccessToken } from "./auth/session";
+import { isAuthenticated } from "./auth/session";
 
 export type ClientEvent = {
   type: "page_view" | "error" | "action";
@@ -146,13 +146,11 @@ export function trackExport(input: {
 
 async function flush(): Promise<void> {
   if (!active() || flushInFlight || queue.length === 0) return;
-  let token: string | null;
   try {
-    token = getAccessToken();
+    if (!isAuthenticated()) return;
   } catch {
     return;
   }
-  if (!token) return;
   flushInFlight = true;
   try {
     while (queue.length > 0) {
@@ -161,9 +159,10 @@ async function flush(): Promise<void> {
         const response = await fetch(`${API_BASE}/admin/client-events`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            "X-SX-CSRF": "1",
           },
+          credentials: "same-origin",
           body: JSON.stringify({ events: batch.map(({ event }) => event) }),
           keepalive: true,
         });

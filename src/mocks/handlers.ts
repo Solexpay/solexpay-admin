@@ -614,9 +614,18 @@ const mockNotificationSettings = {
   browserNotifications: true,
 };
 
+let mockSignedIn = false;
+let mockAdmin = {
+  id: "admin-001",
+  email: "dev@solexpay.com",
+  firstName: "Dev",
+  lastName: "Admin",
+  role: "SUPER_ADMIN" as const,
+};
+
 export const handlers = [
   // 1. Auth Logins
-  http.post("*/auth/admin/login", async ({ request }) => {
+  http.post("*/bff/auth/login", async ({ request }) => {
     const body = (await request.json()) as AuthLoginRequest;
     if (!body?.email || !body?.password) {
       return new HttpResponse("Email and password required", { status: 400 });
@@ -629,28 +638,23 @@ export const handlers = [
       });
     }
 
+    mockSignedIn = true;
+    mockAdmin = {
+      id: "admin-001",
+      email: body.email,
+      firstName: "Dev",
+      lastName: "Admin",
+      role: "SUPER_ADMIN",
+    };
+
     return HttpResponse.json({
-      token: "dev.mock.jwt.token",
-      expiresIn: 900,
-      admin: {
-        id: "admin-001",
-        email: body.email,
-        firstName: "Dev",
-        lastName: "Admin",
-        role: "SUPER_ADMIN",
-      },
-      user: {
-        id: "admin-001",
-        email: body.email,
-        role: "ADMIN",
-        firstName: "Dev",
-        lastName: "Admin",
-      },
+      expiresIn: 1800,
+      admin: mockAdmin,
     });
   }),
 
   // TOTP routes
-  http.post("*/auth/admin/totp/enroll", async ({ request }) => {
+  http.post("*/bff/auth/totp/enroll", async ({ request }) => {
     const body = (await request.json()) as TOTPEnrollRequest;
     if (!body?.enrollmentToken) {
       return new HttpResponse("enrollmentToken required", { status: 400 });
@@ -662,59 +666,52 @@ export const handlers = [
     });
   }),
 
-  http.post("*/auth/admin/totp/confirm", async ({ request }) => {
+  http.post("*/bff/auth/totp/confirm", async ({ request }) => {
     const body = (await request.json()) as TOTPConfirmRequest;
     if (!body?.enrollmentToken || !body?.code) {
       return new HttpResponse("enrollmentToken and code required", {
         status: 400,
       });
     }
+    mockSignedIn = true;
+    mockAdmin = {
+      id: "admin-001",
+      email: "enrolled@solexpay.com",
+      firstName: "Dev",
+      lastName: "Admin",
+      role: "SUPER_ADMIN",
+    };
     return HttpResponse.json({
-      token: "dev.mock.confirmed.jwt.token",
-      expiresIn: 900,
-      admin: {
-        id: "admin-001",
-        email: "enrolled@solexpay.com",
-        firstName: "Dev",
-        lastName: "Admin",
-        role: "SUPER_ADMIN",
-      },
-      user: {
-        id: "admin-001",
-        email: "enrolled@solexpay.com",
-        role: "ADMIN",
-        firstName: "Dev",
-        lastName: "Admin",
-      },
+      expiresIn: 1800,
+      admin: mockAdmin,
+    });
+  }),
+
+  // Session
+  http.get("*/bff/auth/session", () => {
+    if (!mockSignedIn) {
+      return new HttpResponse(null, { status: 401 });
+    }
+    return HttpResponse.json({
+      expiresIn: 1800,
+      admin: mockAdmin,
     });
   }),
 
   // Refresh
   // The real backend reads the refresh token from its httpOnly cookie; the
   // mock acts as if that cookie is always valid.
-  http.post("*/auth/admin/refresh", () => {
+  http.post("*/bff/auth/refresh", () => {
+    mockSignedIn = true;
     return HttpResponse.json({
-      token: "dev.mock.refreshed.jwt.token",
-      expiresIn: 900,
-      admin: {
-        id: "admin-001",
-        email: "refreshed@solexpay.com",
-        firstName: "Dev",
-        lastName: "Admin",
-        role: "SUPER_ADMIN",
-      },
-      user: {
-        id: "admin-001",
-        email: "refreshed@solexpay.com",
-        role: "ADMIN",
-        firstName: "Dev",
-        lastName: "Admin",
-      },
+      expiresIn: 1800,
+      admin: mockAdmin,
     });
   }),
 
   // Logout
-  http.post("*/auth/admin/logout", () => {
+  http.post("*/bff/auth/logout", () => {
+    mockSignedIn = false;
     return new HttpResponse(null, { status: 204 });
   }),
 

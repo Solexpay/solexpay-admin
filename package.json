@@ -11,6 +11,11 @@
     "check": "biome check .",
     "lint": "biome lint .",
     "format": "biome format --write .",
+    "worker:dev": "bun run build && wrangler dev",
+    "worker:typecheck": "tsc -p worker/tsconfig.json --noEmit",
+    "worker:test": "vitest run --config worker/vitest.config.mts",
+    "deploy:staging": "bun run build && wrangler deploy --env staging",
+    "deploy:production": "bun run build && wrangler deploy --env production",
     "prepare": "husky"
   },
   "dependencies": {

@@ -340,11 +340,8 @@ export interface ShellUser {
   lastName: string;
 }
 export interface LoginSuccessResponse {
-  token: string;
-  refreshToken?: string;
+  admin: AdminProfile;
   expiresIn: number;
-  admin: AdminSummary;
-  user: ShellUser;
 }
 export interface EnrollmentRequiredResponse {
   enrollmentRequired: true;

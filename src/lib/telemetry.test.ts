@@ -2,9 +2,9 @@ import { HttpResponse, http } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { server } from "../mocks/server";
 
-const tokenState = vi.hoisted(() => ({ token: "test-token" as string | null }));
+const authState = vi.hoisted(() => ({ authenticated: true }));
 vi.mock("./auth/session", () => ({
-  getAccessToken: () => tokenState.token,
+  isAuthenticated: () => authState.authenticated,
 }));
 
 import {
@@ -18,7 +18,7 @@ const endpoint = "*/admin/client-events";
 
 describe("admin client telemetry", () => {
   beforeEach(() => {
-    tokenState.token = "test-token";
+    authState.authenticated = true;
     __setTelemetryEnabledForTests(true);
   });
 
@@ -135,7 +135,7 @@ describe("admin client telemetry", () => {
     expect(sizes.every((size) => size <= 50)).toBe(true);
   });
 
-  it("does not send without a token and retains the queued event", async () => {
+  it("does not send when unauthenticated and retains the queued event", async () => {
     vi.useFakeTimers();
     let calls = 0;
     server.use(
@@ -144,11 +144,11 @@ describe("admin client telemetry", () => {
         return HttpResponse.json({ accepted: 1 }, { status: 202 });
       }),
     );
-    tokenState.token = null;
+    authState.authenticated = false;
     trackAction("waiting-for-token");
     await vi.advanceTimersByTimeAsync(10_000);
     expect(calls).toBe(0);
-    tokenState.token = "test-token";
+    authState.authenticated = true;
     for (let index = 0; index < 19; index += 1) trackAction("flush");
     await vi.waitFor(() => expect(calls).toBeGreaterThan(0));
   });
