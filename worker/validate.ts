@@ -107,6 +107,11 @@ export const loginSchema = z
   .object({
     email: z.email().max(254).toLowerCase(),
     password: z.string().min(1).max(256),
+    // Admins who already enrolled TOTP sign in with their current code.
+    totpCode: z
+      .string()
+      .regex(/^\d{6}$/)
+      .optional(),
   })
   .strict();
 /** Strict request schema for TOTP enrollment. */

@@ -46,4 +46,27 @@ describe("request validation", () => {
     expect(out.note).toBe("hi");
     expect(() => sanitize({ password: "x".repeat(257) })).toThrow();
   });
+  it("login accepts an optional 6-digit totpCode and rejects anything else", () => {
+    expect(
+      loginSchema.safeParse({ email: "a@b.co", password: "x" }).success,
+    ).toBe(true);
+    expect(
+      loginSchema.safeParse({
+        email: "a@b.co",
+        password: "x",
+        totpCode: "123456",
+      }).success,
+    ).toBe(true);
+    expect(
+      loginSchema.safeParse({
+        email: "a@b.co",
+        password: "x",
+        totpCode: "12345",
+      }).success,
+    ).toBe(false);
+    expect(
+      loginSchema.safeParse({ email: "a@b.co", password: "x", extra: 1 })
+        .success,
+    ).toBe(false);
+  });
 });

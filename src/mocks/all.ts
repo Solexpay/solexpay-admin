@@ -1,6 +1,16 @@
 import type { HttpHandler } from "msw";
+import { b1Handlers } from "./b1";
+import { b2Handlers } from "./b2";
 import { handlers } from "./handlers";
 import { telemetryHandlers } from "./telemetry";
 
-/** Every MSW handler: the base set plus each feature's mock file. */
-export const allHandlers: HttpHandler[] = [...handlers, ...telemetryHandlers];
+/**
+ * Every MSW handler. Feature mocks come first so they override the base set
+ * where both answer the same route (MSW uses the first match).
+ */
+export const allHandlers: HttpHandler[] = [
+  ...b1Handlers,
+  ...b2Handlers,
+  ...telemetryHandlers,
+  ...handlers,
+];

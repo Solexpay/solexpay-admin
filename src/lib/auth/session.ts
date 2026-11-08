@@ -272,7 +272,11 @@ export async function logout(): Promise<void> {
 export function useAdminSession(): {
   status: SessionStatus;
   admin: AdminProfile | null;
-  login: (email: string, password: string) => Promise<LoginResult>;
+  login: (
+    email: string,
+    password: string,
+    totpCode?: string,
+  ) => Promise<LoginResult>;
   confirmTotp: (
     enrollmentToken: string,
     code: string,
@@ -288,10 +292,12 @@ export function useAdminSession(): {
   return {
     status: current.status,
     admin: current.admin,
-    login: async (email: string, password: string) => {
+    login: async (email: string, password: string, totpCode?: string) => {
+      const code = totpCode?.trim();
       const result = await authRequest<LoginResult>("POST", "/login", {
         email,
         password,
+        ...(code ? { totpCode: code } : {}),
       } satisfies LoginRequest);
       if ("admin" in result && result.admin) {
         setSession(result);
