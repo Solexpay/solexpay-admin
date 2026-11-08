@@ -34,7 +34,7 @@ describe("gateway signing", () => {
     const init = fakeFetch.mock.calls[0][1] as RequestInit;
     const headers = new Headers(init.headers);
     const material =
-      "1700000000\nGET\n/api/v1/admin/users?status=ACTIVE\n203.0.113.4";
+      "1700000000\nGET\n/api/v1/admin/users?status=ACTIVE\n203.0.113.4\nrid";
     const key = await crypto.subtle.importKey(
       "raw",
       new TextEncoder().encode("secret"),

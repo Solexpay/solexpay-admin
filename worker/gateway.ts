@@ -18,7 +18,9 @@ export interface GatewayRequest {
 export async function gatewayFetch(input: GatewayRequest): Promise<Response> {
   const ts = Math.floor(Date.now() / 1000).toString();
   const clientIp = input.request.headers.get("CF-Connecting-IP") || "0.0.0.0";
-  const material = `${ts}\n${input.method}\n${input.pathWithQuery}\n${clientIp}`;
+  // The request id is signed too: two identical requests in the same second
+  // must not share a signature, or the backend's replay guard rejects one.
+  const material = `${ts}\n${input.method}\n${input.pathWithQuery}\n${clientIp}\n${input.requestId}`;
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(input.env.GATEWAY_SECRET),
