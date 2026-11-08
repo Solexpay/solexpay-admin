@@ -1,25 +1,14 @@
-# Solexpay Frontend — Gemini Context
+# SolexPay Admin — agent notes
 
-This is an **Analog.js** (Angular 17 + Vite + Nitro) project. Before working on it, load the project skill below.
+Read `AGENTS.md` and `README.md` first. Key rules:
 
-## Required reading before any task
-
-Whenever the user asks you to work on this codebase — adding pages, routes, components, server handlers, fixing Angular/Vite build errors (especially "JIT compiler unavailable"), or anything Angular/Analog-related — read these files first:
-
-1. `.gemini/skills/analog-js/SKILL.md` — main skill, project structure, mental model, common operations
-2. `.gemini/skills/analog-js/references/pitfalls.md` — known build failures and their fixes (read this when debugging)
-3. `.gemini/skills/analog-js/references/routing.md` — when adding/modifying routes
-4. `.gemini/skills/analog-js/references/server-routes.md` — when touching `src/server/routes/api/`
-5. `.gemini/skills/analog-js/references/angular-patterns.md` — Angular 17 idioms used here (signals, control flow, standalone components)
-
-These files are mirrored from `.claude/skills/analog-js/` so both Claude Code and Gemini CLI agents share the same project knowledge. If you update one set, update the other.
-
-## Project basics
-
-- Package manager: **pnpm** (with `node-linker=isolated` — use `pnpm exec`, never `./node_modules/.bin`)
-- Build: `pnpm exec ng build` (production) / `pnpm dev` (dev server)
-- Routes are registered manually in `src/app/app.routes.ts` — admin pages go inside the existing `canActivate: [authGuard]` children block
-- All components are **standalone** with `inject()` DI and **signals** — no NgModules, no constructor injection, no BehaviorSubjects
-- Templates use Angular 17 control flow (`@if`, `@for`, `@switch`) — not `*ngIf`/`*ngFor`
-- Server BFF routes live in `src/server/routes/api/` using h3 (`defineEventHandler`, `getQuery`, `readBody`, `createError`)
-- Material Design 3 design tokens via Tailwind (`bg-surface`, `text-on-surface`, `bg-primary`, etc.)
+- Next.js static export (`output: "export"`). No server components that need a
+  runtime, no API routes, no middleware — server logic lives in `worker/`.
+- Bun only. Never use npm, pnpm or yarn.
+- Biome for lint and format (`bunx biome check .`), not ESLint or Prettier.
+- All data access goes through `src/lib/api/*` → `/bff/api/*`. Never store
+  tokens in JS, localStorage or sessionStorage.
+- URL state uses nuqs: `useQueryState(key, parser.withDefault(x).withOptions(opts))`.
+- Tables render a desktop table and mobile cards, so tests must use
+  `*AllBy*` queries and wrap pages in `<NuqsTestingAdapter hasMemory>`.
+- Validate every form and response with zod.
