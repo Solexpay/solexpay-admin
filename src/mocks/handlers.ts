@@ -1,4 +1,5 @@
 import { HttpResponse, http } from "msw";
+import type { School } from "@/lib/types";
 
 // Helper to simulate cursor page responses
 const cursorPage = <T>(
@@ -336,7 +337,7 @@ const mockKyc = [
   },
 ];
 
-const mockSchools = [
+const mockSchools: School[] = [
   {
     id: "SCH-001",
     name: "University of Lagos",
@@ -350,7 +351,9 @@ const mockSchools = [
     status: "ACTIVE",
     apiToken: "sk_live_51H7x8jK8Q2mN9pR5",
     createdAt: "2023-01-15T00:00:00Z",
-    logoUrl: "/logos/unilag.png",
+    logoUrl: null,
+    websiteDomain: "unilag.edu.ng",
+    logoSource: "NONE",
   },
   {
     id: "SCH-002",
@@ -365,7 +368,9 @@ const mockSchools = [
     status: "ACTIVE",
     apiToken: "sk_live_51H8y9kL9Q3mO0qS6",
     createdAt: "2023-02-20T00:00:00Z",
-    logoUrl: "/logos/cu.png",
+    logoUrl: null,
+    websiteDomain: "covenantuniversity.edu.ng",
+    logoSource: "NONE",
   },
 ];
 
@@ -1000,7 +1005,9 @@ export const handlers = [
       apiToken: `sk_live_${Math.random().toString(36).substring(2, 15)}`,
       createdAt: new Date().toISOString(),
       // No upload yet: the console falls back to a bundled crest or initials.
-      logoUrl: "",
+      logoUrl: null,
+      websiteDomain: null,
+      logoSource: "NONE" as const,
     };
     mockSchools.push(school);
     return HttpResponse.json(school);

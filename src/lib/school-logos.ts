@@ -1,22 +1,28 @@
-const BUNDLED: { logo: string; match: RegExp }[] = [
-  { logo: "/logos/unilag.png", match: /\b(unilag|university of lagos)\b/i },
-  { logo: "/logos/ui.png", match: /\b(university of ibadan)\b|^ui$/i },
-  { logo: "/logos/oau.png", match: /\b(oau|obafemi awolowo)\b/i },
-  { logo: "/logos/unn.png", match: /\b(unn|university of nigeria)\b/i },
-  { logo: "/logos/abu.png", match: /\b(abu|ahmadu bello)\b/i },
-  {
-    logo: "/logos/futa.png",
-    match: /\b(futa|federal university of technology,? akure)\b/i,
-  },
-  { logo: "/logos/uniabuja.png", match: /\b(uniabuja|university of abuja)\b/i },
-  { logo: "/logos/cu.png", match: /\b(covenant university)\b|^cu$/i },
-];
+/**
+ * School logos are resolved by the backend (Logo.dev from the school's web
+ * domain, or an admin override) and arrive as `logoUrl`. Nothing is
+ * hardcoded here: no URL means the UI shows the school's initials.
+ */
+export function schoolLogo(school: { logoUrl?: string | null }): string | null {
+  const url = school.logoUrl?.trim();
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
 
-export function schoolLogo(school: {
-  name?: string;
-  logoUrl?: string | null;
-}): string | null {
-  if (school.logoUrl) return school.logoUrl;
-  const name = (school.name ?? "").trim();
-  return BUNDLED.find((entry) => entry.match.test(name))?.logo ?? null;
+/** Up to two initials for the logo fallback, e.g. "University of Lagos" → "UL". */
+export function schoolInitials(name: string): string {
+  const words = name
+    .split(/\s+/)
+    .filter((word) => word.length > 0 && !/^(of|the|and|&)$/i.test(word));
+  return (
+    words
+      .slice(0, 2)
+      .map((word) => word[0]?.toUpperCase() ?? "")
+      .join("") || "?"
+  );
 }

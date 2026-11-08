@@ -196,7 +196,10 @@ export interface School {
   activeLoans?: number;
   totalDisbursed?: number;
   apiToken?: string;
-  logoUrl?: string;
+  /** Resolved by the backend (Logo.dev or an admin override); absent → show initials. */
+  logoUrl?: string | null;
+  websiteDomain?: string | null;
+  logoSource?: "NONE" | "LOGODEV" | "MANUAL";
 }
 export interface GiftCardOrder {
   id: string;
