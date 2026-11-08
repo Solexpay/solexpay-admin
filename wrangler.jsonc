@@ -1,5 +1,6 @@
 {
   // Set SESSION_KEY and GATEWAY_SECRET with `wrangler secret put --env <env>`.
+  // Lives in the SolexPay Cloudflare account: deploy with CLOUDFLARE_SOLEXPAY_API_TOKEN.
   "name": "solexpay-admin",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-20",
@@ -23,8 +24,8 @@
       "vars": {
         "ENVIRONMENT": "staging",
         "API_ORIGIN": "https://staging-api.solexpay.com.ng",
-        "ACCESS_TEAM_DOMAIN": "",
-        "ACCESS_AUD": ""
+        "ACCESS_TEAM_DOMAIN": "solexpay.cloudflareaccess.com",
+        "ACCESS_AUD": "736a40b23c935b7581d18a2ea7dd72ab698ba60044f251579366e66376fdd1ff"
       },
       "ratelimits": [
         {
