@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { type ReactNode, useEffect, useState } from "react";
 
 /**
@@ -35,6 +36,8 @@ export function Providers({ children }: { children: ReactNode }) {
 
   if (!ready) return null;
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <NuqsAdapter>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </NuqsAdapter>
   );
 }
