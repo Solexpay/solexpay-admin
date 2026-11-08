@@ -10,3 +10,8 @@ afterEach(() => {
   cleanup();
 });
 afterAll(() => server.close());
+
+// jsdom does not implement scrollIntoView (used to keep chat threads pinned).
+if (typeof Element !== "undefined" && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}

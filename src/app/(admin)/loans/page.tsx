@@ -72,9 +72,7 @@ function LoansContent() {
   const session = useAdminSession();
   const queryClient = useQueryClient();
   const isOpsRole =
-    session.admin?.role === "OPS" ||
-    session.admin?.role === "SUPER_ADMIN" ||
-    session.admin?.role === "ADMIN";
+    session.admin?.role === "OPS" || session.admin?.role === "SUPER_ADMIN";
 
   const isOpsPendingQueue = tab === "OPS_REVIEW";
 

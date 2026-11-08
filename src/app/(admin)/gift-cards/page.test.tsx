@@ -133,6 +133,7 @@ describe("Gift Cards page", () => {
     // finish loading rather than for a specific row.
     await screen.findByRole("heading", { name: "Gift Card Orders" });
     await waitFor(() => expect(client.isFetching()).toBe(0));
+    expect(screen.getAllByRole("row").length).toBeGreaterThan(1);
     expect(
       screen.queryByRole("button", { name: "Deliver" }),
     ).not.toBeInTheDocument();
