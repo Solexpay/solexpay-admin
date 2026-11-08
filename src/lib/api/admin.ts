@@ -160,6 +160,23 @@ export const toggleSchoolStatus = (schoolId: string, status: string) =>
     `/admin/schools/${encodeURIComponent(schoolId)}/toggle-status`,
     { status },
   );
+/** Body for PUT /admin/schools/:id/logo — exactly one mode. */
+export type SchoolLogoUpdate =
+  | { domain: string }
+  | { logoUrl: string }
+  | { clear: true };
+export const setSchoolLogo = (schoolId: string, update: SchoolLogoUpdate) =>
+  apiPut<School>(`/admin/schools/${encodeURIComponent(schoolId)}/logo`, update);
+export const refreshSchoolLogo = (schoolId: string, force = false) =>
+  apiPost<School>(
+    `/admin/schools/${encodeURIComponent(schoolId)}/logo/refresh`,
+    { force },
+  );
+export const backfillSchoolLogos = () =>
+  apiPost<{ resolved: number; failed: number }>(
+    "/admin/schools/logos/backfill",
+    {},
+  );
 export const getGamingOrders = (filter?: Filters) =>
   apiGet<CursorPage<GiftCardOrder>>("/admin/gaming/orders", {
     status: "UNKNOWN",
