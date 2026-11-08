@@ -24,9 +24,6 @@ interface TOTPConfirmRequest {
   enrollmentToken?: string;
   code?: string;
 }
-interface RefreshTokenRequest {
-  refreshToken?: string;
-}
 interface OpsRejectLoanRequest {
   reviewedBy?: string;
   rejectionReason?: string;
@@ -513,7 +510,16 @@ const mockAdminUsers: {
 ];
 
 const mockDashboard = {
+  // Fields the Go backend sends (internal/admin/dto.go DashboardMetrics)
   totalUsers: 1482,
+  activeUsersToday: 312,
+  newUsersToday: 27,
+  transactionVolumeToday: 1840500,
+  transactionVolumeThisMonth: 48200000,
+  transactionCountToday: 642,
+  totalLoanPortfolio: 15600000,
+  totalSavingsBalance: 9350000,
+  reportDate: new Date().toISOString().slice(0, 10),
   totalVolume: 48200000,
   activeUsers: 1104,
   totalTransactions: 23410,
@@ -610,7 +616,7 @@ const mockNotificationSettings = {
 
 export const handlers = [
   // 1. Auth Logins
-  http.post("*/api/auth/login", async ({ request }) => {
+  http.post("*/auth/admin/login", async ({ request }) => {
     const body = (await request.json()) as AuthLoginRequest;
     if (!body?.email || !body?.password) {
       return new HttpResponse("Email and password required", { status: 400 });
@@ -625,7 +631,6 @@ export const handlers = [
 
     return HttpResponse.json({
       token: "dev.mock.jwt.token",
-      refreshToken: "dev.mock.refresh.token",
       expiresIn: 900,
       admin: {
         id: "admin-001",
@@ -645,7 +650,7 @@ export const handlers = [
   }),
 
   // TOTP routes
-  http.post("*/api/auth/totp/enroll", async ({ request }) => {
+  http.post("*/auth/admin/totp/enroll", async ({ request }) => {
     const body = (await request.json()) as TOTPEnrollRequest;
     if (!body?.enrollmentToken) {
       return new HttpResponse("enrollmentToken required", { status: 400 });
@@ -657,7 +662,7 @@ export const handlers = [
     });
   }),
 
-  http.post("*/api/auth/totp/confirm", async ({ request }) => {
+  http.post("*/auth/admin/totp/confirm", async ({ request }) => {
     const body = (await request.json()) as TOTPConfirmRequest;
     if (!body?.enrollmentToken || !body?.code) {
       return new HttpResponse("enrollmentToken and code required", {
@@ -666,7 +671,6 @@ export const handlers = [
     }
     return HttpResponse.json({
       token: "dev.mock.confirmed.jwt.token",
-      refreshToken: "dev.mock.confirmed.refresh.token",
       expiresIn: 900,
       admin: {
         id: "admin-001",
@@ -686,14 +690,11 @@ export const handlers = [
   }),
 
   // Refresh
-  http.post("*/api/auth/refresh", async ({ request }) => {
-    const body = (await request.json()) as RefreshTokenRequest;
-    if (!body?.refreshToken) {
-      return new HttpResponse("refreshToken required", { status: 400 });
-    }
+  // The real backend reads the refresh token from its httpOnly cookie; the
+  // mock acts as if that cookie is always valid.
+  http.post("*/auth/admin/refresh", () => {
     return HttpResponse.json({
       token: "dev.mock.refreshed.jwt.token",
-      refreshToken: "dev.mock.new.refresh.token",
       expiresIn: 900,
       admin: {
         id: "admin-001",
@@ -713,17 +714,17 @@ export const handlers = [
   }),
 
   // Logout
-  http.post("*/api/auth/logout", () => {
+  http.post("*/auth/admin/logout", () => {
     return new HttpResponse(null, { status: 204 });
   }),
 
   // Dashboard Metrics
-  http.get("*/api/admin/dashboard", () => {
+  http.get("*/admin/dashboard/metrics", () => {
     return HttpResponse.json(mockDashboard);
   }),
 
   // Users List (CursorPage)
-  http.get("*/api/admin/users", ({ request }) => {
+  http.get("*/admin/users", ({ request }) => {
     const url = new URL(request.url);
     const search =
       url.searchParams.get("phoneNumber") || url.searchParams.get("search");
@@ -746,7 +747,7 @@ export const handlers = [
   }),
 
   // User Detail
-  http.get("*/api/admin/users/:userId", ({ params }) => {
+  http.get("*/admin/users/:userId", ({ params }) => {
     const { userId } = params;
     const user = mockUsers.find(
       (u) => u.id.toLowerCase() === String(userId).toLowerCase(),
@@ -825,28 +826,25 @@ export const handlers = [
   }),
 
   // Suspend User
-  http.post(
-    "*/api/admin/users/:userId/suspend",
-    async ({ params, request }) => {
-      const { userId } = params;
-      const body = (await request.json().catch(() => ({}))) as {
-        reason?: string;
-      };
-      const reason = body?.reason || "Suspended by admin";
-      const user = mockUsers.find((u) => u.id === userId);
-      if (user) {
-        user.status = "SUSPENDED";
-      }
-      return HttpResponse.json({
-        success: true,
-        message: `User suspended: ${reason}`,
-        user,
-      });
-    },
-  ),
+  http.post("*/admin/users/:userId/suspend", async ({ params, request }) => {
+    const { userId } = params;
+    const body = (await request.json().catch(() => ({}))) as {
+      reason?: string;
+    };
+    const reason = body?.reason || "Suspended by admin";
+    const user = mockUsers.find((u) => u.id === userId);
+    if (user) {
+      user.status = "SUSPENDED";
+    }
+    return HttpResponse.json({
+      success: true,
+      message: `User suspended: ${reason}`,
+      user,
+    });
+  }),
 
   // Reactivate User
-  http.post("*/api/admin/users/:userId/reactivate", ({ params }) => {
+  http.post("*/admin/users/:userId/reactivate", ({ params }) => {
     const { userId } = params;
     const user = mockUsers.find((u) => u.id === userId);
     if (user) {
@@ -860,7 +858,7 @@ export const handlers = [
   }),
 
   // Loans List (CursorPage)
-  http.get("*/api/admin/loans", ({ request }) => {
+  http.get("*/admin/loans", ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status");
     let filtered = [...mockLoans];
@@ -871,18 +869,18 @@ export const handlers = [
   }),
 
   // Overdue Loans List
-  http.get("*/api/admin/loans/overdue", () => {
+  http.get("*/admin/loans/overdue", () => {
     return HttpResponse.json(cursorPage(mockOverdueLoans));
   }),
 
   // Ops Pending Loans List
-  http.get("*/api/loans/ops-pending", () => {
+  http.get("*/loans/ops-pending", () => {
     const pending = mockLoans.filter((l) => l.status === "OPS_REVIEW");
     return HttpResponse.json(cursorPage(pending));
   }),
 
   // Approve Loan
-  http.post("*/api/loans/:loanId/ops-approve", ({ params }) => {
+  http.post("*/loans/:loanId/ops-approve", ({ params }) => {
     const { loanId } = params;
     const loan = mockLoans.find((l) => l.id === loanId);
     if (loan) {
@@ -896,7 +894,7 @@ export const handlers = [
   }),
 
   // Reject Loan
-  http.post("*/api/loans/:loanId/ops-reject", async ({ params, request }) => {
+  http.post("*/loans/:loanId/ops-reject", async ({ params, request }) => {
     const { loanId } = params;
     const body = (await request.json()) as OpsRejectLoanRequest;
     const rejectionReason =
@@ -913,7 +911,7 @@ export const handlers = [
   }),
 
   // Transactions List (CursorPage)
-  http.get("*/api/admin/transactions", ({ request }) => {
+  http.get("*/admin/transactions", ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status");
     const type = url.searchParams.get("type");
@@ -929,7 +927,7 @@ export const handlers = [
   }),
 
   // KYC Queue (CursorPage)
-  http.get("*/api/admin/kyc", ({ request }) => {
+  http.get("*/admin/kyc", ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status") || "PENDING";
     const filtered = mockKyc.filter((k) => k.status === status);
@@ -937,7 +935,7 @@ export const handlers = [
   }),
 
   // Approve KYC
-  http.post("*/api/admin/kyc/:verificationId/approve", ({ params }) => {
+  http.post("*/admin/kyc/:verificationId/approve", ({ params }) => {
     const { verificationId } = params;
     const kycItem = mockKyc.find((k) => k.id === verificationId);
     if (kycItem) {
@@ -956,7 +954,7 @@ export const handlers = [
 
   // Reject KYC
   http.post(
-    "*/api/admin/kyc/:verificationId/reject",
+    "*/admin/kyc/:verificationId/reject",
     async ({ params, request }) => {
       const { verificationId } = params;
       const body = (await request.json()) as RejectKycRequest;
@@ -974,7 +972,7 @@ export const handlers = [
   ),
 
   // Broadcast Notification
-  http.post("*/api/admin/broadcast", async ({ request }) => {
+  http.post("*/admin/broadcast", async ({ request }) => {
     const body = (await request.json()) as BroadcastRequest;
     const { title, targetAudience } = body || {};
     return HttpResponse.json({
@@ -985,11 +983,11 @@ export const handlers = [
   }),
 
   // Schools API (CursorPage)
-  http.get("*/api/admin/schools", () => {
+  http.get("*/admin/schools", () => {
     return HttpResponse.json(cursorPage(mockSchools));
   }),
 
-  http.post("*/api/admin/schools", async ({ request }) => {
+  http.post("*/admin/schools", async ({ request }) => {
     const body = (await request.json()) as CreateSchoolRequest;
     const school = {
       id: "SCH-" + (mockSchools.length + 1).toString().padStart(3, "0"),
@@ -1004,24 +1002,28 @@ export const handlers = [
       status: "ACTIVE" as const,
       apiToken: "sk_live_" + Math.random().toString(36).substring(2, 15),
       createdAt: new Date().toISOString(),
-      logoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(body.name)}&background=random&color=fff&size=120`,
+      // No upload yet: the console falls back to a bundled crest or initials.
+      logoUrl: "",
     };
     mockSchools.push(school);
     return HttpResponse.json(school);
   }),
 
-  http.post("*/api/admin/schools/:schoolId/regenerate-token", ({ params }) => {
+  http.post("*/admin/schools/:schoolId/regenerate-token", ({ params }) => {
     const { schoolId } = params;
-    const school = mockSchools.find((s) => s.id === schoolId);
-    if (school) {
-      school.apiToken =
-        "sk_live_" + Math.random().toString(36).substring(2, 15);
-    }
-    return HttpResponse.json({ success: true, school });
+    // Same shape as the backend: the school's login is reset to a new
+    // temporary password, shown once.
+    return HttpResponse.json({
+      success: true,
+      data: {
+        school_id: schoolId,
+        temporary_password: Math.random().toString(36).slice(2, 12) + "A1!",
+      },
+    });
   }),
 
   http.post(
-    "*/api/admin/schools/:schoolId/toggle-status",
+    "*/admin/schools/:schoolId/toggle-status",
     async ({ params, request }) => {
       const { schoolId } = params;
       const body = (await request.json()) as ToggleSchoolStatusRequest;
@@ -1034,21 +1036,21 @@ export const handlers = [
   ),
 
   // Gaming / Gift Card Orders (CursorPage)
-  http.get("*/api/admin/gaming/orders", ({ request }) => {
+  http.get("*/admin/gaming/orders", ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status") || "UNKNOWN";
     const filtered = mockGamingOrders.filter((o) => o.status === status);
     return HttpResponse.json(cursorPage(filtered));
   }),
 
-  http.get("*/api/admin/gaming/orders/:id", ({ params }) => {
+  http.get("*/admin/gaming/orders/:id", ({ params }) => {
     const { id } = params;
     const order = mockGamingOrders.find((o) => o.id === id);
     if (!order) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json(order);
   }),
 
-  http.post("*/api/admin/gaming/orders/:id/resolve-delivered", ({ params }) => {
+  http.post("*/admin/gaming/orders/:id/resolve-delivered", ({ params }) => {
     const { id } = params;
     const order = mockGamingOrders.find((o) => o.id === id);
     if (order) {
@@ -1058,7 +1060,7 @@ export const handlers = [
     return HttpResponse.json({ success: true, order });
   }),
 
-  http.post("*/api/admin/gaming/orders/:id/resolve-failed", ({ params }) => {
+  http.post("*/admin/gaming/orders/:id/resolve-failed", ({ params }) => {
     const { id } = params;
     const order = mockGamingOrders.find((o) => o.id === id);
     if (order) {
@@ -1068,14 +1070,14 @@ export const handlers = [
   }),
 
   // NIP Transfers (CursorPage)
-  http.get("*/api/admin/nip/transfers", ({ request }) => {
+  http.get("*/admin/nip/transfers", ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status") || "PENDING";
     const filtered = mockNipTransfers.filter((t) => t.status === status);
     return HttpResponse.json(cursorPage(filtered));
   }),
 
-  http.get("*/api/admin/nip/transfers/:id", ({ params }) => {
+  http.get("*/admin/nip/transfers/:id", ({ params }) => {
     const { id } = params;
     const item = mockNipTransfers.find((t) => t.id === id);
     if (!item) return new HttpResponse(null, { status: 404 });
@@ -1083,11 +1085,11 @@ export const handlers = [
   }),
 
   // Ops Console (Dead Outbox & Compliance Flags)
-  http.get("*/api/admin/ops/outbox/dead", () => {
+  http.get("*/admin/ops/outbox/dead", () => {
     return HttpResponse.json(cursorPage(mockDeadOutboxList));
   }),
 
-  http.post("*/api/admin/ops/outbox/:id/requeue", ({ params }) => {
+  http.post("*/admin/ops/outbox/:id/requeue", ({ params }) => {
     const { id } = params;
     return HttpResponse.json({
       success: true,
@@ -1095,11 +1097,11 @@ export const handlers = [
     });
   }),
 
-  http.get("*/api/admin/ops/compliance-flags", () => {
+  http.get("*/admin/ops/compliance-flags", () => {
     return HttpResponse.json(cursorPage(mockComplianceFlagList));
   }),
 
-  http.post("*/api/admin/ops/compliance-flags/:id/resolve", ({ params }) => {
+  http.post("*/admin/ops/compliance-flags/:id/resolve", ({ params }) => {
     const { id } = params;
     const flag = mockComplianceFlagList.find((f) => f.id === id);
     if (flag) {
@@ -1112,11 +1114,11 @@ export const handlers = [
   }),
 
   // Audit Logs
-  http.get("*/api/admin/audit", () => {
+  http.get("*/admin/audit", () => {
     return HttpResponse.json(cursorPage(mockAuditList));
   }),
 
-  http.get("*/api/admin/audit/verify", () => {
+  http.get("*/admin/audit/verify", () => {
     return HttpResponse.json({
       checked: 1,
       ok: true,
@@ -1126,11 +1128,11 @@ export const handlers = [
   }),
 
   // Admins Management
-  http.get("*/api/admin/admins", () => {
+  http.get("*/admin/admins", () => {
     return HttpResponse.json(cursorPage(mockAdminUsers));
   }),
 
-  http.post("*/api/admin/admins", async ({ request }) => {
+  http.post("*/admin/admins", async ({ request }) => {
     const body = (await request.json()) as CreateAdminRequest;
     const admin = {
       id: "admin-" + (mockAdminUsers.length + 1).toString().padStart(3, "0"),
@@ -1150,7 +1152,7 @@ export const handlers = [
     });
   }),
 
-  http.post("*/api/admin/admins/:id/disable", ({ params }) => {
+  http.post("*/admin/admins/:id/disable", ({ params }) => {
     const { id } = params;
     const admin = mockAdminUsers.find((a) => a.id === id);
     if (admin) {
@@ -1159,16 +1161,16 @@ export const handlers = [
     return HttpResponse.json({ success: true, message: "Admin disabled" });
   }),
 
-  http.post("*/api/admin/admins/:id/reset-totp", () => {
+  http.post("*/admin/admins/:id/reset-totp", () => {
     return HttpResponse.json({ success: true, message: "Admin TOTP reset" });
   }),
 
   // Profile API
-  http.get("*/api/admin/profile", () => {
+  http.get("*/admin/profile", () => {
     return HttpResponse.json(mockProfile);
   }),
 
-  http.put("*/api/admin/profile", async ({ request }) => {
+  http.put("*/admin/profile", async ({ request }) => {
     const body = (await request.json()) as UpdateProfileRequest;
     mockProfile.firstName = body.firstName || mockProfile.firstName;
     mockProfile.lastName = body.lastName || mockProfile.lastName;
@@ -1178,11 +1180,11 @@ export const handlers = [
   }),
 
   // Notification Settings API
-  http.get("*/api/admin/settings/notifications", () => {
+  http.get("*/admin/settings/notifications", () => {
     return HttpResponse.json(mockNotificationSettings);
   }),
 
-  http.put("*/api/admin/settings/notifications", async ({ request }) => {
+  http.put("*/admin/settings/notifications", async ({ request }) => {
     const body = (await request.json()) as UpdateNotificationSettingsRequest;
     mockNotificationSettings.newUserRegistrations =
       body.newUserRegistrations !== undefined

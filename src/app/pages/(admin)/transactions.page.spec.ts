@@ -14,10 +14,12 @@ import { TransactionsPageComponent } from "./transactions.page";
 import { AdminService, Transaction } from "../../services/admin.service";
 import { of } from "rxjs";
 import { vi } from "vitest";
+import { provideRouter } from "@angular/router";
 
 describe("TransactionsPageComponent", () => {
   let component: TransactionsPageComponent;
   let fixture: ComponentFixture<TransactionsPageComponent>;
+  let adminService: AdminService;
 
   const mockTransactions: Transaction[] = [
     {
@@ -53,6 +55,16 @@ describe("TransactionsPageComponent", () => {
           hasMore: false,
         }),
       ),
+      getDashboardMetrics: vi
+        .fn()
+        .mockReturnValue(
+          of({ transactionVolumeToday: 265000, transactionCountToday: 7 }),
+        ),
+      getTransaction: vi
+        .fn()
+        .mockReturnValue(
+          of({ transaction: mockTransactions[0], journals: [] }),
+        ),
     };
 
     const queryClient = new QueryClient({
@@ -63,10 +75,20 @@ describe("TransactionsPageComponent", () => {
         },
       },
     });
-    queryClient.setQueryData(["transactions", { from: "" }], {
-      items: mockTransactions,
-      nextCursor: null,
-      hasMore: false,
+    queryClient.setQueryData(
+      [
+        "transactions",
+        { status: "", type: "", reference: "", from: "", to: "" },
+      ],
+      {
+        items: mockTransactions,
+        nextCursor: null,
+        hasMore: false,
+      },
+    );
+    queryClient.setQueryData(["dashboard-metrics"], {
+      transactionVolumeToday: 265000,
+      transactionCountToday: 7,
     });
 
     TestBed.resetTestingModule();
@@ -75,15 +97,18 @@ describe("TransactionsPageComponent", () => {
       providers: [
         provideQueryClient(queryClient),
         { provide: AdminService, useValue: mockAdminService },
+        provideRouter([]),
       ],
     });
 
     fixture = TestBed.createComponent(TransactionsPageComponent);
     component = fixture.componentInstance;
+    adminService = TestBed.inject(AdminService);
     fixture.detectChanges();
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     TestBed.resetTestingModule();
   });
 
@@ -91,47 +116,74 @@ describe("TransactionsPageComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should fetch and filter transactions correctly", fakeAsync(() => {
+  it("should fetch transactions and send server-side filter parameters", fakeAsync(() => {
     tick(10000);
     flush();
 
     expect(component.transactions()).toEqual(mockTransactions);
-    expect(component.filteredTransactions().length).toBe(2);
 
-    // Search query filter
-    component.searchQuery.set("Jane");
+    component.onTypeChange("WALLET_FUNDING");
     fixture.detectChanges();
-    expect(component.filteredTransactions().length).toBe(1);
-    expect(component.filteredTransactions()[0]!.id).toBe("tx2");
-
-    // Type filter
-    component.searchQuery.set("");
-    component.typeFilter.set("WALLET_FUNDING");
+    component.onStatusChange("FAILED");
     fixture.detectChanges();
-    expect(component.filteredTransactions().length).toBe(1);
-    expect(component.filteredTransactions()[0]!.id).toBe("tx1");
-
-    // Status filter
-    component.typeFilter.set("");
-    component.statusFilter.set("FAILED");
-    fixture.detectChanges();
-    expect(component.filteredTransactions().length).toBe(1);
-    expect(component.filteredTransactions()[0]!.id).toBe("tx2");
-  }));
-
-  it("should calculate summary analytics correctly", fakeAsync(() => {
+    component.onDateFromChange("2026-10-19");
+    component.onDateToChange("2026-10-19");
     tick(10000);
     flush();
 
-    expect(component.volume24h()).toBe(15000);
-    expect(component.successCount()).toBe(1);
-    expect(component.failedCount()).toBe(1);
+    expect(adminService.getTransactions).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "WALLET_FUNDING", status: "FAILED" }),
+    );
   }));
+
+  it("should calculate today cards from dashboard metrics", fakeAsync(() => {
+    tick(10000);
+    flush();
+
+    // Seeded into the shared dashboard-metrics cache, so no refetch happens.
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain("Transactions today");
+    expect(component.metricsQuery.data()?.transactionVolumeToday).toBe(265000);
+    expect(component.metricsQuery.data()?.transactionCountToday).toBe(7);
+  }));
+
+  it("should send date filters as RFC3339 Lagos day boundaries", fakeAsync(() => {
+    component.onDateFromChange("2026-10-19");
+    component.onDateToChange("2026-10-19");
+    fixture.detectChanges();
+    tick(10000);
+    flush();
+
+    expect(adminService.getTransactions).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        from: "2026-10-19T00:00:00+01:00",
+        to: "2026-10-19T23:59:59.999+01:00",
+      }),
+    );
+  }));
+
+  it("should debounce reference search and send the reference to the server", () => {
+    vi.useFakeTimers();
+    component.onSearch(" REF-001 ");
+    expect(component.referenceFilter()).toBe("");
+    vi.advanceTimersByTime(300);
+    expect(component.referenceFilter()).toBe("REF-001");
+    fixture.detectChanges();
+
+    expect(adminService.getTransactions).toHaveBeenCalledWith(
+      expect.objectContaining({ reference: "REF-001" }),
+    );
+  });
+
+  it("should load transaction details by ID", () => {
+    component.viewTransaction(mockTransactions[0]!);
+    fixture.detectChanges();
+
+    expect(adminService.getTransaction).toHaveBeenCalledWith("tx1");
+  });
 
   it("should format helper utilities properly", () => {
     expect(component.formatType("LOAN_DISBURSEMENT")).toBe("Loan Disbursement");
     expect(component.getTypeIcon("WALLET_FUNDING")).toBe("add_circle");
-    expect(component.getTypeColor("WALLET_FUNDING")).toBe("text-tertiary");
-    expect(component.getTypeColor("UNKNOWN")).toBe("text-on-surface-variant");
   });
 });

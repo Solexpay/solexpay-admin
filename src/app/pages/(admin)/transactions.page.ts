@@ -1,373 +1,705 @@
-import { Component, inject, signal, computed } from "@angular/core";
+import { Component, DestroyRef, inject, signal, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { ActivatedRoute, Router } from "@angular/router";
 import {
   injectQuery,
   keepPreviousData,
 } from "@tanstack/angular-query-experimental";
 import { lastValueFrom } from "rxjs";
+import {
+  LucideDynamicIcon,
+  LucideIcon,
+  LucideArrowLeftRight as ArrowLeftRight,
+  LucideBanknote as Banknote,
+  LucideChevronDown as ChevronDown,
+  LucideCircleAlert as CircleAlert,
+  LucideCirclePlus as CirclePlus,
+  LucideCreditCard as CreditCard,
+  LucideDownload as Download,
+  LucideEye as Eye,
+  LucideLandmark as Landmark,
+  LucideLoaderCircle as LoaderCircle,
+  LucideReceipt as Receipt,
+  LucideReceiptText as ReceiptText,
+  LucideSearch as Search,
+  LucideSend as Send,
+  LucideX as X,
+} from "@lucide/angular";
 import { AdminService, Transaction } from "../../services/admin.service";
+import { ToastService } from "../../services/toast.service";
 import { StatusChipComponent } from "../../components/ui/status-chip.component";
+import { MetricCardComponent } from "../../components/ui/metric-card.component";
+import { PageHeaderComponent } from "../../components/ui/page-header.component";
+import { ModalDirective } from "../../directives/modal.directive";
+import { CopyToClipboardDirective } from "../../directives/copy-to-clipboard.directive";
+import { downloadCsv } from "../../core/csv";
+
+// The API wants RFC 3339 timestamps; the date inputs give YYYY-MM-DD, read
+// as whole days in Lagos time (WAT, UTC+1, no daylight saving).
+function dayStart(date: string): string | undefined {
+  return date ? `${date}T00:00:00+01:00` : undefined;
+}
+
+function dayEnd(date: string): string | undefined {
+  return date ? `${date}T23:59:59.999+01:00` : undefined;
+}
 
 @Component({
   selector: "app-transactions",
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatusChipComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideDynamicIcon,
+    MetricCardComponent,
+    PageHeaderComponent,
+    StatusChipComponent,
+    ModalDirective,
+    CopyToClipboardDirective,
+  ],
   template: `
-    <div class="space-y-6">
-      <!-- Page header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+    <app-page-header
+      title="Transaction Ledger"
+      [icon]="ArrowLeftRightIcon"
+      subtitle="View and search all system transactions"
+    >
+      <button
+        type="button"
+        class="ui-btn"
+        (click)="exportCsv()"
+        title="Exports the rows loaded on screen"
       >
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">
-            Transaction Ledger
-          </h1>
-          <p class="text-sm text-on-surface-variant mt-1">
-            View and search all system transactions
-          </p>
-        </div>
-        <button
-          class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110 flex items-center justify-center gap-2 sm:w-auto w-full"
-        >
-          <span class="material-symbols-outlined text-sm">download</span>
-          Export
-        </button>
-      </div>
+        <svg [lucideIcon]="DownloadIcon" [size]="15"></svg>
+        Export CSV
+      </button>
+    </app-page-header>
 
-      <!-- Filters -->
-      <div
-        class="bg-surface-container-lowest rounded-xl p-4 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-      >
-        <div class="flex-1 min-w-[200px] relative">
-          <span
-            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline"
-            >search</span
+    <div class="space-y-4">
+      <section class="ui-panel">
+        <div class="ui-panel-head"><h2 class="ui-panel-title">Today</h2></div>
+        <div class="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+          @if (metricsQuery.isPending()) {
+            @for (n of [1, 2]; track n) {
+              <div class="rounded-xl border border-ui-line bg-white p-1.5">
+                <div class="ui-skel mx-1.5 mb-3 mt-1.5 h-3 w-20"></div>
+                <div class="ui-skel h-[68px] rounded-lg"></div>
+              </div>
+            }
+          } @else {
+            <app-metric-card
+              label="Volume today"
+              [icon]="BanknoteIcon"
+              prefix="₦"
+              [value]="metricsQuery.data()?.transactionVolumeToday ?? 0"
+            />
+            <app-metric-card
+              label="Transactions today"
+              [icon]="ArrowLeftRightIcon"
+              [value]="metricsQuery.data()?.transactionCountToday ?? 0"
+            />
+          }
+        </div>
+      </section>
+
+      <section class="ui-panel">
+        <div class="ui-panel-head">
+          <h2 class="ui-panel-title">Transactions</h2>
+          <div
+            class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center"
           >
-          <input
-            type="text"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            class="w-full bg-surface-container-highest rounded-xl py-2.5 pl-10 pr-4
-                   transition-all duration-200 text-sm font-medium outline-none
-                   focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20"
-            placeholder="Search by reference, user, or description..."
-          />
+            <div class="ui-search sm:w-64">
+              <svg [lucideIcon]="SearchIcon" [size]="15"></svg>
+              <input
+                type="text"
+                [ngModel]="searchInput()"
+                (ngModelChange)="onSearch($event)"
+                (keydown.escape)="clearSearch()"
+                class="ui-input"
+                placeholder="Search by reference…"
+              />
+              @if (searchInput()) {
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  class="ui-icon-btn absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+                  (click)="clearSearch()"
+                >
+                  <svg [lucideIcon]="XIcon" [size]="14"></svg>
+                </button>
+              }
+            </div>
+            <select
+              [ngModel]="typeFilter()"
+              (ngModelChange)="onTypeChange($event)"
+              class="ui-input sm:w-auto"
+            >
+              <option value="">All Types</option>
+              <option value="WALLET_FUNDING">Wallet Funding</option>
+              <option value="LOAN_DISBURSEMENT">Loan Disbursement</option>
+              <option value="NIP_TRANSFER">Bank Transfer</option>
+              <option value="LOAN_REPAYMENT">Loan Repayment</option>
+              <option value="BILL_PAYMENT">Bill Payment</option>
+            </select>
+            <select
+              [ngModel]="statusFilter()"
+              (ngModelChange)="onStatusChange($event)"
+              class="ui-input sm:w-auto"
+            >
+              <option value="">All Status</option>
+              <option value="SUCCESS">Success</option>
+              <option value="PENDING">Pending</option>
+              <option value="FAILED">Failed</option>
+            </select>
+            <input
+              type="date"
+              [ngModel]="dateFrom()"
+              (ngModelChange)="onDateFromChange($event)"
+              class="ui-input sm:w-auto"
+              aria-label="From date"
+              [max]="dateTo() || null"
+            />
+            <input
+              type="date"
+              [ngModel]="dateTo()"
+              (ngModelChange)="onDateToChange($event)"
+              class="ui-input sm:w-auto"
+              aria-label="To date"
+              [min]="dateFrom() || null"
+            />
+          </div>
         </div>
-
-        <select
-          [ngModel]="typeFilter()"
-          (ngModelChange)="typeFilter.set($event)"
-          class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer w-full sm:w-auto"
-        >
-          <option value="">All Types</option>
-          <option value="WALLET_FUNDING">Wallet Funding</option>
-          <option value="LOAN_DISBURSEMENT">Loan Disbursement</option>
-          <option value="NIP_TRANSFER">Bank Transfer</option>
-          <option value="LOAN_REPAYMENT">Loan Repayment</option>
-          <option value="BILL_PAYMENT">Bill Payment</option>
-        </select>
-
-        <select
-          [ngModel]="statusFilter()"
-          (ngModelChange)="statusFilter.set($event)"
-          class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none cursor-pointer w-full sm:w-auto"
-        >
-          <option value="">All Status</option>
-          <option value="SUCCESS">Success</option>
-          <option value="PENDING">Pending</option>
-          <option value="FAILED">Failed</option>
-        </select>
-
-        <input
-          type="date"
-          [ngModel]="dateFrom()"
-          (ngModelChange)="onDateChange($event)"
-          class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none w-full sm:w-auto"
-        />
-      </div>
-
-      <!-- Volume Summary -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div
-          class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-        >
-          <p class="text-xs text-on-surface-variant uppercase">
-            Total Volume (24h)
-          </p>
-          <p class="text-xl font-bold text-on-surface mt-1">
-            <span class="text-lg opacity-50">₦</span
-            >{{ volume24h() | number: "1.0-0" : "en-NG" }}
-          </p>
-        </div>
-        <div
-          class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-        >
-          <p class="text-xs text-on-surface-variant uppercase">
-            Successful Transactions
-          </p>
-          <p class="text-xl font-bold text-on-surface mt-1">
-            {{ successCount() }}
-          </p>
-        </div>
-        <div
-          class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-        >
-          <p class="text-xs text-on-surface-variant uppercase">
-            Failed Transactions
-          </p>
-          <p class="text-xl font-bold text-error mt-1">{{ failedCount() }}</p>
-        </div>
-      </div>
-
-      <!-- Transactions Table -->
-      <div
-        class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-      >
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[800px]">
-            <thead>
-              <tr class="bg-surface-container text-left">
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Reference
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Type
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  From/To
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Amount
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (loading()) {
-                @for (n of [1, 2, 3, 4, 5]; track n; let i = $index) {
-                  <tr class="border-t border-surface-container">
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-32 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-28 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="100 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-36 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="200 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="300 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="400 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-24 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="500 + 'ms'"
-                      ></div>
-                    </td>
-                  </tr>
-                }
-              } @else {
-                @for (
-                  tx of filteredTransactions();
-                  track tx.id;
-                  let i = $index
-                ) {
-                  <tr
-                    class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
-                    [style.animation-delay]="i * 40 + 'ms'"
-                    [style.animation-fill-mode]="'forwards'"
-                  >
-                    <td class="px-4 sm:px-6 py-4">
-                      <p
-                        class="text-sm font-mono text-on-surface truncate max-w-[120px]"
-                      >
-                        {{ tx.reference }}
-                      </p>
-                      <p
-                        class="text-xs text-on-surface-variant truncate max-w-[150px]"
-                      >
-                        {{ tx.description }}
-                      </p>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div class="flex items-center gap-2">
-                        <span
-                          class="material-symbols-outlined text-sm shrink-0"
-                          [class]="getTypeColor(tx.type)"
+        <div class="ui-panel-body overflow-hidden">
+          <div class="ui-table-wrap">
+            <table class="ui-table md:min-w-[800px]">
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th class="hidden md:table-cell">Type</th>
+                  <th class="hidden md:table-cell">From/To</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th class="hidden md:table-cell">Date</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (loading()) {
+                  @for (n of [1, 2, 3, 4, 5]; track n) {
+                    <tr>
+                      <td><div class="ui-skel h-4 w-32"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-28"></div>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-36"></div>
+                      </td>
+                      <td><div class="ui-skel h-4 w-20"></div></td>
+                      <td><div class="ui-skel h-5 w-16 rounded-full"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-24"></div>
+                      </td>
+                      <td><div class="ui-skel ml-auto h-4 w-8"></div></td>
+                    </tr>
+                  }
+                } @else if (transactionsQuery.isError()) {
+                  <tr>
+                    <td [attr.colspan]="7">
+                      <div class="ui-empty">
+                        <svg
+                          [lucideIcon]="CircleAlertIcon"
+                          [size]="28"
+                          class="text-ui-danger"
+                        ></svg>
+                        <p>Couldn't load transactions.</p>
+                        <button
+                          type="button"
+                          class="ui-btn ui-btn-sm"
+                          (click)="transactionsQuery.refetch()"
                         >
-                          {{ getTypeIcon(tx.type) }}
-                        </span>
-                        <span class="text-sm text-on-surface">{{
-                          formatType(tx.type)
-                        }}</span>
+                          Try again
+                        </button>
                       </div>
                     </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <p class="text-sm text-on-surface truncate max-w-[120px]">
-                        {{ tx.senderName }}
-                      </p>
-                      <p
-                        class="text-xs text-on-surface-variant truncate max-w-[120px]"
-                      >
-                        → {{ tx.recipientName }}
-                      </p>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <p
-                        class="text-sm font-bold text-on-surface whitespace-nowrap"
-                      >
-                        <span class="text-on-surface-variant">₦</span
-                        >{{ tx.amount | number: "1.0-0" : "en-NG" }}
-                      </p>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <app-status-chip [status]="tx.status"></app-status-chip>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <p class="text-sm text-on-surface whitespace-nowrap">
-                        {{ tx.createdAt | date: "short" }}
-                      </p>
-                    </td>
                   </tr>
+                } @else {
+                  @for (tx of transactions(); track tx.id) {
+                    <tr>
+                      <td>
+                        <button
+                          type="button"
+                          class="max-w-[140px] truncate text-left font-mono text-[13px] text-ui-ink hover:text-ui-accent"
+                          [title]="tx.reference"
+                          (click)="viewTransaction(tx)"
+                        >
+                          {{ tx.reference }}
+                        </button>
+                        <p
+                          class="max-w-[160px] truncate text-xs text-ui-muted"
+                          [title]="tx.description"
+                        >
+                          {{ tx.description }}
+                        </p>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <div class="flex items-center gap-2">
+                          <span class="ui-icon-tile"
+                            ><svg
+                              [lucideIcon]="
+                                typeIcons[getTypeIcon(tx.type)] ??
+                                CreditCardIcon
+                              "
+                              [size]="14"
+                            ></svg></span
+                          ><span class="whitespace-nowrap">{{
+                            formatType(tx.type)
+                          }}</span>
+                        </div>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <div class="flex items-center gap-2.5">
+                          <span class="ui-avatar">{{
+                            (tx.senderName || "?").charAt(0)
+                          }}</span>
+                          <div class="min-w-0">
+                            <p
+                              class="max-w-[140px] truncate font-medium text-ui-ink"
+                              [title]="tx.senderName"
+                            >
+                              {{ tx.senderName }}
+                            </p>
+                            <p
+                              class="max-w-[140px] truncate text-xs text-ui-muted"
+                              [title]="tx.recipientName"
+                            >
+                              → {{ tx.recipientName }}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="whitespace-nowrap tabular-nums text-ui-ink">
+                        ₦{{ tx.amount | number: "1.0-0" : "en-NG" }}
+                      </td>
+                      <td><app-status-chip [status]="tx.status" /></td>
+                      <td
+                        class="hidden whitespace-nowrap text-ui-muted md:table-cell"
+                      >
+                        {{ tx.createdAt | date: "short" }}
+                      </td>
+                      <td>
+                        <div class="flex justify-end">
+                          <button
+                            type="button"
+                            class="ui-icon-btn"
+                            (click)="viewTransaction(tx)"
+                            aria-label="View transaction"
+                            title="View transaction"
+                          >
+                            <svg [lucideIcon]="EyeIcon" [size]="16"></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td [attr.colspan]="7">
+                        <div class="ui-empty">
+                          <svg
+                            [lucideIcon]="ReceiptTextIcon"
+                            [size]="28"
+                            class="text-ui-faint"
+                          ></svg>
+                          <p>No transactions found</p>
+                          @if (filtersActive()) {
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-sm"
+                              (click)="clearFilters()"
+                            >
+                              Clear filters
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
                 }
-              }
-            </tbody>
-          </table>
-        </div>
-
-        @if (!loading() && filteredTransactions().length === 0) {
-          <div class="text-center py-12">
-            <span
-              class="material-symbols-outlined text-4xl text-surface-variant"
-              >receipt_long_off</span
-            >
-            <p class="text-sm text-on-surface-variant mt-2">
-              No transactions found
-            </p>
+              </tbody>
+            </table>
           </div>
-        }
-
-        @if (hasMore()) {
-          <div
-            class="flex justify-center p-4 border-t border-surface-container"
-          >
-            <button
-              (click)="loadMore()"
-              [disabled]="isLoadingMore()"
-              class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
-            >
-              @if (isLoadingMore()) {
-                <span
-                  class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                ></span>
-                <span>Loading...</span>
-              } @else {
-                <span>Load more</span>
-                <span class="material-symbols-outlined text-sm"
-                  >expand_more</span
+          @if (transactions().length > 0) {
+            <div class="ui-table-foot">
+              <span>{{ transactions().length }} shown</span>
+              @if (hasMore()) {
+                <button
+                  type="button"
+                  (click)="loadMore()"
+                  [disabled]="isLoadingMore()"
+                  class="ui-btn ui-btn-sm"
                 >
+                  @if (isLoadingMore()) {
+                    <svg
+                      [lucideIcon]="LoaderIcon"
+                      [size]="15"
+                      class="animate-spin"
+                    ></svg
+                    ><span>Loading...</span>
+                  } @else {
+                    <span>Load more</span
+                    ><svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                  }
+                </button>
               }
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    @if (selectedTransactionId()) {
+      <div class="ui-overlay">
+        <div
+          class="ui-backdrop"
+          aria-hidden="true"
+          (click)="closeTransaction()"
+        ></div>
+        <div
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="closeTransaction()"
+        >
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">Transaction Details</h2>
+            <button
+              type="button"
+              class="ui-icon-btn"
+              (click)="closeTransaction()"
+              aria-label="Close"
+            >
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
             </button>
           </div>
-        }
+          <div class="ui-modal-body">
+            @if (transactionDetailQuery.isPending()) {
+              <div class="space-y-3 py-2">
+                <div class="ui-skel h-4 w-48"></div>
+                <div class="ui-skel h-4 w-32"></div>
+                <div class="ui-skel h-20 w-full"></div>
+                <div class="ui-skel h-4 w-40"></div>
+              </div>
+            } @else if (transactionDetailQuery.isError()) {
+              <div class="ui-empty">
+                <svg
+                  [lucideIcon]="CircleAlertIcon"
+                  [size]="28"
+                  class="text-ui-danger"
+                ></svg>
+                <p>Failed to load transaction details</p>
+                <button
+                  type="button"
+                  class="ui-btn ui-btn-sm"
+                  (click)="transactionDetailQuery.refetch()"
+                >
+                  Try again
+                </button>
+              </div>
+            } @else if (transactionDetailQuery.data(); as detail) {
+              <div class="space-y-5">
+                <dl class="ui-dl">
+                  <div class="min-w-0">
+                    <dt class="ui-dt">Reference</dt>
+                    <dd
+                      class="ui-dd cursor-pointer truncate"
+                      [copyToClipboard]="detail.transaction.reference"
+                      title="Click to copy reference"
+                    >
+                      {{ detail.transaction.reference }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="ui-dt">Status</dt>
+                    <dd class="ui-dd">
+                      <app-status-chip [status]="detail.transaction.status" />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="ui-dt">Type</dt>
+                    <dd class="ui-dd">
+                      {{ formatType(detail.transaction.type) }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="ui-dt">Amount</dt>
+                    <dd class="ui-dd tabular-nums">
+                      ₦{{
+                        detail.transaction.amount | number: "1.0-2" : "en-NG"
+                      }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="ui-dt">Sender → Recipient</dt>
+                    <dd class="ui-dd">
+                      {{ detail.transaction.senderName }} →
+                      {{ detail.transaction.recipientName }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="ui-dt">Description</dt>
+                    <dd class="ui-dd">{{ detail.transaction.description }}</dd>
+                  </div>
+                  <div>
+                    <dt class="ui-dt">Created</dt>
+                    <dd class="ui-dd">
+                      {{ detail.transaction.createdAt | date: "medium" }}
+                    </dd>
+                  </div>
+                </dl>
+                <section>
+                  <h3 class="mb-2 text-[13px] font-semibold text-ui-ink">
+                    Ledger entries
+                  </h3>
+                  @if (detail.journals.length === 0) {
+                    <p class="text-sm text-ui-muted">No ledger entries</p>
+                  }
+                  @for (journal of detail.journals; track journal.id) {
+                    <div class="mb-3 rounded-xl border border-ui-line">
+                      <div class="border-b border-ui-line px-3 py-2">
+                        <p class="text-sm font-medium text-ui-ink">
+                          {{ journal.kind }}
+                        </p>
+                        <p class="text-xs text-ui-muted">{{ journal.memo }}</p>
+                      </div>
+                      <div class="ui-table-wrap">
+                        <table class="ui-table">
+                          <thead>
+                            <tr>
+                              <th>Account code</th>
+                              <th>Side</th>
+                              <th>Amount</th>
+                              <th>Balance after</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (line of journal.lines; track line.id) {
+                              <tr>
+                                <td>{{ line.accountCode }}</td>
+                                <td>{{ line.side }}</td>
+                                <td class="tabular-nums">
+                                  ₦{{ line.amount | number: "1.0-2" : "en-NG" }}
+                                </td>
+                                <td class="tabular-nums">
+                                  @if ((line.balanceAfter ?? null) === null) {
+                                    —
+                                  } @else {
+                                    ₦{{
+                                      line.balanceAfter
+                                        | number: "1.0-2" : "en-NG"
+                                    }}
+                                  }
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  }
+                </section>
+              </div>
+            }
+          </div>
+        </div>
       </div>
-    </div>
+    }
   `,
 })
 export class TransactionsPageComponent {
   private adminService = inject(AdminService);
+  private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
-  // Date range triggers server refetch; other filters are client-side
-  dateFrom = signal("");
+  readonly ArrowLeftRightIcon = ArrowLeftRight;
+  readonly DownloadIcon = Download;
+  readonly BanknoteIcon = Banknote;
+  readonly SearchIcon = Search;
+  readonly ReceiptTextIcon = ReceiptText;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly LoaderIcon = LoaderCircle;
+  readonly CreditCardIcon = CreditCard;
+  readonly CircleAlertIcon = CircleAlert;
+  readonly EyeIcon = Eye;
+  readonly XIcon = X;
+  readonly typeIcons: Record<string, LucideIcon> = {
+    add_circle: CirclePlus,
+    payments: Banknote,
+    send_money: Send,
+    account_balance: Landmark,
+    receipt: Receipt,
+    swap_horiz: ArrowLeftRight,
+    payment: CreditCard,
+  };
 
-  searchQuery = signal("");
-  typeFilter = signal("");
-  statusFilter = signal("");
+  dateFrom = signal(this.route.snapshot.queryParamMap.get("from") ?? "");
+  dateTo = signal(this.route.snapshot.queryParamMap.get("to") ?? "");
+  searchInput = signal(
+    this.route.snapshot.queryParamMap.get("reference") ?? "",
+  );
+  referenceFilter = signal(this.searchInput().trim());
+  typeFilter = signal(this.route.snapshot.queryParamMap.get("type") ?? "");
+  statusFilter = signal(this.route.snapshot.queryParamMap.get("status") ?? "");
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.searchTimer) clearTimeout(this.searchTimer);
+    });
+  }
+
+  metricsQuery = injectQuery(() => ({
+    queryKey: ["dashboard-metrics"],
+    queryFn: () => lastValueFrom(this.adminService.getDashboardMetrics()),
+  }));
 
   transactionsQuery = injectQuery(() => ({
-    queryKey: ["transactions", { from: this.dateFrom() }],
+    queryKey: [
+      "transactions",
+      {
+        status: this.statusFilter(),
+        type: this.typeFilter(),
+        reference: this.referenceFilter(),
+        from: this.dateFrom(),
+        to: this.dateTo(),
+      },
+    ],
     queryFn: () =>
       lastValueFrom(
         this.adminService.getTransactions({
           limit: 20,
-          from: this.dateFrom() || undefined,
+          status: this.statusFilter() || undefined,
+          type: this.typeFilter() || undefined,
+          reference: this.referenceFilter() || undefined,
+          from: dayStart(this.dateFrom()),
+          to: dayEnd(this.dateTo()),
         }),
       ),
     placeholderData: keepPreviousData,
   }));
 
-  loading = computed(() => this.transactionsQuery.isPending());
+  selectedTransactionId = signal<string | null>(null);
+  transactionDetailQuery = injectQuery(() => ({
+    queryKey: ["transaction-detail", this.selectedTransactionId()],
+    queryFn: () =>
+      lastValueFrom(
+        this.adminService.getTransaction(this.selectedTransactionId()!),
+      ),
+    enabled: () => !!this.selectedTransactionId(),
+  }));
 
+  loading = computed(() => this.transactionsQuery.isPending());
   rawAppendedTransactions = signal<Transaction[]>([]);
   rawHasMore = signal<boolean | null>(null);
-  hasMore = computed(() => {
-    if (this.rawHasMore() !== null) return this.rawHasMore()!;
-    return this.transactionsQuery.data()?.hasMore ?? false;
-  });
   nextCursor = signal<string | null>(null);
   isLoadingMore = signal(false);
-
+  hasMore = computed(
+    () => this.rawHasMore() ?? this.transactionsQuery.data()?.hasMore ?? false,
+  );
   transactions = computed<Transaction[]>(() => {
     const response = this.transactionsQuery.data();
-    const queryItems =
+    const items =
       response?.items ||
       (response as unknown as { content?: Transaction[] })?.content ||
       [];
-    const all = [...queryItems, ...this.rawAppendedTransactions()];
-    return all;
+    return [...items, ...this.rawAppendedTransactions()];
   });
 
-  totalItems = computed(
-    () =>
-      (this.transactionsQuery.data() as unknown as { totalElements?: number })
-        ?.totalElements || this.transactions().length,
-  );
-  totalPages = computed(
-    () =>
-      (this.transactionsQuery.data() as unknown as { totalPages?: number })
-        ?.totalPages || 1,
-  );
+  onSearch(value: string) {
+    this.searchInput.set(value);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.referenceFilter.set(value.trim());
+      this.filtersChanged();
+    }, 300);
+  }
+  clearSearch() {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchInput.set("");
+    this.referenceFilter.set("");
+    this.filtersChanged();
+  }
+  onTypeChange(value: string) {
+    this.typeFilter.set(value);
+    this.filtersChanged();
+  }
+  onStatusChange(value: string) {
+    this.statusFilter.set(value);
+    this.filtersChanged();
+  }
+  onDateFromChange(value: string) {
+    this.dateFrom.set(value);
+    this.filtersChanged();
+  }
+  onDateToChange(value: string) {
+    this.dateTo.set(value);
+    this.filtersChanged();
+  }
 
-  onDateChange(val: string) {
-    this.dateFrom.set(val);
+  private filtersChanged() {
+    this.resetPages();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        from: this.dateFrom() || null,
+        to: this.dateTo() || null,
+        status: this.statusFilter() || null,
+        type: this.typeFilter() || null,
+        reference: this.referenceFilter() || null,
+      },
+      replaceUrl: true,
+    });
+  }
+  private resetPages() {
     this.rawAppendedTransactions.set([]);
     this.rawHasMore.set(null);
     this.nextCursor.set(null);
+  }
+  filtersActive() {
+    return !!(
+      this.referenceFilter() ||
+      this.dateFrom() ||
+      this.dateTo() ||
+      this.statusFilter() ||
+      this.typeFilter()
+    );
+  }
+  clearFilters() {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchInput.set("");
+    this.referenceFilter.set("");
+    this.dateFrom.set("");
+    this.dateTo.set("");
+    this.statusFilter.set("");
+    this.typeFilter.set("");
+    this.filtersChanged();
+  }
+  exportCsv() {
+    downloadCsv("transactions", this.transactions(), [
+      { label: "Reference", value: (tx) => tx.reference },
+      { label: "Type", value: (tx) => tx.type },
+      { label: "Sender", value: (tx) => tx.senderName },
+      { label: "Recipient", value: (tx) => tx.recipientName },
+      { label: "Amount", value: (tx) => tx.amount },
+      { label: "Status", value: (tx) => tx.status },
+      { label: "Created", value: (tx) => tx.createdAt },
+    ]);
+  }
+  viewTransaction(tx: { id: string }) {
+    this.selectedTransactionId.set(tx.id);
+  }
+  closeTransaction() {
+    this.selectedTransactionId.set(null);
   }
 
   loadMore() {
@@ -379,7 +711,11 @@ export class TransactionsPageComponent {
       .getTransactions({
         limit: 20,
         cursor,
-        from: this.dateFrom() || undefined,
+        status: this.statusFilter() || undefined,
+        type: this.typeFilter() || undefined,
+        reference: this.referenceFilter() || undefined,
+        from: dayStart(this.dateFrom()),
+        to: dayEnd(this.dateTo()),
       })
       .subscribe({
         next: (res) => {
@@ -391,61 +727,17 @@ export class TransactionsPageComponent {
           this.rawHasMore.set(res.hasMore);
           this.isLoadingMore.set(false);
         },
-        error: () => {
+        error: (err: unknown) => {
           this.isLoadingMore.set(false);
+          const message = (err as { error?: { message?: string } })?.error
+            ?.message;
+          this.toast.show(
+            "error",
+            message || "Failed to load more transactions",
+          );
         },
       });
   }
-
-  filteredTransactions = computed(() => {
-    let result = this.transactions();
-    const query = this.searchQuery().toLowerCase();
-    const type = this.typeFilter();
-    const status = this.statusFilter();
-
-    if (query) {
-      result = result.filter(
-        (t) =>
-          t.reference.toLowerCase().includes(query) ||
-          t.senderName.toLowerCase().includes(query) ||
-          t.recipientName.toLowerCase().includes(query) ||
-          t.description.toLowerCase().includes(query),
-      );
-    }
-
-    if (type) result = result.filter((t) => t.type === type);
-    if (status) result = result.filter((t) => t.status === status);
-
-    return result;
-  });
-
-  volume24h = computed(() =>
-    this.transactions()
-      .filter(
-        (t) =>
-          t.status === "SUCCESS" &&
-          new Date(t.createdAt) > new Date(Date.now() - 86400000),
-      )
-      .reduce((sum, t) => sum + t.amount, 0),
-  );
-
-  successCount = computed(
-    () =>
-      this.transactions().filter(
-        (t) =>
-          t.status === "SUCCESS" &&
-          new Date(t.createdAt) > new Date(Date.now() - 86400000),
-      ).length,
-  );
-
-  failedCount = computed(
-    () =>
-      this.transactions().filter(
-        (t) =>
-          t.status === "FAILED" &&
-          new Date(t.createdAt) > new Date(Date.now() - 86400000),
-      ).length,
-  );
 
   formatType(type: string): string {
     return type
@@ -453,7 +745,6 @@ export class TransactionsPageComponent {
       .toLowerCase()
       .replace(/\b\w/g, (l) => l.toUpperCase());
   }
-
   getTypeIcon(type: string): string {
     const icons: Record<string, string> = {
       WALLET_FUNDING: "add_circle",
@@ -464,17 +755,5 @@ export class TransactionsPageComponent {
       P2P_TRANSFER: "swap_horiz",
     };
     return icons[type] || "payment";
-  }
-
-  getTypeColor(type: string): string {
-    const colors: Record<string, string> = {
-      WALLET_FUNDING: "text-tertiary",
-      LOAN_DISBURSEMENT: "text-primary",
-      NIP_TRANSFER: "text-secondary",
-      LOAN_REPAYMENT: "text-primary",
-      BILL_PAYMENT: "text-on-surface-variant",
-      P2P_TRANSFER: "text-secondary",
-    };
-    return colors[type] || "text-on-surface-variant";
   }
 }

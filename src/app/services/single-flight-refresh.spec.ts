@@ -7,6 +7,7 @@ import {
 import { AuthService, LoginSuccessResponse } from "./auth.service";
 import { Router } from "@angular/router";
 import { vi } from "vitest";
+import { ADMIN_AUTH } from "../core/api";
 
 describe("Single-Flight Token Refresh", () => {
   let authService: AuthService;
@@ -69,8 +70,8 @@ describe("Single-Flight Token Refresh", () => {
     authService.refreshToken().subscribe((res) => (result2 = res));
     authService.refreshToken().subscribe((res) => (result3 = res));
 
-    // Exactly 1 HTTP POST to /api/auth/refresh must be issued with empty body
-    const req = httpMock.expectOne("/api/auth/refresh");
+    // Exactly 1 HTTP POST to the admin refresh endpoint, with an empty body
+    const req = httpMock.expectOne(`${ADMIN_AUTH}/refresh`);
     expect(req.request.method).toBe("POST");
     expect(req.request.body).toEqual({});
 
@@ -94,15 +95,15 @@ describe("Single-Flight Token Refresh", () => {
     let error2: unknown;
 
     authService.refreshToken().subscribe({
-      next: () => fail("should have failed"),
+      next: () => expect.unreachable("should have failed"),
       error: (err) => (error1 = err),
     });
     authService.refreshToken().subscribe({
-      next: () => fail("should have failed"),
+      next: () => expect.unreachable("should have failed"),
       error: (err) => (error2 = err),
     });
 
-    const req = httpMock.expectOne("/api/auth/refresh");
+    const req = httpMock.expectOne(`${ADMIN_AUTH}/refresh`);
     expect(req.request.body).toEqual({});
     req.flush(
       { errorCode: "TOKEN_EXPIRED", message: "Refresh token expired" },
@@ -120,13 +121,13 @@ describe("Single-Flight Token Refresh", () => {
   it("should allow a new refresh request after previous in-flight request finishes", async () => {
     // First refresh cycle
     authService.refreshToken().subscribe();
-    const req1 = httpMock.expectOne("/api/auth/refresh");
+    const req1 = httpMock.expectOne(`${ADMIN_AUTH}/refresh`);
     expect(req1.request.body).toEqual({});
     req1.flush(mockRefreshSuccess);
 
     // Second refresh cycle later
     authService.refreshToken().subscribe();
-    const req2 = httpMock.expectOne("/api/auth/refresh");
+    const req2 = httpMock.expectOne(`${ADMIN_AUTH}/refresh`);
     expect(req2.request.body).toEqual({});
     req2.flush(mockRefreshSuccess);
   });
@@ -138,7 +139,7 @@ describe("Single-Flight Token Refresh", () => {
     let authResult: boolean | undefined;
     authService.ensureInitialized().subscribe((res) => (authResult = res));
 
-    const req = httpMock.expectOne("/api/auth/refresh");
+    const req = httpMock.expectOne(`${ADMIN_AUTH}/refresh`);
     expect(req.request.body).toEqual({});
     req.flush(mockRefreshSuccess);
 
@@ -154,7 +155,7 @@ describe("Single-Flight Token Refresh", () => {
     let authResult: boolean | undefined;
     authService.ensureInitialized().subscribe((res) => (authResult = res));
 
-    const req = httpMock.expectOne("/api/auth/refresh");
+    const req = httpMock.expectOne(`${ADMIN_AUTH}/refresh`);
     req.flush(
       { errorCode: "UNAUTHORIZED", message: "No refresh cookie" },
       { status: 401, statusText: "Unauthorized" },

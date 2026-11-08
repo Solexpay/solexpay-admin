@@ -1,10 +1,5 @@
 import "../../../test";
-import {
-  ComponentFixture,
-  TestBed,
-  fakeAsync,
-  tick,
-} from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { RouterTestingModule } from "@angular/router/testing";
 import { Router } from "@angular/router";
@@ -63,24 +58,23 @@ describe("SidebarComponent", () => {
     });
   });
 
-  it("should identify active route index correctly", fakeAsync(() => {
+  it("should identify active route index correctly", async () => {
     // Navigate to dashboard
-    router.navigateByUrl("/dashboard");
-    tick();
+    await router.navigateByUrl("/dashboard");
     fixture.detectChanges();
     expect(component.activeIndex()).toBe(0); // '/dashboard' is first item
 
     // Navigate to users
-    router.navigateByUrl("/users");
-    tick();
+    await router.navigateByUrl("/users");
     fixture.detectChanges();
     expect(component.activeIndex()).toBe(1); // '/users' is second item
-  }));
+  });
 
   it("should emit closeSidebar output when navigation link clicked", () => {
     const closeSpy = vi.spyOn(component.closeSidebar, "emit");
     const firstLink = fixture.debugElement.query(By.css("a"));
-    firstLink.triggerEventHandler("click", null);
+    // RouterLink reads the mouse button, so pass a real click event.
+    firstLink.triggerEventHandler("click", new MouseEvent("click"));
     expect(closeSpy).toHaveBeenCalled();
   });
 });

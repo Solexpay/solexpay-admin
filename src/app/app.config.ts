@@ -1,20 +1,24 @@
 import { ApplicationConfig, inject, ErrorHandler } from "@angular/core";
-import { provideRouter } from "@angular/router";
+import { TitleStrategy, provideRouter } from "@angular/router";
 import {
   provideHttpClient,
   withInterceptors,
   HttpHandlerFn,
   HttpRequest,
   HttpErrorResponse,
+  withXhr,
 } from "@angular/common/http";
 import {
   provideAngularQuery,
   QueryClient,
 } from "@tanstack/angular-query-experimental";
+import { provideLucideConfig } from "@lucide/angular";
 import { catchError, switchMap, throwError } from "rxjs";
 import { routes } from "./app.routes";
 import { AuthService } from "./services/auth.service";
 import { GlobalErrorHandler } from "./core/global-error-handler";
+import { apiInterceptor } from "./core/api.interceptor";
+import { PageTitleStrategy } from "./core/page-title.strategy";
 
 /**
  * Auth interceptor:
@@ -42,10 +46,11 @@ export function authInterceptor(
     catchError((err: HttpErrorResponse) => {
       if (
         err.status === 401 &&
-        !req.url.includes("/api/auth/login") &&
-        !req.url.includes("/api/auth/refresh") &&
-        !req.url.includes("/api/auth/logout") &&
-        !req.url.includes("/api/auth/totp/")
+        !req.url.includes("/auth/admin/login") &&
+        !req.url.includes("/auth/admin/refresh") &&
+        !req.url.includes("/auth/admin/logout") &&
+        !req.url.includes("/auth/admin/totp/") &&
+        !req.url.includes("/auth/school/")
       ) {
         return authService.refreshToken().pipe(
           switchMap((res) => {
@@ -57,7 +62,7 @@ export function authInterceptor(
             return next(retriedReq);
           }),
           catchError((refreshErr) => {
-            authService.logout();
+            authService.logout("expired");
             return throwError(() => refreshErr);
           }),
         );
@@ -69,9 +74,17 @@ export function authInterceptor(
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // Scrolling is reset by the admin layout: pages scroll inside <main>,
+    // which the router's window-based scroll restoration never touches.
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    { provide: TitleStrategy, useClass: PageTitleStrategy },
+    provideHttpClient(
+      withXhr(),
+      withInterceptors([apiInterceptor, authInterceptor]),
+    ),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
+    // Thin strokes like the rest of the console.
+    provideLucideConfig({ strokeWidth: 1.75 }),
     provideAngularQuery(
       new QueryClient({
         defaultOptions: {

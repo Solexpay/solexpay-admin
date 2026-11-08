@@ -24,9 +24,14 @@ class TestHostComponent {}
 describe("TooltipDirective", () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let buttonEl: HTMLButtonElement;
+  // Each test starts well after the previous one's last tooltip closed,
+  // so the "warm neighbour" shortcut doesn't leak between tests.
+  let clock = Date.now();
 
   beforeEach(async () => {
     vi.useFakeTimers();
+    clock += 10_000;
+    vi.setSystemTime(clock);
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [TestHostComponent],
@@ -70,6 +75,23 @@ describe("TooltipDirective", () => {
     expect(document.body.querySelector(".animate-tooltip-in")).toBeNull();
   });
 
+  it("should remove its tooltip when the host is destroyed", () => {
+    buttonEl.dispatchEvent(new Event("focus"));
+    expect(document.body.querySelector(".animate-tooltip-in")).not.toBeNull();
+
+    fixture.destroy();
+
+    expect(document.body.querySelector(".animate-tooltip-in")).toBeNull();
+  });
+
+  it("should not show a pending tooltip after the host is destroyed", () => {
+    buttonEl.dispatchEvent(new MouseEvent("mouseenter"));
+    fixture.destroy();
+    vi.advanceTimersByTime(200);
+
+    expect(document.body.querySelector(".animate-tooltip-in")).toBeNull();
+  });
+
   it("should show tooltip on mouseenter after delay, and remove it on mouseleave", () => {
     expect(document.body.querySelector(".animate-tooltip-in")).toBeNull();
 
@@ -91,6 +113,25 @@ describe("TooltipDirective", () => {
     fixture.detectChanges();
 
     expect(document.body.querySelector(".animate-tooltip-in")).toBeNull();
+  });
+
+  it("should skip the delay right after another tooltip closed", () => {
+    buttonEl.dispatchEvent(new Event("focus"));
+    buttonEl.dispatchEvent(new Event("blur"));
+    vi.advanceTimersByTime(100);
+
+    buttonEl.dispatchEvent(new MouseEvent("mouseenter"));
+
+    expect(document.body.querySelector(".animate-tooltip-in")).not.toBeNull();
+  });
+
+  it("should describe its host while shown", () => {
+    buttonEl.dispatchEvent(new Event("focus"));
+    const tooltip = document.body.querySelector('[role="tooltip"]');
+    expect(buttonEl.getAttribute("aria-describedby")).toBe(tooltip?.id);
+
+    buttonEl.dispatchEvent(new Event("blur"));
+    expect(buttonEl.hasAttribute("aria-describedby")).toBe(false);
   });
 
   it("should cancel tooltip delay if mouseleave occurs before show", () => {

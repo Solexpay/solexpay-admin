@@ -56,7 +56,7 @@ describe("TopBarComponent", () => {
 
   it("should toggle sidebar output when menu button is clicked", () => {
     const toggleSpy = vi.spyOn(component.toggleSidebar, "emit");
-    const menuBtn = fixture.debugElement.query(By.css("button.lg\\:hidden"));
+    const menuBtn = fixture.debugElement.query(By.css("[data-testid=menu]"));
     menuBtn.triggerEventHandler("click", null);
     expect(toggleSpy).toHaveBeenCalled();
   });
@@ -74,8 +74,9 @@ describe("TopBarComponent", () => {
   });
 
   it("should call auth logout when logout button is clicked", () => {
-    // Find logout button (text contains Logout or has logout icon)
-    const logoutBtn = fixture.debugElement.query(By.css("button.bg-primary"));
+    const logoutBtn = fixture.debugElement.query(
+      By.css("[data-testid=logout]"),
+    );
     logoutBtn.triggerEventHandler("click", null);
     expect(mockAuth.logout).toHaveBeenCalled();
   });

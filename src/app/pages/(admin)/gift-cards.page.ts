@@ -8,499 +8,577 @@ import {
 } from "@tanstack/angular-query-experimental";
 import { lastValueFrom } from "rxjs";
 import {
+  LucideDynamicIcon,
+  LucideChevronDown as ChevronDown,
+  LucideCircleAlert as CircleAlert,
+  LucideEye as Eye,
+  LucideGift as Gift,
+  LucideInfo as Info,
+  LucideLoaderCircle as LoaderCircle,
+  LucideX as X,
+} from "@lucide/angular";
+import {
   AdminService,
   GiftCardOrder,
   CursorPage,
 } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
 import { StatusChipComponent } from "../../components/ui/status-chip.component";
-import { RippleDirective } from "../../directives/ripple.directive";
+import { PageHeaderComponent } from "../../components/ui/page-header.component";
+import { ModalDirective } from "../../directives/modal.directive";
+import { CopyToClipboardDirective } from "../../directives/copy-to-clipboard.directive";
 
 @Component({
   selector: "app-gift-cards",
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatusChipComponent, RippleDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideDynamicIcon,
+    StatusChipComponent,
+    PageHeaderComponent,
+    ModalDirective,
+    CopyToClipboardDirective,
+  ],
   template: `
-    <div class="space-y-6">
-      <!-- Page header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-      >
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">
-            Gift Card Orders
-          </h1>
-          <p class="text-sm text-on-surface-variant mt-1">
-            Manage digital gift cards, delivery fulfillment, and exceptions
-          </p>
-        </div>
-      </div>
+    <app-page-header
+      title="Gift Card Orders"
+      [icon]="GiftIcon"
+      subtitle="Manage digital gift cards, delivery fulfillment, and exceptions"
+    />
 
-      <!-- Filters -->
-      <div
-        class="bg-surface-container-lowest rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-      >
-        <div
-          class="flex gap-2 p-1 bg-surface-container rounded-xl overflow-x-auto"
-        >
-          @for (tab of statusTabs; track tab.value) {
-            <button
-              (click)="onStatusChange(tab.value)"
-              class="px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
-              [class]="
-                statusFilter() === tab.value
-                  ? 'bg-primary text-on-primary'
-                  : 'text-on-surface-variant hover:bg-surface-container-high'
-              "
+    <div class="space-y-4">
+      <!-- At a glance -->
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        @for (card of statCards(); track card.key) {
+          <button
+            type="button"
+            class="gc-stat group text-left"
+            [class.gc-stat-on]="
+              statusFilter() === card.filter && card.key !== 'risk'
+            "
+            (click)="onStatusChange(card.filter)"
+          >
+            <span class="gc-stat-dot" [class]="card.tone"></span>
+            <span class="text-[12px] font-medium text-ui-muted">{{
+              card.label
+            }}</span>
+            <span
+              class="mt-1 block text-[26px] font-semibold leading-8 tracking-tight tabular-nums text-ui-ink"
             >
-              {{ tab.label }}
-            </button>
-          }
-        </div>
+              @if (statsLoading()) {
+                <span class="ui-skel inline-block h-7 w-14 align-middle"></span>
+              } @else {
+                {{ card.value }}
+              }
+            </span>
+            <span class="mt-0.5 block text-[12px] text-ui-faint">{{
+              card.hint
+            }}</span>
+          </button>
+        }
       </div>
 
-      <!-- Orders Table -->
-      <div
-        class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-      >
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[800px]">
-            <thead>
-              <tr class="bg-surface-container text-left">
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Order ID & User
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Product / Brand
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Face Value
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Amount NGN
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Date
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (loading()) {
-                @for (n of [1, 2, 3, 4]; track n) {
-                  <tr class="border-t border-surface-container animate-pulse">
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-28 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-24 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-20 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-24 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded ml-auto"
-                      ></div>
-                    </td>
-                  </tr>
+      <!-- Orders -->
+      <section class="ui-panel">
+        <div class="ui-panel-head">
+          <h2 class="ui-panel-title">Orders</h2>
+          <div class="gc-seg" role="tablist" aria-label="Filter orders">
+            @for (tab of statusTabs; track tab.value) {
+              <button
+                type="button"
+                class="gc-seg-item"
+                role="tab"
+                [attr.aria-selected]="statusFilter() === tab.value"
+                [class.gc-seg-on]="statusFilter() === tab.value"
+                (click)="onStatusChange(tab.value)"
+              >
+                {{ tab.label }}
+                @if (countFor(tab.value) !== null) {
+                  <span class="gc-seg-count">{{ countFor(tab.value) }}</span>
                 }
-              } @else {
-                @for (order of orders(); track order.id) {
-                  <tr
-                    class="border-t border-surface-container hover:bg-surface-container-low transition-colors"
-                  >
-                    <td class="px-6 py-4">
-                      <p
-                        class="text-sm font-semibold text-on-surface font-mono"
-                      >
-                        {{ order.id }}
-                      </p>
-                      <p class="text-xs text-on-surface-variant">
-                        User: {{ order.userId }}
-                      </p>
-                    </td>
-                    <td class="px-6 py-4">
-                      <p class="text-sm font-semibold text-on-surface">
-                        {{ order.brand }}
-                      </p>
-                      <p class="text-xs text-on-surface-variant">
-                        {{ order.product }}
-                      </p>
-                    </td>
-                    <td class="px-6 py-4 text-sm font-medium text-on-surface">
-                      {{ order.faceValue }}
-                    </td>
-                    <td class="px-6 py-4 text-sm font-bold text-on-surface">
-                      ₦{{ order.amountNgn | number: "1.0-0" : "en-NG" }}
-                    </td>
-                    <td class="px-6 py-4">
-                      <app-status-chip
-                        [status]="order.status"
-                      ></app-status-chip>
-                    </td>
-                    <td
-                      class="px-6 py-4 text-sm text-on-surface-variant whitespace-nowrap"
-                    >
-                      {{ order.createdAt | date: "mediumDate" }}
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <div class="flex items-center justify-end gap-2">
+              </button>
+            }
+          </div>
+        </div>
+        <div class="ui-panel-body overflow-hidden">
+          <div class="ui-table-wrap">
+            <table class="ui-table md:min-w-[760px]">
+              <thead>
+                <tr>
+                  <th>Gift card</th>
+                  <th class="hidden md:table-cell">Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th class="hidden md:table-cell">Placed</th>
+                  <th class="text-right">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (loading()) {
+                  @for (n of [1, 2, 3, 4]; track n) {
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <div class="ui-skel size-9 rounded-xl"></div>
+                          <div class="space-y-1.5">
+                            <div class="ui-skel h-4 w-32"></div>
+                            <div class="ui-skel h-3 w-20"></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-24"></div>
+                      </td>
+                      <td><div class="ui-skel h-4 w-20"></div></td>
+                      <td><div class="ui-skel h-5 w-16 rounded-full"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-16"></div>
+                      </td>
+                      <td><div class="ui-skel ml-auto h-4 w-16"></div></td>
+                    </tr>
+                  }
+                } @else if (ordersQuery.isError()) {
+                  <tr>
+                    <td [attr.colspan]="6">
+                      <div class="ui-empty">
+                        <svg
+                          [lucideIcon]="CircleAlertIcon"
+                          [size]="28"
+                          class="text-ui-danger"
+                        ></svg>
+                        <p>Couldn't load gift card orders.</p>
                         <button
-                          (click)="openDetail(order)"
-                          class="p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors"
-                          title="View Details"
+                          type="button"
+                          class="ui-btn ui-btn-sm"
+                          (click)="ordersQuery.refetch()"
                         >
-                          <span class="material-symbols-outlined text-sm"
-                            >visibility</span
-                          >
+                          Try again
                         </button>
-                        @if (
-                          order.status === "UNKNOWN" ||
-                          order.status === "PENDING"
-                        ) {
-                          <button
-                            solexRipple
-                            (click)="openResolveDelivered(order)"
-                            class="px-2.5 py-1.5 bg-tertiary text-on-tertiary rounded-lg text-xs font-bold hover:brightness-110"
-                          >
-                            Deliver
-                          </button>
-                          <button
-                            solexRipple
-                            (click)="openResolveFailed(order)"
-                            class="px-2.5 py-1.5 bg-error-container text-on-error-container rounded-lg text-xs font-bold hover:bg-error hover:text-on-error"
-                          >
-                            Fail
-                          </button>
-                        }
                       </div>
                     </td>
                   </tr>
+                } @else {
+                  @for (order of orders(); track order.id) {
+                    <tr class="gc-row">
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <span
+                            class="gc-tile"
+                            [style.--brand]="brand(order).color"
+                            aria-hidden="true"
+                            >{{ brand(order).initial }}</span
+                          >
+                          <div class="min-w-0">
+                            <p class="truncate font-medium text-ui-ink">
+                              {{ order.productName }}
+                            </p>
+                            <p
+                              class="font-mono text-[11.5px] text-ui-faint"
+                              [copyToClipboard]="order.reference"
+                            >
+                              {{ order.reference }}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <div class="flex items-center gap-2.5">
+                          <span class="gc-avatar" aria-hidden="true">{{
+                            initials(order.userName)
+                          }}</span>
+                          <div class="min-w-0">
+                            <p class="truncate text-ui-ink">
+                              {{ order.userName }}
+                            </p>
+                            <p
+                              class="font-mono text-[11.5px] text-ui-faint"
+                              [copyToClipboard]="order.userId"
+                            >
+                              {{ order.userId }}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="whitespace-nowrap">
+                        <p class="font-semibold tabular-nums text-ui-ink">
+                          ₦{{ order.price | number: "1.0-0" : "en-NG" }}
+                        </p>
+                        <p class="text-[11.5px] text-ui-faint">
+                          {{ order.faceValue }} face value
+                        </p>
+                      </td>
+                      <td>
+                        @if (order.status === "UNKNOWN") {
+                          <span class="ui-badge ui-badge-warning"
+                            >Needs review</span
+                          >
+                        } @else {
+                          <app-status-chip [status]="order.status" />
+                        }
+                      </td>
+                      <td class="hidden whitespace-nowrap md:table-cell">
+                        <p class="text-ui-body">{{ ago(order.createdAt) }}</p>
+                        <p class="text-[11.5px] text-ui-faint">
+                          {{ order.createdAt | date: "MMM d, h:mm a" }}
+                        </p>
+                      </td>
+                      <td>
+                        <div class="flex items-center justify-end gap-1.5">
+                          @if (
+                            order.status === "UNKNOWN" ||
+                            order.status === "PENDING"
+                          ) {
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-sm border-ui-success-line bg-ui-success-soft text-ui-success shadow-none hover:bg-green-100"
+                              (click)="openResolveDelivered(order)"
+                            >
+                              Deliver
+                            </button>
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-sm ui-btn-ghost text-ui-danger hover:bg-red-50"
+                              (click)="openResolveFailed(order)"
+                            >
+                              Fail
+                            </button>
+                          }
+                          <button
+                            type="button"
+                            class="ui-icon-btn"
+                            (click)="openDetail(order)"
+                            title="View details"
+                            aria-label="View details"
+                          >
+                            <svg [lucideIcon]="EyeIcon" [size]="16"></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td [attr.colspan]="6">
+                        <div class="ui-empty py-10">
+                          <span class="gc-empty-art" aria-hidden="true">
+                            <svg [lucideIcon]="GiftIcon" [size]="26"></svg>
+                          </span>
+                          @if (statusFilter() === "UNKNOWN") {
+                            <p class="font-medium text-ui-ink">All caught up</p>
+                            <p class="text-ui-muted">
+                              No orders are waiting on you.
+                            </p>
+                          } @else {
+                            <p class="font-medium text-ui-ink">
+                              No gift card orders here
+                            </p>
+                            <p class="text-ui-muted">
+                              Try another filter to see more.
+                            </p>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
                 }
-              }
-            </tbody>
-          </table>
-        </div>
-
-        @if (!loading() && orders().length === 0) {
-          <div class="text-center py-12">
-            <span
-              class="material-symbols-outlined text-4xl text-surface-variant"
-              >card_membership</span
-            >
-            <p class="text-sm text-on-surface-variant mt-2">
-              No gift card orders found
-            </p>
+              </tbody>
+            </table>
           </div>
-        }
 
-        @if (hasMore()) {
-          <div
-            class="flex justify-center p-4 border-t border-surface-container"
-          >
+          @if (hasMore()) {
+            <div class="ui-table-foot">
+              <span>{{ orders().length }} shown</span>
+              <button
+                type="button"
+                class="ui-btn ui-btn-sm"
+                (click)="loadMore()"
+                [disabled]="isLoadingMore()"
+              >
+                @if (isLoadingMore()) {
+                  <svg
+                    [lucideIcon]="LoaderIcon"
+                    [size]="15"
+                    class="animate-spin"
+                  ></svg>
+                  <span>Loading...</span>
+                } @else {
+                  <span>Load more</span>
+                  <svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                }
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    <!-- Detail modal -->
+    @if (selectedOrder()) {
+      <div class="ui-overlay">
+        <div
+          class="ui-backdrop"
+          aria-hidden="true"
+          (click)="selectedOrder.set(null)"
+        ></div>
+        <div
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="selectedOrder.set(null)"
+        >
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">Gift Card Order Details</h2>
             <button
-              (click)="loadMore()"
-              [disabled]="isLoadingMore()"
-              class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
+              type="button"
+              class="ui-icon-btn"
+              (click)="selectedOrder.set(null)"
+              aria-label="Close"
             >
-              @if (isLoadingMore()) {
-                <span
-                  class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                ></span>
-                <span>Loading...</span>
-              } @else {
-                <span>Load more</span>
-                <span class="material-symbols-outlined text-sm"
-                  >expand_more</span
-                >
-              }
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
             </button>
           </div>
-        }
-      </div>
 
-      <!-- Detail Modal -->
-      @if (selectedOrder()) {
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/30 backdrop-blur-md"
-        >
-          <div
-            class="relative bg-surface-container-lowest rounded-2xl p-6 w-full max-w-lg shadow-[0_32px_64px_rgba(25,28,29,0.12)]"
-          >
-            <div
-              class="flex items-center justify-between mb-4 border-b border-surface-container pb-3"
-            >
-              <h2 class="text-lg font-bold text-on-surface">
-                Gift Card Order Details
-              </h2>
-              <button
-                (click)="selectedOrder.set(null)"
-                class="p-1 rounded-lg hover:bg-surface-container-high text-on-surface-variant"
-              >
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <div class="space-y-3 text-sm">
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Order ID</span>
-                <span class="font-mono font-medium">{{
-                  selectedOrder()!.id
-                }}</span>
-              </div>
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">User ID</span>
-                <span class="font-mono">{{ selectedOrder()!.userId }}</span>
-              </div>
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Product</span>
-                <span class="font-semibold"
-                  >{{ selectedOrder()!.brand }} -
-                  {{ selectedOrder()!.product }}</span
+          <div class="ui-modal-body">
+            <dl class="ui-dl">
+              <div>
+                <dt class="ui-dt">Order ID</dt>
+                <dd
+                  class="ui-dd font-mono"
+                  [copyToClipboard]="selectedOrder()!.id"
                 >
+                  {{ selectedOrder()!.id }}
+                </dd>
               </div>
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Face Value</span>
-                <span>{{ selectedOrder()!.faceValue }}</span>
-              </div>
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Amount</span>
-                <span class="font-bold"
-                  >₦{{
-                    selectedOrder()!.amountNgn | number: "1.0-0" : "en-NG"
-                  }}</span
+              <div>
+                <dt class="ui-dt">User ID</dt>
+                <dd
+                  class="ui-dd font-mono"
+                  [copyToClipboard]="selectedOrder()!.userId"
                 >
+                  {{ selectedOrder()!.userId }}
+                </dd>
               </div>
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Status</span>
-                <app-status-chip
-                  [status]="selectedOrder()!.status"
-                ></app-status-chip>
+              <div>
+                <dt class="ui-dt">Product</dt>
+                <dd class="ui-dd">
+                  {{ selectedOrder()!.productName }}
+                </dd>
               </div>
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant"
-                  >Codes Stored In System</span
-                >
-                <span class="font-semibold">{{
-                  selectedOrder()!.codesStored ? "Yes" : "No"
-                }}</span>
+              <div>
+                <dt class="ui-dt">Face Value</dt>
+                <dd class="ui-dd">{{ selectedOrder()!.faceValue }}</dd>
               </div>
-              @if (selectedOrder()!.note) {
-                <div class="py-1">
-                  <span class="text-on-surface-variant block mb-1"
-                    >Resolution Note</span
+              <div>
+                <dt class="ui-dt">Amount</dt>
+                <dd class="ui-dd tabular-nums">
+                  ₦{{ selectedOrder()!.price | number: "1.0-0" : "en-NG" }}
+                </dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Status</dt>
+                <dd class="ui-dd">
+                  <app-status-chip [status]="selectedOrder()!.status" />
+                </dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Codes Stored In System</dt>
+                <dd class="ui-dd">
+                  {{ selectedOrder()!.codesStored ? "Yes" : "No" }}
+                </dd>
+              </div>
+              @if (selectedOrder()!.resolutionNote) {
+                <div class="sm:col-span-2">
+                  <dt class="ui-dt">Resolution Note</dt>
+                  <dd
+                    class="mt-1 rounded-lg bg-ui-sunken p-2.5 text-[13px] text-ui-body"
                   >
-                  <p
-                    class="text-xs bg-surface-container rounded-lg p-2.5 text-on-surface"
-                  >
-                    {{ selectedOrder()!.note }}
-                  </p>
+                    {{ selectedOrder()!.resolutionNote }}
+                  </dd>
                 </div>
               }
-            </div>
+            </dl>
+          </div>
 
-            <div class="mt-6 flex justify-end">
-              <button
-                (click)="selectedOrder.set(null)"
-                class="px-4 py-2 bg-surface-container text-on-surface rounded-xl font-bold text-sm"
-              >
-                Close
-              </button>
-            </div>
+          <div class="ui-modal-foot">
+            <button
+              type="button"
+              class="ui-btn"
+              (click)="selectedOrder.set(null)"
+            >
+              Close
+            </button>
           </div>
         </div>
-      }
+      </div>
+    }
 
-      <!-- Resolve Delivered Modal -->
-      @if (deliveringOrder()) {
+    <!-- Resolve delivered modal -->
+    @if (deliveringOrder()) {
+      <div class="ui-overlay">
+        <div class="ui-backdrop" aria-hidden="true"></div>
         <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/30 backdrop-blur-md"
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="deliveringOrder.set(null)"
         >
-          <div
-            class="relative bg-surface-container-lowest rounded-2xl p-6 w-full max-w-md shadow-2xl"
-          >
-            <h2 class="text-lg font-bold text-on-surface mb-2">
-              Resolve Order as Delivered
-            </h2>
-            <p class="text-sm text-on-surface-variant mb-4">
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">Resolve Order as Delivered</h2>
+            <button
+              type="button"
+              class="ui-icon-btn"
+              (click)="deliveringOrder.set(null)"
+              aria-label="Close"
+            >
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
+            </button>
+          </div>
+
+          <div class="ui-modal-body space-y-4">
+            <p class="text-sm text-ui-muted">
               Order:
-              <span class="font-mono font-semibold">{{
+              <span class="font-mono font-medium text-ui-ink">{{
                 deliveringOrder()!.id
               }}</span>
             </p>
 
             @if (!deliveringOrder()!.codesStored) {
-              <div class="mb-4">
-                <label
-                  for="delivery-codes-input"
-                  class="block text-xs font-semibold text-on-surface mb-1"
-                >
+              <div>
+                <label for="delivery-codes-input" class="ui-label">
                   Gift Card Code(s) (Required as order has no stored codes)
                 </label>
                 <textarea
                   id="delivery-codes-input"
-                  [(ngModel)]="deliveryCodesInput"
+                  class="ui-input"
+                  data-autofocus
+                  [ngModel]="deliveryCodesInput()"
+                  (ngModelChange)="deliveryCodesInput.set($event)"
                   rows="3"
                   placeholder="Enter codes separated by commas or lines"
-                  class="w-full bg-surface-container-highest rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                 ></textarea>
-                <p class="text-xs text-on-surface-variant mt-1">
+                <p class="mt-1.5 text-xs text-ui-muted">
+                  {{ deliveryCodes().length }}
+                  {{ deliveryCodes().length === 1 ? "code" : "codes" }}
+                </p>
+                <p class="mt-1.5 text-xs text-ui-muted">
                   Codes are transmitted securely and will never be displayed in
                   the UI.
                 </p>
               </div>
             } @else {
-              <p
-                class="text-xs bg-tertiary-fixed text-on-tertiary-fixed-variant p-3 rounded-xl mb-4"
-              >
-                System already has stored codes for this order. No additional
-                code entry is required.
-              </p>
+              <div class="ui-alert ui-alert-info">
+                <svg [lucideIcon]="InfoIcon" [size]="16" class="mt-0.5"></svg>
+                <p>
+                  System already has stored codes for this order. No additional
+                  code entry is required.
+                </p>
+              </div>
             }
+          </div>
 
-            <div class="flex justify-end gap-2">
-              <button
-                type="button"
-                (click)="deliveringOrder.set(null)"
-                class="px-4 py-2 bg-surface-container text-on-surface rounded-xl font-bold text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                solexRipple
-                type="button"
-                (click)="submitResolveDelivered()"
-                [disabled]="resolveDeliveredMutation.isPending()"
-                class="px-4 py-2 bg-tertiary text-on-tertiary rounded-xl font-bold text-sm disabled:opacity-50"
-              >
-                {{
-                  resolveDeliveredMutation.isPending()
-                    ? "Delivering..."
-                    : "Confirm Delivered"
-                }}
-              </button>
-            </div>
+          <div class="ui-modal-foot">
+            <button
+              type="button"
+              class="ui-btn"
+              (click)="deliveringOrder.set(null)"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="ui-btn ui-btn-primary"
+              (click)="submitResolveDelivered()"
+              [disabled]="resolveDeliveredMutation.isPending()"
+            >
+              {{
+                resolveDeliveredMutation.isPending()
+                  ? "Delivering..."
+                  : "Confirm Delivered"
+              }}
+            </button>
           </div>
         </div>
-      }
+      </div>
+    }
 
-      <!-- Resolve Failed Modal -->
-      @if (failingOrder()) {
+    <!-- Resolve failed modal -->
+    @if (failingOrder()) {
+      <div class="ui-overlay">
+        <div class="ui-backdrop" aria-hidden="true"></div>
         <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/30 backdrop-blur-md"
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="failingOrder.set(null)"
         >
-          <div
-            class="relative bg-surface-container-lowest rounded-2xl p-6 w-full max-w-md shadow-2xl"
-          >
-            <h2 class="text-lg font-bold text-on-surface mb-2">
-              Resolve Order as Failed
-            </h2>
-            <p class="text-sm text-on-surface-variant mb-4">
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">Resolve Order as Failed</h2>
+            <button
+              type="button"
+              class="ui-icon-btn"
+              (click)="failingOrder.set(null)"
+              aria-label="Close"
+            >
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
+            </button>
+          </div>
+
+          <div class="ui-modal-body space-y-4">
+            <p class="text-sm text-ui-muted">
               Order:
-              <span class="font-mono font-semibold">{{
+              <span class="font-mono font-medium text-ui-ink">{{
                 failingOrder()!.id
               }}</span>
             </p>
 
-            <div class="mb-4">
-              <label
-                for="failure-note-input"
-                class="block text-xs font-semibold text-on-surface mb-1"
-              >
+            <div>
+              <label for="failure-note-input" class="ui-label">
                 Failure Reason / Note (Required)
               </label>
               <textarea
                 id="failure-note-input"
-                [(ngModel)]="failureNoteInput"
+                class="ui-input"
+                data-autofocus
+                [ngModel]="failureNoteInput()"
+                (ngModelChange)="failureNoteInput.set($event)"
+                (keydown.control.enter)="submitResolveFailed()"
+                (keydown.meta.enter)="submitResolveFailed()"
                 rows="3"
                 placeholder="Reason for marking order as failed"
-                class="w-full bg-surface-container-highest rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-error/20"
               ></textarea>
             </div>
+          </div>
 
-            <div class="flex justify-end gap-2">
-              <button
-                type="button"
-                (click)="failingOrder.set(null)"
-                class="px-4 py-2 bg-surface-container text-on-surface rounded-xl font-bold text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                solexRipple
-                type="button"
-                (click)="submitResolveFailed()"
-                [disabled]="
-                  resolveFailedMutation.isPending() || !failureNoteInput.trim()
-                "
-                class="px-4 py-2 bg-error text-on-error rounded-xl font-bold text-sm disabled:opacity-50"
-              >
-                {{
-                  resolveFailedMutation.isPending()
-                    ? "Resolving..."
-                    : "Confirm Failed"
-                }}
-              </button>
-            </div>
+          <div class="ui-modal-foot">
+            <button
+              type="button"
+              class="ui-btn"
+              (click)="failingOrder.set(null)"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="ui-btn ui-btn-danger"
+              (click)="submitResolveFailed()"
+              [disabled]="
+                resolveFailedMutation.isPending() || !failureNoteInput().trim()
+              "
+            >
+              {{
+                resolveFailedMutation.isPending()
+                  ? "Resolving..."
+                  : "Confirm Failed"
+              }}
+            </button>
           </div>
         </div>
-      }
-    </div>
+      </div>
+    }
   `,
 })
 export class GiftCardsPageComponent {
@@ -508,11 +586,19 @@ export class GiftCardsPageComponent {
   private toast = inject(ToastService);
   private queryClient = injectQueryClient();
 
+  readonly GiftIcon = Gift;
+  readonly EyeIcon = Eye;
+  readonly XIcon = X;
+  readonly InfoIcon = Info;
+  readonly LoaderIcon = LoaderCircle;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly CircleAlertIcon = CircleAlert;
+
   // Defaults to UNKNOWN as required by SPEC
   statusFilter = signal<string>("UNKNOWN");
 
   readonly statusTabs = [
-    { label: "Unknown (Action Req.)", value: "UNKNOWN" },
+    { label: "Needs action", value: "UNKNOWN" },
     { label: "All Orders", value: "" },
     { label: "Delivered", value: "DELIVERED" },
     { label: "Failed", value: "FAILED" },
@@ -530,6 +616,137 @@ export class GiftCardsPageComponent {
   }));
 
   loading = computed(() => this.ordersQuery.isPending());
+
+  // One unfiltered look at the queue feeds the counts and the stat cards.
+  statsQuery = injectQuery(() => ({
+    queryKey: ["gift-card-orders", "stats"],
+    queryFn: () =>
+      lastValueFrom(
+        this.adminService.getGiftCardOrders({ status: "", limit: 100 }),
+      ),
+  }));
+  statsLoading = computed(() => this.statsQuery.isPending());
+
+  private tally = computed(() => {
+    const items = this.statsQuery.data()?.items ?? [];
+    const count = (st: string) => items.filter((o) => o.status === st).length;
+    const open = items.filter(
+      (o) => o.status === "UNKNOWN" || o.status === "PENDING",
+    );
+    return {
+      all: items.length,
+      open: open.length,
+      delivered: count("DELIVERED"),
+      failed: count("FAILED"),
+      atRisk: open.reduce((sum, o) => sum + o.price, 0),
+      more: this.statsQuery.data()?.hasMore ?? false,
+    };
+  });
+
+  statCards = computed(() => {
+    const t = this.tally();
+    const plus = t.more ? "+" : "";
+    return [
+      {
+        key: "open",
+        label: "Needs action",
+        value: `${t.open}${plus}`,
+        hint: t.open ? "Waiting on a decision" : "Nothing waiting",
+        tone: "bg-amber-500",
+        filter: "UNKNOWN",
+      },
+      {
+        key: "risk",
+        label: "Value on hold",
+        value: `₦${t.atRisk.toLocaleString("en-NG")}`,
+        hint: "Charged, not yet delivered",
+        tone: "bg-ui-accent",
+        filter: "UNKNOWN",
+      },
+      {
+        key: "delivered",
+        label: "Delivered",
+        value: `${t.delivered}${plus}`,
+        hint: "Codes sent to customers",
+        tone: "bg-emerald-500",
+        filter: "DELIVERED",
+      },
+      {
+        key: "failed",
+        label: "Failed",
+        value: `${t.failed}${plus}`,
+        hint: "Refunded or closed out",
+        tone: "bg-red-500",
+        filter: "FAILED",
+      },
+    ];
+  });
+
+  countFor(filter: string): string | null {
+    if (this.statsLoading()) return null;
+    const t = this.tally();
+    const n =
+      filter === "UNKNOWN"
+        ? t.open
+        : filter === "DELIVERED"
+          ? t.delivered
+          : filter === "FAILED"
+            ? t.failed
+            : t.all;
+    return `${n}${t.more ? "+" : ""}`;
+  }
+
+  private static readonly BRANDS: Record<string, string> = {
+    steam: "#1b2838",
+    amazon: "#f59e0b",
+    itunes: "#ec4899",
+    apple: "#111827",
+    google: "#16a34a",
+    playstation: "#1d4ed8",
+    psn: "#1d4ed8",
+    xbox: "#107c10",
+    netflix: "#dc2626",
+    spotify: "#1db954",
+    razer: "#16a34a",
+    roblox: "#ef4444",
+    nintendo: "#e60012",
+    "free fire": "#f97316",
+  };
+
+  brand(order: GiftCardOrder) {
+    const name = order.productName.trim();
+    const key = Object.keys(GiftCardsPageComponent.BRANDS).find((k) =>
+      name.toLowerCase().includes(k),
+    );
+    return {
+      initial: name.charAt(0).toUpperCase(),
+      color: key ? GiftCardsPageComponent.BRANDS[key] : "#64748b",
+    };
+  }
+
+  initials(name: string): string {
+    return (
+      name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0]!.toUpperCase())
+        .join("") || "?"
+    );
+  }
+
+  ago(iso: string): string {
+    const mins = Math.max(
+      0,
+      Math.round((Date.now() - Date.parse(iso)) / 60000),
+    );
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.round(hrs / 24);
+    return `${days}d ago`;
+  }
 
   rawAppended = signal<GiftCardOrder[]>([]);
   rawHasMore = signal<boolean | null>(null);
@@ -549,11 +766,22 @@ export class GiftCardsPageComponent {
   deliveringOrder = signal<GiftCardOrder | null>(null);
   failingOrder = signal<GiftCardOrder | null>(null);
 
-  deliveryCodesInput = "";
-  failureNoteInput = "";
+  deliveryCodesInput = signal("");
+  failureNoteInput = signal("");
+
+  deliveryCodes = computed(() =>
+    this.deliveryCodesInput()
+      .split(/[\n,]/)
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0),
+  );
 
   onStatusChange(val: string) {
     this.statusFilter.set(val);
+    this.resetPages();
+  }
+
+  private resetPages() {
     this.rawAppended.set([]);
     this.rawHasMore.set(null);
     this.nextCursor.set(null);
@@ -589,12 +817,12 @@ export class GiftCardsPageComponent {
 
   openResolveDelivered(order: GiftCardOrder) {
     this.deliveringOrder.set(order);
-    this.deliveryCodesInput = "";
+    this.deliveryCodesInput.set("");
   }
 
   openResolveFailed(order: GiftCardOrder) {
     this.failingOrder.set(order);
-    this.failureNoteInput = "";
+    this.failureNoteInput.set("");
   }
 
   resolveDeliveredMutation = injectMutation(() => ({
@@ -608,6 +836,7 @@ export class GiftCardsPageComponent {
     onSuccess: () => {
       this.toast.show("success", "Gift card marked as delivered");
       this.deliveringOrder.set(null);
+      this.resetPages();
       this.queryClient.invalidateQueries({ queryKey: ["gift-card-orders"] });
     },
     onError: (err: unknown) => {
@@ -624,6 +853,7 @@ export class GiftCardsPageComponent {
     onSuccess: () => {
       this.toast.show("success", "Gift card marked as failed");
       this.failingOrder.set(null);
+      this.resetPages();
       this.queryClient.invalidateQueries({ queryKey: ["gift-card-orders"] });
     },
     onError: (err: unknown) => {
@@ -640,10 +870,7 @@ export class GiftCardsPageComponent {
 
     let codes: string[] | undefined;
     if (!order.codesStored) {
-      const splitCodes = this.deliveryCodesInput
-        .split(/[\n,]/)
-        .map((c) => c.trim())
-        .filter((c) => c.length > 0);
+      const splitCodes = this.deliveryCodes();
       if (splitCodes.length === 0) {
         this.toast.show("error", "Delivery codes are required for this order");
         return;
@@ -656,7 +883,7 @@ export class GiftCardsPageComponent {
 
   submitResolveFailed() {
     const order = this.failingOrder();
-    const note = this.failureNoteInput.trim();
+    const note = this.failureNoteInput().trim();
     if (!order || !note) {
       this.toast.show("error", "A failure note is required");
       return;

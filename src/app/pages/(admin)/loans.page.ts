@@ -1,360 +1,502 @@
 import { Component, inject, signal, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import {
   injectQuery,
   injectMutation,
   injectQueryClient,
 } from "@tanstack/angular-query-experimental";
 import { lastValueFrom } from "rxjs";
+import {
+  LucideDynamicIcon,
+  LucideBanknote as Banknote,
+  LucideChevronDown as ChevronDown,
+  LucideClock as Clock,
+  LucideEye as Eye,
+  LucideHandCoins as HandCoins,
+  LucideLandmark as Landmark,
+  LucideLoaderCircle as LoaderCircle,
+  LucideSearchX as SearchX,
+  LucideTriangleAlert as TriangleAlert,
+  LucideCircleAlert as CircleAlert,
+  LucideX as X,
+} from "@lucide/angular";
 import { AdminService, Loan } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
 import { StatusChipComponent } from "../../components/ui/status-chip.component";
-import { RippleDirective } from "../../directives/ripple.directive";
-import { CountUpDirective } from "../../directives/count-up.directive";
+import { MetricCardComponent } from "../../components/ui/metric-card.component";
+import { PageHeaderComponent } from "../../components/ui/page-header.component";
+import { ConfirmService } from "../../services/confirm.service";
+import { ModalDirective } from "../../directives/modal.directive";
 
 @Component({
   selector: "app-loans",
-  standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    LucideDynamicIcon,
     StatusChipComponent,
-    RippleDirective,
-    CountUpDirective,
+    MetricCardComponent,
+    PageHeaderComponent,
+    ModalDirective,
   ],
   template: `
-    <div class="space-y-6">
-      <!-- Page header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-      >
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">
-            Loan Applications
-          </h1>
-          <p class="text-sm text-on-surface-variant mt-1">
-            Review and manage student loan applications
-          </p>
-        </div>
-      </div>
+    <app-page-header
+      title="Loan Applications"
+      [icon]="HandCoinsIcon"
+      subtitle="Review and manage student loan applications"
+    />
 
-      <!-- Loan Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div
-          class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-primary shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-        >
-          <p class="text-xs text-on-surface-variant uppercase">
-            Pending Review
-          </p>
-          <p
-            class="text-2xl font-bold text-on-surface mt-1"
-            [countUp]="pendingCount()"
-          >
-            0
-          </p>
+    <div class="space-y-4">
+      <!-- Loan stats -->
+      <section class="ui-panel">
+        <div class="ui-panel-head">
+          <h2 class="ui-panel-title">Quick stats</h2>
         </div>
-        <div
-          class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-secondary shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-        >
-          <p class="text-xs text-on-surface-variant uppercase">
-            Total Portfolio
-          </p>
-          <p class="text-2xl font-bold text-on-surface mt-1">
-            <span class="text-lg opacity-50">₦</span
-            >{{ totalPortfolio() | number: "1.0-0" : "en-NG" }}
-          </p>
-        </div>
-        <div
-          class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-tertiary shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-        >
-          <p class="text-xs text-on-surface-variant uppercase">
-            Disbursed This Month
-          </p>
-          <p class="text-2xl font-bold text-on-surface mt-1">
-            <span class="text-lg opacity-50">₦</span
-            >{{ disbursedTotal() | number: "1.0-0" : "en-NG" }}
-          </p>
-        </div>
-        <div
-          class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-error shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-        >
-          <p class="text-xs text-on-surface-variant uppercase">Overdue Loans</p>
-          <p
-            class="text-2xl font-bold text-on-surface mt-1"
-            [countUp]="overdueCount()"
-          >
-            0
-          </p>
-        </div>
-      </div>
+        @if (dashboardQuery.isPending()) {
+          <div class="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+            @for (n of [1, 2, 3, 4]; track n) {
+              <div class="rounded-xl border border-ui-line bg-white p-1.5">
+                <div class="mb-3 flex items-center gap-2 px-1.5 pt-1">
+                  <div class="ui-skel h-6 w-6 rounded-md"></div>
+                  <div class="ui-skel h-3 w-24"></div>
+                </div>
+                <div class="rounded-lg bg-ui-sunken px-3 py-3">
+                  <div class="ui-skel h-6 w-20"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+            <app-metric-card
+              label="Pending Review"
+              [icon]="ClockIcon"
+              [value]="pendingCount()"
+              [suffix]="hasMore() ? '+' : ''"
+            />
+            <app-metric-card
+              label="Loan portfolio"
+              [icon]="LandmarkIcon"
+              prefix="₦"
+              [value]="dashboardQuery.data()?.totalLoanPortfolio ?? 0"
+            />
+            <app-metric-card
+              label="Active loans"
+              [icon]="BanknoteIcon"
+              [value]="dashboardQuery.data()?.activeLoans ?? 0"
+            />
+            <app-metric-card
+              label="Overdue loans"
+              [icon]="TriangleAlertIcon"
+              [value]="dashboardQuery.data()?.overdueLoans ?? 0"
+            />
+          </div>
+        }
+      </section>
 
-      <!-- Filters -->
-      <div
-        class="bg-surface-container-lowest rounded-xl p-4 flex flex-wrap items-center gap-4 shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-      >
-        <div class="flex gap-2 p-1 bg-surface-container rounded-xl">
-          @for (tab of statusTabs; track tab.value) {
-            <button
-              (click)="onStatusFilterChange(tab.value)"
-              class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-              [class]="
-                statusFilter() === tab.value
-                  ? 'bg-primary text-on-primary'
-                  : 'text-on-surface-variant hover:bg-surface-container-high'
-              "
-            >
-              {{ tab.label }}
-            </button>
+      <!-- Loans table -->
+      <section class="ui-panel">
+        <div class="ui-panel-head">
+          <h2 class="ui-panel-title">Applications</h2>
+          <div class="ui-tabs">
+            @for (tab of statusTabs; track tab.value) {
+              <button
+                type="button"
+                class="ui-tab"
+                [class.ui-tab-active]="statusFilter() === tab.value"
+                (click)="onStatusFilterChange(tab.value)"
+              >
+                {{ tab.label }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="ui-panel-body overflow-hidden">
+          <div class="ui-table-wrap">
+            <table class="ui-table md:min-w-[760px]">
+              <thead>
+                <tr>
+                  <th>Applicant</th>
+                  <th class="hidden md:table-cell">School</th>
+                  <th>Amount</th>
+                  <th class="hidden md:table-cell">Tenor</th>
+                  <th>Status</th>
+                  <th class="hidden md:table-cell">Credit score</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (loading()) {
+                  @for (n of [1, 2, 3, 4]; track n) {
+                    <tr>
+                      <td><div class="ui-skel h-4 w-32"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-28"></div>
+                      </td>
+                      <td><div class="ui-skel h-4 w-20"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-16"></div>
+                      </td>
+                      <td><div class="ui-skel h-5 w-16 rounded-full"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-16"></div>
+                      </td>
+                      <td><div class="ui-skel ml-auto h-4 w-16"></div></td>
+                    </tr>
+                  }
+                } @else if (loansQuery.isError()) {
+                  <tr>
+                    <td colspan="7">
+                      <div class="ui-empty">
+                        <svg
+                          [lucideIcon]="CircleAlertIcon"
+                          [size]="28"
+                          class="text-ui-danger"
+                        ></svg>
+                        <p>Couldn't load loans.</p>
+                        <button
+                          type="button"
+                          class="ui-btn ui-btn-sm"
+                          (click)="loansQuery.refetch()"
+                        >
+                          Try again
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @else {
+                  @for (loan of filteredLoans(); track loan.id) {
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-2.5">
+                          <span class="ui-avatar">{{
+                            loan.userName?.charAt(0) || "?"
+                          }}</span>
+                          <div class="min-w-0">
+                            <button
+                              type="button"
+                              class="truncate text-left font-medium text-ui-ink hover:text-ui-accent"
+                              [title]="loan.userName || ''"
+                              (click)="viewLoan(loan)"
+                            >
+                              {{ loan.userName }}
+                            </button>
+                            <p class="truncate text-xs text-ui-muted">
+                              <span [title]="loan.purpose || ''">{{
+                                loan.purpose
+                              }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <p
+                          class="max-w-[150px] truncate"
+                          [title]="loan.schoolName || ''"
+                        >
+                          {{ loan.schoolName }}
+                        </p>
+                      </td>
+                      <td class="whitespace-nowrap">
+                        <p class="tabular-nums text-ui-ink">
+                          ₦{{ loan.amount | number: "1.0-0" : "en-NG" }}
+                        </p>
+                        <p class="text-xs text-ui-muted">
+                          {{ loan.interestRate }}% APR
+                        </p>
+                      </td>
+                      <td class="hidden whitespace-nowrap md:table-cell">
+                        <p>{{ loan.tenorMonths }} months</p>
+                        <p class="text-xs tabular-nums text-ui-muted">
+                          ₦{{
+                            loan.monthlyRepayment | number: "1.0-0" : "en-NG"
+                          }}/mo
+                        </p>
+                      </td>
+                      <td><app-status-chip [status]="loan.status" /></td>
+                      <td class="hidden md:table-cell">
+                        @if (
+                          loan.creditScore !== null &&
+                          loan.creditScore !== undefined
+                        ) {
+                          <div class="flex items-center gap-2">
+                            <div
+                              class="h-1.5 w-16 overflow-hidden rounded-full bg-ui-sunken"
+                            >
+                              <div
+                                class="h-full rounded-full"
+                                [class]="
+                                  loan.creditScore >= 700
+                                    ? 'bg-ui-success'
+                                    : loan.creditScore >= 500
+                                      ? 'bg-ui-warning'
+                                      : 'bg-ui-danger'
+                                "
+                                [style.width.%]="(loan.creditScore / 850) * 100"
+                              ></div>
+                            </div>
+                            <span class="tabular-nums text-ui-ink">{{
+                              loan.creditScore
+                            }}</span>
+                          </div>
+                        } @else {
+                          <span class="text-ui-faint">—</span>
+                        }
+                      </td>
+                      <td>
+                        <div class="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            class="ui-icon-btn"
+                            (click)="viewLoan(loan)"
+                            title="View Details"
+                            aria-label="View Details"
+                          >
+                            <svg [lucideIcon]="EyeIcon" [size]="16"></svg>
+                          </button>
+                          @if (loan.status === "OPS_REVIEW") {
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-primary ui-btn-sm"
+                              (click)="approve(loan)"
+                              [disabled]="
+                                approveMutation.isPending() &&
+                                approveMutation.variables()?.loanId === loan.id
+                              "
+                            >
+                              {{
+                                approveMutation.isPending() &&
+                                approveMutation.variables()?.loanId === loan.id
+                                  ? "Approving…"
+                                  : "Approve"
+                              }}
+                            </button>
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-danger ui-btn-sm"
+                              (click)="reject(loan)"
+                              [disabled]="
+                                rejectMutation.isPending() &&
+                                rejectMutation.variables()?.loanId === loan.id
+                              "
+                            >
+                              {{
+                                rejectMutation.isPending() &&
+                                rejectMutation.variables()?.loanId === loan.id
+                                  ? "Rejecting…"
+                                  : "Reject"
+                              }}
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td [attr.colspan]="7">
+                        <div class="ui-empty">
+                          <svg
+                            [lucideIcon]="SearchXIcon"
+                            [size]="28"
+                            class="text-ui-faint"
+                          ></svg>
+                          <p>No loans found matching your criteria</p>
+                          @if (statusFilter() !== "ALL") {
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-sm"
+                              (click)="onStatusFilterChange('ALL')"
+                            >
+                              Clear filter
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (hasMore()) {
+            <div class="ui-table-foot">
+              <span>{{ filteredLoans().length }} shown</span>
+              <button
+                type="button"
+                class="ui-btn ui-btn-sm"
+                (click)="loadMore()"
+                [disabled]="isLoadingMore()"
+              >
+                @if (isLoadingMore()) {
+                  <svg
+                    [lucideIcon]="LoaderIcon"
+                    [size]="15"
+                    class="animate-spin"
+                  ></svg>
+                  <span>Loading...</span>
+                } @else {
+                  <span>Load more</span>
+                  <svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                }
+              </button>
+            </div>
           }
         </div>
-      </div>
+      </section>
+    </div>
 
-      <!-- Loans Table -->
-      <div
-        class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-      >
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[900px]">
-            <thead>
-              <tr class="bg-surface-container text-left">
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Applicant
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  School
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Amount
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Tenor
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Credit Score
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (loading()) {
-                @for (n of [1, 2, 3, 4]; track n; let i = $index) {
-                  <tr class="border-t border-surface-container">
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-32 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-28 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="100 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="200 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="300 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-20 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="400 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded-full animate-skeleton-pulse"
-                        [style.animation-delay]="500 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded-full ml-auto animate-skeleton-pulse"
-                        [style.animation-delay]="600 + 'ms'"
-                      ></div>
-                    </td>
-                  </tr>
-                }
-              } @else {
-                @for (loan of filteredLoans(); track loan.id; let i = $index) {
-                  <tr
-                    class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
-                    [style.animation-delay]="i * 40 + 'ms'"
-                    [style.animation-fill-mode]="'forwards'"
-                  >
-                    <td class="px-4 sm:px-6 py-4">
-                      <div class="flex items-center gap-3">
-                        <div
-                          class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center shrink-0"
-                        >
-                          <span class="text-sm font-bold text-primary">{{
-                            loan.userName[0]
-                          }}</span>
-                        </div>
-                        <div class="min-w-0">
-                          <p
-                            class="text-sm font-semibold text-on-surface truncate"
-                          >
-                            {{ loan.userName }}
-                          </p>
-                          <p class="text-xs text-on-surface-variant truncate">
-                            {{ loan.purpose }}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <p class="text-sm text-on-surface truncate max-w-[150px]">
-                        {{ loan.schoolName }}
-                      </p>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <p class="text-sm font-bold text-on-surface">
-                        <span class="text-on-surface-variant">₦</span
-                        >{{ loan.amount | number: "1.0-0" : "en-NG" }}
-                      </p>
-                      <p class="text-xs text-on-surface-variant">
-                        {{ loan.interestRate }}% APR
-                      </p>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <p class="text-sm text-on-surface">
-                        {{ loan.tenorMonths }} months
-                      </p>
-                      <p class="text-xs text-on-surface-variant">
-                        ₦{{
-                          loan.monthlyRepayment | number: "1.0-0" : "en-NG"
-                        }}/mo
-                      </p>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <app-status-chip [status]="loan.status"></app-status-chip>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div class="flex items-center gap-2">
-                        <div
-                          class="w-12 sm:w-16 h-2 bg-surface-container-high rounded-full overflow-hidden"
-                        >
-                          <div
-                            class="h-full rounded-full transition-all duration-500"
-                            [class]="
-                              loan.creditScore >= 700
-                                ? 'bg-tertiary'
-                                : loan.creditScore >= 500
-                                  ? 'bg-secondary'
-                                  : 'bg-error'
-                            "
-                            [style.width.%]="(loan.creditScore / 850) * 100"
-                          ></div>
-                        </div>
-                        <span class="text-sm font-semibold text-on-surface">{{
-                          loan.creditScore
-                        }}</span>
-                      </div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 text-right">
-                      <div class="flex items-center justify-end gap-1 sm:gap-2">
-                        <button
-                          (click)="viewLoan(loan)"
-                          class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
-                          title="View Details"
-                        >
-                          <span
-                            class="material-symbols-outlined text-on-surface-variant text-sm"
-                            >visibility</span
-                          >
-                        </button>
-                        @if (loan.status === "OPS_REVIEW") {
-                          <button
-                            solexRipple
-                            (click)="approveMutation.mutate(loan.id)"
-                            [disabled]="approveMutation.isPending()"
-                            class="px-2 sm:px-3 py-1.5 bg-tertiary text-on-tertiary rounded-lg text-xs font-bold transition-all hover:brightness-110 disabled:opacity-50 whitespace-nowrap"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            solexRipple
-                            (click)="rejectMutation.mutate(loan.id)"
-                            [disabled]="rejectMutation.isPending()"
-                            class="px-2 sm:px-3 py-1.5 bg-error-container text-on-error-container rounded-lg text-xs font-bold transition-all hover:bg-error hover:text-on-error disabled:opacity-50 whitespace-nowrap"
-                          >
-                            Reject
-                          </button>
-                        }
-                      </div>
-                    </td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
-        </div>
-
-        @if (!loading() && filteredLoans().length === 0) {
-          <div class="text-center py-12">
-            <span
-              class="material-symbols-outlined text-4xl text-surface-variant"
-              >credit_card_off</span
-            >
-            <p class="text-sm text-on-surface-variant mt-2">
-              No loans found matching your criteria
-            </p>
-          </div>
-        }
-
-        @if (hasMore()) {
-          <div
-            class="flex justify-center p-4 border-t border-surface-container"
-          >
+    @if (selectedLoan(); as loan) {
+      <div class="ui-overlay">
+        <div
+          class="ui-backdrop"
+          aria-hidden="true"
+          (click)="selectedLoan.set(null)"
+        ></div>
+        <div
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="selectedLoan.set(null)"
+        >
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">Loan details</h2>
             <button
-              (click)="loadMore()"
-              [disabled]="isLoadingMore()"
-              class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
+              type="button"
+              class="ui-icon-btn"
+              aria-label="Close"
+              (click)="selectedLoan.set(null)"
             >
-              @if (isLoadingMore()) {
-                <span
-                  class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                ></span>
-                <span>Loading...</span>
-              } @else {
-                <span>Load more</span>
-                <span class="material-symbols-outlined text-sm"
-                  >expand_more</span
-                >
-              }
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
             </button>
           </div>
-        }
+          <div class="ui-modal-body">
+            <dl class="ui-dl">
+              <div>
+                <dt class="ui-dt">Applicant</dt>
+                <dd class="ui-dd">{{ loan.userName || "—" }}</dd>
+              </div>
+              <div>
+                <dt class="ui-dt">School</dt>
+                <dd class="ui-dd">{{ loan.schoolName || "—" }}</dd>
+              </div>
+              <div class="sm:col-span-2">
+                <dt class="ui-dt">Purpose</dt>
+                <dd class="ui-dd">{{ loan.purpose || "—" }}</dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Amount</dt>
+                <dd class="ui-dd">
+                  ₦{{ loan.amount | number: "1.0-0" : "en-NG" }}
+                </dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Interest rate</dt>
+                <dd class="ui-dd">{{ loan.interestRate ?? "—" }}%</dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Tenor</dt>
+                <dd class="ui-dd">
+                  {{ loan.tenorMonths ?? loan.tenureMonths ?? "—" }} months
+                </dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Monthly repayment</dt>
+                <dd class="ui-dd">
+                  {{
+                    (loan.monthlyRepayment ?? null) === null
+                      ? "—"
+                      : "₦" +
+                        (loan.monthlyRepayment | number: "1.0-0" : "en-NG")
+                  }}
+                </dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Credit score</dt>
+                <dd class="ui-dd">
+                  @if (
+                    loan.creditScore !== null && loan.creditScore !== undefined
+                  ) {
+                    <div class="flex items-center gap-2">
+                      <div
+                        class="h-1.5 w-24 overflow-hidden rounded-full bg-ui-sunken"
+                      >
+                        <div
+                          class="h-full rounded-full"
+                          [class]="
+                            loan.creditScore >= 700
+                              ? 'bg-ui-success'
+                              : loan.creditScore >= 500
+                                ? 'bg-ui-warning'
+                                : 'bg-ui-danger'
+                          "
+                          [style.width.%]="(loan.creditScore / 850) * 100"
+                        ></div>
+                      </div>
+                      {{ loan.creditScore }}
+                    </div>
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+              @if ((loan.outstandingPrincipal ?? null) !== null) {
+                <div>
+                  <dt class="ui-dt">Outstanding principal</dt>
+                  <dd class="ui-dd">
+                    ₦{{ loan.outstandingPrincipal | number: "1.0-0" : "en-NG" }}
+                  </dd>
+                </div>
+              }
+              @if ((loan.outstandingInterest ?? null) !== null) {
+                <div>
+                  <dt class="ui-dt">Outstanding interest</dt>
+                  <dd class="ui-dd">
+                    ₦{{ loan.outstandingInterest | number: "1.0-0" : "en-NG" }}
+                  </dd>
+                </div>
+              }
+              @if (loan.rejectionReason) {
+                <div class="sm:col-span-2">
+                  <dt class="ui-dt">Rejection reason</dt>
+                  <dd class="ui-dd">{{ loan.rejectionReason }}</dd>
+                </div>
+              }
+              <div>
+                <dt class="ui-dt">Applied</dt>
+                <dd class="ui-dd">
+                  {{ loan.appliedAt ?? loan.createdAt | date: "mediumDate" }}
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div class="ui-modal-foot">
+            @if (loan.status === "OPS_REVIEW") {
+              <button
+                type="button"
+                class="ui-btn ui-btn-primary"
+                (click)="approve(loan)"
+              >
+                Approve</button
+              ><button
+                type="button"
+                class="ui-btn ui-btn-danger"
+                (click)="reject(loan)"
+              >
+                Reject
+              </button>
+            }
+            <button
+              type="button"
+              class="ui-btn"
+              (click)="selectedLoan.set(null)"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    }
   `,
 })
 export class LoansPageComponent {
@@ -362,13 +504,31 @@ export class LoansPageComponent {
   private toast = inject(ToastService);
   private queryClient = injectQueryClient();
 
-  statusFilter = signal<"ALL" | "PENDING" | "OPS_REVIEW" | "APPROVED">("ALL");
+  readonly HandCoinsIcon = HandCoins;
+  readonly ClockIcon = Clock;
+  readonly LandmarkIcon = Landmark;
+  readonly BanknoteIcon = Banknote;
+  readonly TriangleAlertIcon = TriangleAlert;
+  readonly EyeIcon = Eye;
+  readonly SearchXIcon = SearchX;
+  readonly LoaderIcon = LoaderCircle;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly CircleAlertIcon = CircleAlert;
+  readonly XIcon = X;
+
+  private confirm = inject(ConfirmService);
+  statusFilter = signal<
+    "ALL" | "PENDING" | "OPS_REVIEW" | "APPROVED" | "REJECTED" | "DISBURSED"
+  >("ALL");
+  selectedLoan = signal<Loan | null>(null);
 
   readonly statusTabs = [
     { label: "All", value: "ALL" as const },
     { label: "Pending", value: "PENDING" as const },
     { label: "Ops Review", value: "OPS_REVIEW" as const },
     { label: "Approved", value: "APPROVED" as const },
+    { label: "Rejected", value: "REJECTED" as const },
+    { label: "Disbursed", value: "DISBURSED" as const },
   ];
 
   loansQuery = injectQuery(() => ({
@@ -383,29 +543,41 @@ export class LoansPageComponent {
       ),
   }));
 
-  overdueQuery = injectQuery(() => ({
-    queryKey: ["loans-overdue"],
-    queryFn: () => lastValueFrom(this.adminService.getOverdueLoans()),
-    staleTime: 60_000,
+  dashboardQuery = injectQuery(() => ({
+    queryKey: ["dashboard-metrics"],
+    queryFn: () => lastValueFrom(this.adminService.getDashboardMetrics()),
   }));
 
   approveMutation = injectMutation(() => ({
-    mutationFn: (loanId: string) =>
-      lastValueFrom(this.adminService.approveLoan(loanId)),
-    onSuccess: (_, loanId) => {
-      this.toast.show("success", `Loan ${loanId} approved`);
+    mutationFn: ({
+      loanId,
+    }: {
+      loanId: string;
+      amount: number;
+      name: string;
+    }) => lastValueFrom(this.adminService.approveLoan(loanId)),
+    onSuccess: (_, { name }) => {
+      this.toast.show("success", `Loan approved for ${name}`);
+      this.resetPages();
+      this.selectedLoan.set(null);
       this.queryClient.invalidateQueries({ queryKey: ["loans"] });
     },
     onError: () => this.toast.show("error", "Failed to approve loan"),
   }));
 
   rejectMutation = injectMutation(() => ({
-    mutationFn: (loanId: string) =>
-      lastValueFrom(
-        this.adminService.rejectLoan(loanId, "Rejected by operations"),
-      ),
-    onSuccess: (_, loanId) => {
-      this.toast.show("success", `Loan ${loanId} rejected`);
+    mutationFn: ({
+      loanId,
+      reason,
+    }: {
+      loanId: string;
+      reason: string;
+      name: string;
+    }) => lastValueFrom(this.adminService.rejectLoan(loanId, reason)),
+    onSuccess: (_, { name }) => {
+      this.toast.show("success", `Loan rejected for ${name}`);
+      this.resetPages();
+      this.selectedLoan.set(null);
       this.queryClient.invalidateQueries({ queryKey: ["loans"] });
     },
     onError: () => this.toast.show("error", "Failed to reject loan"),
@@ -443,19 +615,6 @@ export class LoansPageComponent {
         ?.totalPages || 1,
   );
 
-  metrics = computed(() => {
-    const overdue = this.overdueQuery.data();
-    const overdueList =
-      overdue?.items ||
-      (overdue as unknown as { content?: Loan[] })?.content ||
-      [];
-    return {
-      active: 204,
-      overdue: overdueList.length,
-      totalDisbursed: 15600000,
-    };
-  });
-
   filteredLoans = computed(() => {
     if (this.statusFilter() === "ALL") return this.loans();
     return this.loans().filter((l) => l.status === this.statusFilter());
@@ -467,28 +626,49 @@ export class LoansPageComponent {
         (l) => l.status === "PENDING" || l.status === "OPS_REVIEW",
       ).length,
   );
-  totalPortfolio = computed(() =>
-    this.loans().reduce((sum, l) => sum + l.amount, 0),
-  );
-  disbursedTotal = computed(() =>
-    this.loans()
-      .filter((l) => l.status === "DISBURSED")
-      .reduce((sum, l) => sum + l.amount, 0),
-  );
-  overdueCount = computed(() => {
-    const overdue = this.overdueQuery.data();
-    const overdueList =
-      overdue?.items ||
-      (overdue as unknown as { content?: Loan[] })?.content ||
-      [];
-    return overdueList.length;
-  });
-
-  onStatusFilterChange(val: "ALL" | "PENDING" | "OPS_REVIEW" | "APPROVED") {
+  onStatusFilterChange(
+    val:
+      "ALL" | "PENDING" | "OPS_REVIEW" | "APPROVED" | "REJECTED" | "DISBURSED",
+  ) {
     this.statusFilter.set(val);
+    this.resetPages();
+  }
+
+  private resetPages() {
     this.rawAppendedLoans.set([]);
     this.rawHasMore.set(null);
     this.nextCursor.set(null);
+  }
+
+  async approve(loan: Loan) {
+    const name = loan.userName || "applicant";
+    const amount = loan.amount.toLocaleString("en-NG");
+    const ok = await this.confirm.ask({
+      title: `Approve ₦${amount} loan for ${name}?`,
+      message: "It's disbursed after the 24-hour cooling-off period.",
+      confirmLabel: "Approve",
+      tone: "primary",
+    });
+    if (ok)
+      this.approveMutation.mutate({
+        loanId: loan.id,
+        amount: loan.amount,
+        name,
+      });
+  }
+
+  async reject(loan: Loan) {
+    const name = loan.userName || "applicant";
+    const ok = await this.confirm.ask({
+      title: `Reject loan for ${name}?`,
+      message: "The applicant is notified with the reason you provide.",
+      confirmLabel: "Reject",
+      tone: "danger",
+      reasonLabel: "Reason shown to the applicant",
+      reasonPlaceholder: "e.g. Insufficient credit history",
+    });
+    if (ok)
+      this.rejectMutation.mutate({ loanId: loan.id, reason: ok.reason, name });
   }
 
   loadMore() {
@@ -519,6 +699,6 @@ export class LoansPageComponent {
   }
 
   viewLoan(loan: Loan) {
-    this.toast.show("info", `Viewing loan: ${loan.id}`);
+    this.selectedLoan.set(loan);
   }
 }

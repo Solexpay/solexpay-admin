@@ -13,6 +13,7 @@ import {
 import { SchoolsPageComponent } from "./schools.page";
 import { AdminService, School } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
+import { ConfirmService } from "../../services/confirm.service";
 import { of } from "rxjs";
 import { vi } from "vitest";
 
@@ -21,6 +22,7 @@ describe("SchoolsPageComponent", () => {
   let fixture: ComponentFixture<SchoolsPageComponent>;
   let adminService: AdminService;
   let toastService: ToastService;
+  let confirmService: { ask: ReturnType<typeof vi.fn> };
 
   const mockSchools: School[] = [
     {
@@ -66,7 +68,9 @@ describe("SchoolsPageComponent", () => {
       ),
       regenerateSchoolToken: vi
         .fn()
-        .mockReturnValue(of({ success: true, apiToken: "new-token" })),
+        .mockReturnValue(
+          of({ school_id: "sch-1", temporary_password: "TempPass123!" }),
+        ),
       toggleSchoolStatus: vi.fn().mockReturnValue(of({ success: true })),
       addSchool: vi.fn().mockReturnValue(
         of({
@@ -90,6 +94,9 @@ describe("SchoolsPageComponent", () => {
     const mockToastService = {
       show: vi.fn(),
     };
+    confirmService = {
+      ask: vi.fn().mockResolvedValue({ reason: "Test reason" }),
+    };
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -99,7 +106,7 @@ describe("SchoolsPageComponent", () => {
         },
       },
     });
-    queryClient.setQueryData(["schools"], {
+    queryClient.setQueryData(["schools", { status: "" }], {
       items: mockSchools,
       nextCursor: null,
       hasMore: false,
@@ -112,6 +119,7 @@ describe("SchoolsPageComponent", () => {
         provideQueryClient(queryClient),
         { provide: AdminService, useValue: mockAdminService },
         { provide: ToastService, useValue: mockToastService },
+        { provide: ConfirmService, useValue: confirmService },
       ],
     });
 
@@ -147,27 +155,40 @@ describe("SchoolsPageComponent", () => {
     expect(component.maskToken("short")).toBe("short");
   });
 
-  it("should trigger regenerateToken mutation on action", async () => {
-    await component.regenerateTokenMutation.mutateAsync("sch-1");
+  it("should confirm reset login and show the one-time temporary password", async () => {
+    await component.resetLogin(mockSchools[0]!);
+    expect(confirmService.ask).toHaveBeenCalledWith(
+      expect.objectContaining({ typeToConfirm: "RESET" }),
+    );
+    await vi.waitFor(() =>
+      expect(adminService.regenerateSchoolToken).toHaveBeenCalledWith("sch-1"),
+    );
     expect(adminService.regenerateSchoolToken).toHaveBeenCalledWith("sch-1");
-    expect(toastService.show).toHaveBeenCalledWith(
-      "success",
-      "API token regenerated successfully",
+    await vi.waitFor(() =>
+      expect(component.temporaryPassword()).toEqual({
+        school_id: "sch-1",
+        temporary_password: "TempPass123!",
+      }),
     );
   });
 
   it("should toggle status on action trigger", async () => {
-    await component.toggleStatusMutation.mutateAsync({
-      id: "sch-1",
-      status: "INACTIVE",
-    });
+    await component.toggleStatus(mockSchools[0]!);
+    await vi.waitFor(() =>
+      expect(adminService.toggleSchoolStatus).toHaveBeenCalledWith(
+        "sch-1",
+        "INACTIVE",
+      ),
+    );
     expect(adminService.toggleSchoolStatus).toHaveBeenCalledWith(
       "sch-1",
       "INACTIVE",
     );
-    expect(toastService.show).toHaveBeenCalledWith(
-      "success",
-      "School status updated to INACTIVE",
+    await vi.waitFor(() =>
+      expect(toastService.show).toHaveBeenCalledWith(
+        "success",
+        "School status updated to INACTIVE",
+      ),
     );
   });
 
@@ -179,8 +200,11 @@ describe("SchoolsPageComponent", () => {
       address: "",
       state: "Kano",
     };
-    component.newSchool = { ...schoolData };
-    await component.addSchoolMutation.mutateAsync(schoolData);
+    component.newSchool.set({ ...schoolData });
+    component.addSchool();
+    await vi.waitFor(() =>
+      expect(adminService.addSchool).toHaveBeenCalledWith(schoolData),
+    );
     expect(adminService.addSchool).toHaveBeenCalledWith(schoolData);
     expect(toastService.show).toHaveBeenCalledWith(
       "success",
@@ -188,18 +212,30 @@ describe("SchoolsPageComponent", () => {
     );
   });
 
-  it("should reject modal submit if validation fails", () => {
-    component.newSchool = {
-      name: "",
-      email: "",
+  it("should reject modal submit when required fields or email are invalid", () => {
+    component.newSchool.set({
+      name: "New School",
+      email: "not-an-email",
       phone: "",
       address: "",
       state: "",
-    };
+    });
     component.addSchool();
     expect(toastService.show).toHaveBeenCalledWith(
       "error",
       "Please fill in required fields",
     );
+    expect(adminService.addSchool).not.toHaveBeenCalled();
+  });
+
+  it("should not change school status when confirmation is cancelled", async () => {
+    confirmService.ask.mockResolvedValueOnce(null);
+    await component.toggleStatus(mockSchools[0]!);
+    expect(adminService.toggleSchoolStatus).not.toHaveBeenCalled();
+  });
+
+  it("should open the selected school detail modal", () => {
+    component.viewSchool(mockSchools[0]!);
+    expect(component.selectedSchool()).toEqual(mockSchools[0]);
   });
 });

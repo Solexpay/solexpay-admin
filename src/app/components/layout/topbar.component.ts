@@ -1,90 +1,53 @@
-import { Component, signal, inject, output } from "@angular/core";
-import { CommonModule } from "@angular/common";
+import { Component, inject, output } from "@angular/core";
 import { Router } from "@angular/router";
+import {
+  LucideDynamicIcon,
+  LucideBell as Bell,
+  LucideLogOut as LogOut,
+  LucideMenu as Menu,
+} from "@lucide/angular";
 import { AuthService } from "../../services/auth.service";
-import { RippleDirective } from "../../directives/ripple.directive";
 
+/** Small-screen bar: opens the sidebar drawer. Hidden from lg up. */
 @Component({
   selector: "app-topbar",
-  standalone: true,
-  imports: [CommonModule, RippleDirective],
+  imports: [LucideDynamicIcon],
   template: `
     <header
-      class="h-16 bg-white/80 backdrop-blur-xl border-b border-outline-variant/10 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30"
+      class="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-ui-line bg-white/90 px-3 backdrop-blur-sm lg:hidden"
     >
-      <!-- Left side: Menu toggle + Search -->
-      <div class="flex items-center gap-3 flex-1 min-w-0">
-        <!-- Mobile menu toggle -->
+      <div class="flex min-w-0 items-center gap-2">
         <button
-          class="lg:hidden p-2 -ml-2 rounded-lg hover:bg-surface-container-high transition-colors"
+          type="button"
+          data-testid="menu"
+          class="ui-icon-btn h-9 w-9"
+          aria-label="Open menu"
           (click)="toggleSidebar.emit()"
         >
-          <span class="material-symbols-outlined text-on-surface">menu</span>
+          <svg [lucideIcon]="MenuIcon" [size]="18"></svg>
         </button>
-
-        <!-- Search -->
-        <div
-          class="relative transition-all duration-300 ease-out max-w-md"
-          [class]="
-            searchFocused()
-              ? 'w-full sm:w-80 md:w-96'
-              : 'w-full sm:w-48 md:w-64'
-          "
+        <img src="/logo-icon.png" alt="" class="h-6 w-7 object-contain" />
+        <span class="truncate text-[15px] font-semibold text-ui-ink"
+          >SolexPay</span
         >
-          <span
-            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200"
-            [class]="searchFocused() ? 'text-primary' : 'text-outline'"
-            >search</span
-          >
-          <input
-            class="w-full bg-surface-container-low rounded-xl py-2.5 pl-10 pr-4
-                        transition-all duration-200 text-sm font-medium outline-none
-                        focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20"
-            (focus)="searchFocused.set(true)"
-            (blur)="searchFocused.set(false)"
-            placeholder="Search..."
-            type="text"
-          />
-        </div>
       </div>
-
-      <!-- Right side actions -->
-      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-        <!-- Notifications -->
+      <div class="flex items-center gap-1">
         <button
-          class="relative p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200"
+          type="button"
+          class="ui-icon-btn h-9 w-9"
+          aria-label="Notifications"
           (click)="showNotifications()"
         >
-          <span class="material-symbols-outlined text-on-surface-variant"
-            >notifications</span
-          >
-          @if (unreadCount() > 0) {
-            <span
-              class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full animate-notification-dot ring-2 ring-surface-container-lowest"
-            ></span>
-          }
+          <svg [lucideIcon]="BellIcon" [size]="18"></svg>
         </button>
-
-        <!-- Settings (hidden on smallest screens) -->
         <button
-          class="hidden sm:flex p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200"
-          (click)="goToSettings()"
-        >
-          <span class="material-symbols-outlined text-on-surface-variant"
-            >settings</span
-          >
-        </button>
-
-        <!-- Logout -->
-        <button
-          solexRipple
-          class="ml-1 sm:ml-2 px-3 sm:px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-95 whitespace-nowrap"
+          type="button"
+          data-testid="logout"
+          class="ui-icon-btn h-9 w-9"
+          aria-label="Sign out"
           (click)="logout()"
         >
-          <span class="sm:hidden material-symbols-outlined text-sm"
-            >logout</span
-          >
-          <span class="hidden sm:inline">Logout</span>
+          <svg [lucideIcon]="LogOutIcon" [size]="18"></svg>
         </button>
       </div>
     </header>
@@ -95,11 +58,12 @@ export class TopBarComponent {
   private router = inject(Router);
 
   toggleSidebar = output<void>();
-  searchFocused = signal(false);
-  unreadCount = signal(3); // Mock data - would come from notifications service
+
+  readonly MenuIcon = Menu;
+  readonly BellIcon = Bell;
+  readonly LogOutIcon = LogOut;
 
   showNotifications() {
-    // Would open notification drawer
     this.router.navigate(["/settings/notifications"]);
   }
 

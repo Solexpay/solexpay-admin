@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from "@angular/router";
 import { map } from "rxjs";
 import { AuthService } from "../services/auth.service";
 
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
@@ -11,14 +11,18 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
-  return auth.ensureInitialized().pipe(
-    map((isAuth) => {
-      if (isAuth) {
-        return true;
-      }
-      return router.parseUrl("/login");
-    }),
-  );
+  // Remember the deep link so login can come back to it.
+  const returnUrl = state?.url && state.url !== "/dashboard" ? state.url : "";
+  const toLogin = () =>
+    router.parseUrl(
+      returnUrl
+        ? `/login?returnUrl=${encodeURIComponent(returnUrl)}`
+        : "/login",
+    );
+
+  return auth
+    .ensureInitialized()
+    .pipe(map((isAuth) => (isAuth ? true : toLogin())));
 };
 
 export const adminGuard: CanActivateFn = () => {

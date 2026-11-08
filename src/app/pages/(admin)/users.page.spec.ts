@@ -14,6 +14,7 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { UsersPageComponent } from "./users.page";
 import { AdminService, User, UserDetail } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
+import { ConfirmService } from "../../services/confirm.service";
 import { of } from "rxjs";
 import { vi } from "vitest";
 
@@ -22,6 +23,7 @@ describe("UsersPageComponent", () => {
   let fixture: ComponentFixture<UsersPageComponent>;
   let adminService: AdminService;
   let toastService: ToastService;
+  let confirmService: { ask: ReturnType<typeof vi.fn> };
 
   const mockUsers: User[] = [
     {
@@ -91,6 +93,9 @@ describe("UsersPageComponent", () => {
     const mockToastService = {
       show: vi.fn(),
     };
+    confirmService = {
+      ask: vi.fn().mockResolvedValue({ reason: "Test reason" }),
+    };
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -101,13 +106,7 @@ describe("UsersPageComponent", () => {
       },
     });
     queryClient.setQueryData(
-      [
-        "users",
-        {
-          search: "",
-          status: "",
-        },
-      ],
+      ["users", { search: "", status: "", kycTier: "" }],
       {
         items: mockUsers,
         nextCursor: null,
@@ -139,6 +138,7 @@ describe("UsersPageComponent", () => {
         provideQueryClient(queryClient),
         { provide: AdminService, useValue: mockAdminService },
         { provide: ToastService, useValue: mockToastService },
+        { provide: ConfirmService, useValue: confirmService },
       ],
     });
 
@@ -150,6 +150,7 @@ describe("UsersPageComponent", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     TestBed.resetTestingModule();
   });
 
@@ -157,66 +158,103 @@ describe("UsersPageComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should load and filter users mapping the properties correctly", fakeAsync(() => {
+  it("should load users and map their API properties correctly", fakeAsync(() => {
     tick(10000);
     flush();
 
     expect(component.users().length).toBe(2);
-    expect(component.users()[0]!.kycStatus).toBe("VERIFIED");
-    expect(component.users()[1]!.kycStatus).toBe("PENDING");
+    expect(component.users()[0]!.kycTier).toBe("TIER_2");
+    expect(component.users()[0]!.phone).toBe("1234567890");
+    expect(component.users()[1]!.kycTier).toBe("TIER_1");
   }));
 
-  it("should filter locally by KYC status", fakeAsync(() => {
+  it("should send the selected KYC tier to the server", fakeAsync(() => {
+    component.onKycChange("TIER_2");
+    fixture.detectChanges();
     tick(10000);
     flush();
 
-    component.kycFilter.set("VERIFIED");
-    fixture.detectChanges();
-    expect(component.users().length).toBe(1);
-    expect(component.users()[0]!.id).toBe("usr-1");
+    expect(component.kycFilter()).toBe("TIER_2");
+    expect(adminService.getUsers).toHaveBeenCalledWith(
+      expect.objectContaining({ kycTier: "TIER_2" }),
+    );
   }));
 
-  it("should trigger search filter refetch", () => {
+  it("should debounce server search and use phoneNumber for phone queries", () => {
+    vi.useFakeTimers();
     component.onSearch("John");
+    expect(component.searchInput()).toBe("John");
+    expect(component.searchQuery()).toBe("");
+    vi.advanceTimersByTime(300);
     expect(component.searchQuery()).toBe("John");
-    expect(component.currentPage()).toBe(0);
+
+    component.onSearch("08012345678");
+    vi.advanceTimersByTime(300);
+    fixture.detectChanges();
+    expect(adminService.getUsers).toHaveBeenCalledWith(
+      expect.objectContaining({ phoneNumber: "08012345678" }),
+    );
   });
 
-  it("should trigger status filter refetch", () => {
+  it("should trigger a server refetch when status changes", fakeAsync(() => {
     component.onStatusChange("SUSPENDED");
+    fixture.detectChanges();
+    tick(10000);
+    flush();
+
     expect(component.statusFilter()).toBe("SUSPENDED");
-    expect(component.currentPage()).toBe(0);
+    expect(adminService.getUsers).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "SUSPENDED" }),
+    );
+    expect(component.rawAppendedUsers()).toEqual([]);
+    expect(component.nextCursor()).toBeNull();
+  }));
+
+  it("should load the next cursor page", () => {
+    component.nextCursor.set("cursor-after-first-page");
+    component.loadMore();
+
+    expect(adminService.getUsers).toHaveBeenCalledWith(
+      expect.objectContaining({ cursor: "cursor-after-first-page" }),
+    );
+    expect(component.rawAppendedUsers()).toHaveLength(2);
+    expect(component.users()).toHaveLength(4);
   });
 
-  it("should support pagination methods", () => {
-    component.currentPage.set(1);
-    component.prevPage();
-    expect(component.currentPage()).toBe(0);
+  it("should ask for confirmation and call suspend and reactivate mutations", async () => {
+    await component.suspend(mockUsers[0]!);
+    expect(confirmService.ask).toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(adminService.suspendUser).toHaveBeenCalledWith(
+        "usr-1",
+        "Test reason",
+      ),
+    );
+    await vi.waitFor(() =>
+      expect(toastService.show).toHaveBeenCalledWith(
+        "success",
+        "John Doe suspended",
+      ),
+    );
 
-    component.nextPage();
-    expect(component.currentPage()).toBe(1);
+    await component.reactivate(mockUsers[1]!);
+    await vi.waitFor(() =>
+      expect(adminService.reactivateUser).toHaveBeenCalledWith("usr-2"),
+    );
+    await vi.waitFor(() =>
+      expect(toastService.show).toHaveBeenCalledWith(
+        "success",
+        "Jane Smith reactivated",
+      ),
+    );
   });
 
-  it("should call suspend and reactivate mutations correctly", async () => {
-    await component.suspendMutation.mutateAsync({
-      userId: "usr-1",
-      userName: "John Doe",
-    });
-    expect(adminService.suspendUser).toHaveBeenCalledWith("usr-1");
-    expect(toastService.show).toHaveBeenCalledWith(
-      "success",
-      "John Doe suspended",
-    );
+  it("should not suspend when confirmation is cancelled", async () => {
+    confirmService.ask.mockResolvedValueOnce(null);
 
-    await component.reactivateMutation.mutateAsync({
-      userId: "usr-2",
-      userName: "Jane Smith",
-    });
-    expect(adminService.reactivateUser).toHaveBeenCalledWith("usr-2");
-    expect(toastService.show).toHaveBeenCalledWith(
-      "success",
-      "Jane Smith reactivated",
-    );
+    await component.suspend(mockUsers[0]!);
+
+    expect(adminService.suspendUser).not.toHaveBeenCalled();
   });
 
   it("should open and close the user detail view", () => {

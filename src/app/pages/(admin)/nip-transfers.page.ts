@@ -1,402 +1,389 @@
 import { Component, inject, signal, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import { injectQuery } from "@tanstack/angular-query-experimental";
 import { lastValueFrom } from "rxjs";
+import {
+  LucideDynamicIcon,
+  LucideChevronDown as ChevronDown,
+  LucideCircleAlert as CircleAlert,
+  LucideEye as Eye,
+  LucideLandmark as Landmark,
+  LucideLoaderCircle as LoaderCircle,
+  LucideSend as Send,
+  LucideX as X,
+} from "@lucide/angular";
 import { AdminService, NipTransfer } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
 import { StatusChipComponent } from "../../components/ui/status-chip.component";
+import { PageHeaderComponent } from "../../components/ui/page-header.component";
+import { ModalDirective } from "../../directives/modal.directive";
+import { CopyToClipboardDirective } from "../../directives/copy-to-clipboard.directive";
 
 @Component({
   selector: "app-nip-transfers",
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatusChipComponent],
+  imports: [
+    CommonModule,
+    LucideDynamicIcon,
+    StatusChipComponent,
+    PageHeaderComponent,
+    ModalDirective,
+    CopyToClipboardDirective,
+  ],
   template: `
-    <div class="space-y-6">
-      <!-- Page header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-      >
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">
-            NIP Transfers
-          </h1>
-          <p class="text-sm text-on-surface-variant mt-1">
-            Read-only ledger of NIP inter-bank transfers and settlement
-            responses
-          </p>
-        </div>
-      </div>
+    <app-page-header
+      title="NIP Transfers"
+      [icon]="LandmarkIcon"
+      subtitle="Read-only ledger of NIP inter-bank transfers and settlement responses"
+    />
 
-      <!-- Filters -->
-      <div
-        class="bg-surface-container-lowest rounded-xl p-4 flex flex-wrap items-center gap-4 shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-      >
-        <div
-          class="flex gap-2 p-1 bg-surface-container rounded-xl overflow-x-auto"
-        >
-          @for (tab of statusTabs; track tab.value) {
-            <button
-              (click)="onStatusChange(tab.value)"
-              class="px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
-              [class]="
-                statusFilter() === tab.value
-                  ? 'bg-primary text-on-primary'
-                  : 'text-on-surface-variant hover:bg-surface-container-high'
-              "
-            >
-              {{ tab.label }}
-            </button>
+    <div class="space-y-4">
+      <!-- Table -->
+      <section class="ui-panel">
+        <div class="ui-panel-head">
+          <h2 class="ui-panel-title">All transfers</h2>
+          <div class="ui-tabs" role="tablist">
+            @for (tab of statusTabs; track tab.value) {
+              <button
+                type="button"
+                class="ui-tab"
+                role="tab"
+                [attr.aria-selected]="statusFilter() === tab.value"
+                [class.ui-tab-active]="statusFilter() === tab.value"
+                (click)="onStatusChange(tab.value)"
+              >
+                {{ tab.label }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="ui-panel-body overflow-hidden">
+          <div class="ui-table-wrap">
+            <table class="ui-table md:min-w-[900px]">
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th class="hidden md:table-cell">Beneficiary</th>
+                  <th class="hidden md:table-cell">Sender</th>
+                  <th>Amount</th>
+                  <th class="hidden md:table-cell">Fee</th>
+                  <th>Status</th>
+                  <th class="hidden md:table-cell">Date</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (loading()) {
+                  @for (n of [1, 2, 3, 4]; track n) {
+                    <tr>
+                      <td><div class="ui-skel h-4 w-32"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-28"></div>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-28"></div>
+                      </td>
+                      <td><div class="ui-skel h-4 w-16"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-12"></div>
+                      </td>
+                      <td><div class="ui-skel h-5 w-16 rounded-full"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-20"></div>
+                      </td>
+                      <td><div class="ui-skel ml-auto h-4 w-8"></div></td>
+                    </tr>
+                  }
+                } @else if (transfersQuery.isError()) {
+                  <tr>
+                    <td [attr.colspan]="8">
+                      <div class="ui-empty">
+                        <svg
+                          [lucideIcon]="CircleAlertIcon"
+                          [size]="28"
+                          class="text-ui-danger"
+                        ></svg>
+                        <p>Couldn't load NIP transfers.</p>
+                        <button
+                          type="button"
+                          class="ui-btn ui-btn-sm"
+                          (click)="transfersQuery.refetch()"
+                        >
+                          Try again
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @else {
+                  @for (tx of transfers(); track tx.id) {
+                    <tr>
+                      <td>
+                        <button
+                          type="button"
+                          class="font-mono text-[13px] font-medium text-ui-ink hover:text-ui-accent"
+                          title="View full NIP details"
+                          [copyToClipboard]="tx.reference"
+                          (click)="selectedTransfer.set(tx)"
+                        >
+                          {{ tx.reference }}
+                        </button>
+                        @if (tx.anchorTransferId) {
+                          <p class="font-mono text-xs text-ui-muted">
+                            Anchor: {{ tx.anchorTransferId }}
+                          </p>
+                        }
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <p class="font-medium text-ui-ink">
+                          {{ tx.accountName }}
+                        </p>
+                        <p class="text-xs text-ui-muted">
+                          {{ maskAccount(tx.accountNumber) }} ·
+                          {{ tx.bankName }}
+                        </p>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <p class="font-medium text-ui-ink">
+                          {{ tx.userName }}
+                        </p>
+                        <p class="font-mono text-xs text-ui-muted">
+                          {{ tx.userId }}
+                        </p>
+                      </td>
+                      <td class="whitespace-nowrap tabular-nums text-ui-ink">
+                        ₦{{ tx.amount | number: "1.0-0" : "en-NG" }}
+                      </td>
+                      <td
+                        class="hidden whitespace-nowrap tabular-nums text-ui-ink md:table-cell"
+                      >
+                        ₦{{ tx.fee | number: "1.0-0" : "en-NG" }}
+                      </td>
+                      <td>
+                        <div class="flex items-center gap-1.5">
+                          <app-status-chip [status]="tx.status" />
+                          @if (tx.stuckAlertedAt) {
+                            <span
+                              class="ui-badge ui-badge-warning"
+                              [title]="
+                                'Stuck alert sent ' +
+                                (tx.stuckAlertedAt | date: 'medium')
+                              "
+                            >
+                              Stuck
+                            </span>
+                          }
+                        </div>
+                      </td>
+                      <td
+                        class="hidden whitespace-nowrap text-ui-muted md:table-cell"
+                      >
+                        {{ tx.createdAt | date: "short" }}
+                      </td>
+                      <td>
+                        <div class="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            class="ui-icon-btn"
+                            (click)="selectedTransfer.set(tx)"
+                            title="View Full NIP Details"
+                            aria-label="View Full NIP Details"
+                          >
+                            <svg [lucideIcon]="EyeIcon" [size]="16"></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td [attr.colspan]="8">
+                        <div class="ui-empty">
+                          <svg
+                            [lucideIcon]="SendIcon"
+                            [size]="28"
+                            class="text-ui-faint"
+                          ></svg>
+                          <p>No NIP transfers found</p>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (hasMore()) {
+            <div class="ui-table-foot">
+              <p>{{ transfers().length }} shown</p>
+              <button
+                type="button"
+                class="ui-btn ui-btn-sm"
+                (click)="loadMore()"
+                [disabled]="isLoadingMore()"
+              >
+                @if (isLoadingMore()) {
+                  <svg
+                    [lucideIcon]="LoaderIcon"
+                    [size]="15"
+                    class="animate-spin"
+                  ></svg>
+                  <span>Loading...</span>
+                } @else {
+                  <span>Load more</span>
+                  <svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                }
+              </button>
+            </div>
           }
         </div>
-      </div>
+      </section>
+    </div>
 
-      <!-- Table -->
-      <div
-        class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-      >
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[900px]">
-            <thead>
-              <tr class="bg-surface-container text-left">
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Reference & Session
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Beneficiary (Destination)
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Sender (Source)
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Amount
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Fee
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Date
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (loading()) {
-                @for (n of [1, 2, 3, 4]; track n) {
-                  <tr class="border-t border-surface-container animate-pulse">
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-32 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-28 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-28 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-12 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-20 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <div
-                        class="h-4 w-8 bg-surface-container-high rounded ml-auto"
-                      ></div>
-                    </td>
-                  </tr>
-                }
-              } @else {
-                @for (tx of transfers(); track tx.id) {
-                  <tr
-                    class="border-t border-surface-container hover:bg-surface-container-low transition-colors"
-                  >
-                    <td class="px-6 py-4">
-                      <p
-                        class="text-sm font-semibold font-mono text-on-surface"
-                      >
-                        {{ tx.reference }}
-                      </p>
-                      @if (tx.sessionNumber) {
-                        <p class="text-xs text-on-surface-variant font-mono">
-                          Session: {{ tx.sessionNumber }}
-                        </p>
-                      }
-                    </td>
-                    <td class="px-6 py-4">
-                      <p class="text-sm font-semibold text-on-surface">
-                        {{ tx.destinationAccountName }}
-                      </p>
-                      <p class="text-xs text-on-surface-variant font-mono">
-                        {{ maskAccount(tx.destinationAccountNumber) }} · Bank
-                        {{ tx.destinationBankCode }}
-                      </p>
-                    </td>
-                    <td class="px-6 py-4">
-                      <p class="text-sm font-semibold text-on-surface">
-                        {{ tx.senderAccountName || "Sender" }}
-                      </p>
-                      <p class="text-xs text-on-surface-variant font-mono">
-                        {{ maskAccount(tx.senderAccountNumber) }} · Bank
-                        {{ tx.senderBankCode }}
-                      </p>
-                    </td>
-                    <td
-                      class="px-6 py-4 text-sm font-bold text-on-surface whitespace-nowrap"
-                    >
-                      ₦{{ tx.amount | number: "1.0-0" : "en-NG" }}
-                    </td>
-                    <td
-                      class="px-6 py-4 text-sm text-on-surface-variant whitespace-nowrap"
-                    >
-                      ₦{{ tx.fee | number: "1.0-0" : "en-NG" }}
-                    </td>
-                    <td class="px-6 py-4">
-                      <app-status-chip [status]="tx.status"></app-status-chip>
-                    </td>
-                    <td
-                      class="px-6 py-4 text-sm text-on-surface-variant whitespace-nowrap"
-                    >
-                      {{ tx.createdAt | date: "short" }}
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <button
-                        (click)="selectedTransfer.set(tx)"
-                        class="p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors"
-                        title="View Full NIP Details"
-                      >
-                        <span class="material-symbols-outlined text-sm"
-                          >visibility</span
-                        >
-                      </button>
-                    </td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
-        </div>
-
-        @if (!loading() && transfers().length === 0) {
-          <div class="text-center py-12">
-            <span
-              class="material-symbols-outlined text-4xl text-surface-variant"
-              >send_money</span
-            >
-            <p class="text-sm text-on-surface-variant mt-2">
-              No NIP transfers found
-            </p>
-          </div>
-        }
-
-        @if (hasMore()) {
-          <div
-            class="flex justify-center p-4 border-t border-surface-container"
-          >
+    <!-- Detail Modal -->
+    @if (selectedTransfer()) {
+      <div class="ui-overlay">
+        <div
+          class="ui-backdrop"
+          aria-hidden="true"
+          (click)="selectedTransfer.set(null)"
+        ></div>
+        <div
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="selectedTransfer.set(null)"
+        >
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">NIP Transfer Details</h2>
             <button
-              (click)="loadMore()"
-              [disabled]="isLoadingMore()"
-              class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
+              type="button"
+              class="ui-icon-btn"
+              (click)="selectedTransfer.set(null)"
+              aria-label="Close"
             >
-              @if (isLoadingMore()) {
-                <span
-                  class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                ></span>
-                <span>Loading...</span>
-              } @else {
-                <span>Load more</span>
-                <span class="material-symbols-outlined text-sm"
-                  >expand_more</span
-                >
-              }
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
             </button>
           </div>
-        }
-      </div>
 
-      <!-- Detail Modal -->
-      @if (selectedTransfer()) {
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/30 backdrop-blur-md"
-        >
-          <div
-            class="relative bg-surface-container-lowest rounded-2xl p-6 w-full max-w-lg shadow-[0_32px_64px_rgba(25,28,29,0.12)] max-h-[90vh] overflow-y-auto"
-          >
-            <div
-              class="flex items-center justify-between mb-4 border-b border-surface-container pb-3"
+          <div class="ui-modal-body">
+            <dl class="ui-dl">
+              <div>
+                <dt class="ui-dt">Reference</dt>
+                <dd
+                  class="ui-dd font-mono"
+                  [copyToClipboard]="selectedTransfer()!.reference"
+                >
+                  {{ selectedTransfer()!.reference }}
+                </dd>
+              </div>
+              @if (selectedTransfer()!.anchorTransferId) {
+                <div>
+                  <dt class="ui-dt">Anchor transfer ID</dt>
+                  <dd
+                    class="ui-dd font-mono"
+                    [copyToClipboard]="selectedTransfer()!.anchorTransferId!"
+                  >
+                    {{ selectedTransfer()!.anchorTransferId }}
+                  </dd>
+                </div>
+              }
+              <div>
+                <dt class="ui-dt">Status</dt>
+                <dd class="ui-dd">
+                  <app-status-chip
+                    [status]="selectedTransfer()!.status"
+                  ></app-status-chip>
+                </dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Amount</dt>
+                <dd class="ui-dd tabular-nums">
+                  ₦{{ selectedTransfer()!.amount | number: "1.0-0" : "en-NG" }}
+                </dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Fee</dt>
+                <dd class="ui-dd tabular-nums">
+                  ₦{{ selectedTransfer()!.fee | number: "1.0-0" : "en-NG" }}
+                </dd>
+              </div>
+              <div class="sm:col-span-2">
+                <dt class="ui-dt">Beneficiary Details</dt>
+                <dd class="ui-dd">
+                  {{ selectedTransfer()!.accountName }}
+                </dd>
+                <dd
+                  class="mt-0.5 text-xs text-ui-muted"
+                  [copyToClipboard]="selectedTransfer()!.accountNumber"
+                >
+                  Account: {{ selectedTransfer()!.accountNumber }} ·
+                  {{ selectedTransfer()!.bankName }}
+                </dd>
+              </div>
+              <div class="sm:col-span-2">
+                <dt class="ui-dt">Sender Details</dt>
+                <dd class="ui-dd">
+                  {{ selectedTransfer()!.userName }}
+                </dd>
+                <dd
+                  class="mt-0.5 font-mono text-xs text-ui-muted"
+                  [copyToClipboard]="selectedTransfer()!.userId"
+                >
+                  {{ selectedTransfer()!.userId }}
+                </dd>
+              </div>
+              @if (selectedTransfer()!.failureReason) {
+                <div class="sm:col-span-2">
+                  <dt class="ui-dt">Failure reason</dt>
+                  <dd
+                    class="mt-1 rounded-lg bg-ui-danger-soft p-2.5 text-[13px] text-ui-danger"
+                  >
+                    {{ selectedTransfer()!.failureReason }}
+                  </dd>
+                </div>
+              }
+              @if (selectedTransfer()!.stuckAlertedAt) {
+                <div>
+                  <dt class="ui-dt">Stuck alert sent</dt>
+                  <dd class="ui-dd">
+                    {{ selectedTransfer()!.stuckAlertedAt | date: "medium" }}
+                  </dd>
+                </div>
+              }
+              <div>
+                <dt class="ui-dt">Timestamp</dt>
+                <dd class="ui-dd">
+                  {{ selectedTransfer()!.createdAt | date: "medium" }}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="ui-modal-foot">
+            <button
+              type="button"
+              class="ui-btn"
+              (click)="selectedTransfer.set(null)"
             >
-              <h2 class="text-lg font-bold text-on-surface">
-                NIP Transfer Details
-              </h2>
-              <button
-                (click)="selectedTransfer.set(null)"
-                class="p-1 rounded-lg hover:bg-surface-container-high text-on-surface-variant"
-              >
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <div class="space-y-3 text-sm">
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Reference</span>
-                <span class="font-mono font-bold">{{
-                  selectedTransfer()!.reference
-                }}</span>
-              </div>
-              @if (selectedTransfer()!.sessionNumber) {
-                <div
-                  class="flex justify-between py-1 border-b border-surface-container"
-                >
-                  <span class="text-on-surface-variant">Session Number</span>
-                  <span class="font-mono">{{
-                    selectedTransfer()!.sessionNumber
-                  }}</span>
-                </div>
-              }
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Status</span>
-                <app-status-chip
-                  [status]="selectedTransfer()!.status"
-                ></app-status-chip>
-              </div>
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Amount</span>
-                <span class="font-bold"
-                  >₦{{
-                    selectedTransfer()!.amount | number: "1.0-0" : "en-NG"
-                  }}</span
-                >
-              </div>
-              <div
-                class="flex justify-between py-1 border-b border-surface-container"
-              >
-                <span class="text-on-surface-variant">Fee</span>
-                <span
-                  >₦{{
-                    selectedTransfer()!.fee | number: "1.0-0" : "en-NG"
-                  }}</span
-                >
-              </div>
-              <div class="py-2 border-b border-surface-container">
-                <span
-                  class="text-xs text-on-surface-variant uppercase font-bold tracking-wider"
-                  >Beneficiary Details</span
-                >
-                <p class="font-semibold text-on-surface mt-1">
-                  {{ selectedTransfer()!.destinationAccountName }}
-                </p>
-                <p class="text-xs text-on-surface-variant font-mono">
-                  Account: {{ selectedTransfer()!.destinationAccountNumber }} ·
-                  Bank: {{ selectedTransfer()!.destinationBankCode }}
-                </p>
-              </div>
-              <div class="py-2 border-b border-surface-container">
-                <span
-                  class="text-xs text-on-surface-variant uppercase font-bold tracking-wider"
-                  >Sender Details</span
-                >
-                <p class="font-semibold text-on-surface mt-1">
-                  {{ selectedTransfer()!.senderAccountName || "N/A" }}
-                </p>
-                <p class="text-xs text-on-surface-variant font-mono">
-                  Account: {{ selectedTransfer()!.senderAccountNumber }} · Bank:
-                  {{ selectedTransfer()!.senderBankCode }}
-                </p>
-              </div>
-              @if (selectedTransfer()!.responseCode) {
-                <div
-                  class="flex justify-between py-1 border-b border-surface-container"
-                >
-                  <span class="text-on-surface-variant">NIP Response Code</span>
-                  <span class="font-mono font-semibold">{{
-                    selectedTransfer()!.responseCode
-                  }}</span>
-                </div>
-              }
-              @if (selectedTransfer()!.responseMessage) {
-                <div class="py-1">
-                  <span class="text-on-surface-variant block mb-1"
-                    >NIP Response Message</span
-                  >
-                  <p
-                    class="text-xs bg-surface-container rounded-lg p-2.5 text-on-surface font-mono"
-                  >
-                    {{ selectedTransfer()!.responseMessage }}
-                  </p>
-                </div>
-              }
-              <div class="flex justify-between py-1">
-                <span class="text-on-surface-variant">Timestamp</span>
-                <span>{{
-                  selectedTransfer()!.createdAt | date: "medium"
-                }}</span>
-              </div>
-            </div>
-
-            <div class="mt-6 flex justify-end">
-              <button
-                (click)="selectedTransfer.set(null)"
-                class="px-4 py-2 bg-surface-container text-on-surface rounded-xl font-bold text-sm"
-              >
-                Close
-              </button>
-            </div>
+              Close
+            </button>
           </div>
         </div>
-      }
-    </div>
+      </div>
+    }
   `,
 })
 export class NipTransfersPageComponent {
   private adminService = inject(AdminService);
   private toast = inject(ToastService);
+
+  readonly LandmarkIcon = Landmark;
+  readonly SendIcon = Send;
+  readonly EyeIcon = Eye;
+  readonly XIcon = X;
+  readonly LoaderIcon = LoaderCircle;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly CircleAlertIcon = CircleAlert;
 
   statusFilter = signal<string>("");
 

@@ -1,7 +1,7 @@
 import "../../test";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
-import { Router } from "@angular/router";
+import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { LoginPageComponent } from "./login.page";
 import { AuthService } from "../services/auth.service";
 import { ToastService } from "../services/toast.service";
@@ -14,6 +14,9 @@ describe("LoginPageComponent - TOTP Enrollment Flow", () => {
   let authService: Mocked<AuthService>;
   let router: Router;
   let toastService: ToastService;
+  let mockActivatedRoute: {
+    snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> };
+  };
 
   const mockEnrollData = {
     secret: "JBSWY3DPEHPK3PXP",
@@ -52,12 +55,17 @@ describe("LoginPageComponent - TOTP Enrollment Flow", () => {
       show: vi.fn(),
     };
 
+    mockActivatedRoute = {
+      snapshot: { queryParamMap: convertToParamMap({}) },
+    };
+
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [LoginPageComponent, RouterTestingModule],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: ToastService, useValue: mockToastService },
+        { provide: ActivatedRoute, useValue: mockActivatedRoute },
       ],
     }).compileComponents();
 
@@ -101,7 +109,7 @@ describe("LoginPageComponent - TOTP Enrollment Flow", () => {
   });
 
   it("should confirm enrollment code and navigate to /dashboard on success", () => {
-    const navSpy = vi.spyOn(router, "navigate");
+    const navSpy = vi.spyOn(router, "navigateByUrl");
 
     // Put component into enrollment state
     component.isEnrolling.set(true);
@@ -120,7 +128,7 @@ describe("LoginPageComponent - TOTP Enrollment Flow", () => {
       "success",
       "Two-factor authentication configured! Welcome.",
     );
-    expect(navSpy).toHaveBeenCalledWith(["/dashboard"]);
+    expect(navSpy).toHaveBeenCalledWith("/dashboard");
   });
 
   it("should show error toast if confirm TOTP fails", () => {
@@ -141,7 +149,7 @@ describe("LoginPageComponent - TOTP Enrollment Flow", () => {
   });
 
   it("should directly login without enrollment if login response has token", () => {
-    const navSpy = vi.spyOn(router, "navigate");
+    const navSpy = vi.spyOn(router, "navigateByUrl");
     authService.login.mockReturnValue(of(mockConfirmSuccess));
 
     component.form.controls.email.setValue("admin@solexpay.com");
@@ -159,6 +167,22 @@ describe("LoginPageComponent - TOTP Enrollment Flow", () => {
       "ADMIN",
     );
     expect(component.isEnrolling()).toBe(false);
-    expect(navSpy).toHaveBeenCalledWith(["/dashboard"]);
+    expect(navSpy).toHaveBeenCalledWith("/dashboard");
+  });
+
+  it("should navigate to returnUrl from query params on successful login", () => {
+    const navSpy = vi.spyOn(router, "navigateByUrl");
+    mockActivatedRoute.snapshot.queryParamMap = convertToParamMap({
+      returnUrl: "/users",
+    });
+    authService.login.mockReturnValue(of(mockConfirmSuccess));
+
+    component.form.controls.email.setValue("admin@solexpay.com");
+    component.form.controls.password.setValue("Password123!");
+
+    component.login();
+
+    expect(component.isEnrolling()).toBe(false);
+    expect(navSpy).toHaveBeenCalledWith("/users");
   });
 });

@@ -1,0 +1,17 @@
+nodeLinker: isolated
+shamefullyHoist: true
+strictPeerDependencies: false
+autoInstallPeers: true
+
+overrides:
+  # Angular 22's compiler needs encodeRangeMappings (1.6+); an older copy
+  # gets hoisted otherwise and `ng update` migrations crash.
+  "@jridgewell/sourcemap-codec": ^1.6.0
+
+# Install scripts pnpm may run. The others ship prebuilt binaries as
+# optional packages, so their scripts are only a compile-from-source fallback.
+allowBuilds:
+  esbuild: true
+  "@parcel/watcher": false
+  lmdb: false
+  msgpackr-extract: false

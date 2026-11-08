@@ -107,7 +107,7 @@ describe("Cursor List Component Behavior (UsersPageComponent)", () => {
     });
 
     queryClient.setQueryData(
-      ["users", { search: "", status: "" }],
+      ["users", { search: "", status: "", kycTier: "" }],
       page1Response,
     );
 
@@ -128,6 +128,7 @@ describe("Cursor List Component Behavior (UsersPageComponent)", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     TestBed.resetTestingModule();
   });
 
@@ -180,10 +181,13 @@ describe("Cursor List Component Behavior (UsersPageComponent)", () => {
   });
 
   it("should reset cursor and appended items on search input", () => {
+    vi.useFakeTimers();
     component.loadMore();
     expect(component.users().length).toBe(3);
 
     component.onSearch("08011111111");
+    expect(component.searchInput()).toBe("08011111111");
+    vi.advanceTimersByTime(300);
     expect(component.searchQuery()).toBe("08011111111");
     expect(component.rawAppendedUsers().length).toBe(0);
     expect(component.nextCursor()).toBeNull();

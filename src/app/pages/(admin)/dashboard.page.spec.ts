@@ -119,7 +119,8 @@ describe("DashboardPageComponent", () => {
     expect(component.compactAmount(1500000)).toBe("₦1.5M");
     expect(component.compactAmount(5000)).toBe("₦5K");
     expect(component.compactAmount(500)).toBe("₦500");
-    expect(component.getTransactionIcon("WALLET_FUNDING")).toBe("add_circle");
-    expect(component.getTransactionIcon("UNKNOWN")).toBe("payment");
+    expect(component.typeLabel("WALLET_FUNDING")).toBe("Wallet funding");
+    expect(component.initials("John Doe")).toBe("JD");
+    expect(component.initials("")).toBe("?");
   });
 });

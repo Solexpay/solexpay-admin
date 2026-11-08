@@ -8,6 +8,18 @@ import {
 } from "@tanstack/angular-query-experimental";
 import { lastValueFrom } from "rxjs";
 import {
+  LucideDynamicIcon,
+  LucideChevronDown as ChevronDown,
+  LucideCircleAlert as CircleAlert,
+  LucideCopy as Copy,
+  LucideKeyRound as KeyRound,
+  LucideLoaderCircle as LoaderCircle,
+  LucideLock as Lock,
+  LucideUserCog as UserCog,
+  LucideUserPlus as UserPlus,
+  LucideX as X,
+} from "@lucide/angular";
+import {
   AdminService,
   AdminUser,
   CreateAdminResult,
@@ -15,325 +27,349 @@ import {
 } from "../../services/admin.service";
 import { AuthService } from "../../services/auth.service";
 import { ToastService } from "../../services/toast.service";
+import { ConfirmService } from "../../services/confirm.service";
+import { ModalDirective } from "../../directives/modal.directive";
 import { StatusChipComponent } from "../../components/ui/status-chip.component";
-import { RippleDirective } from "../../directives/ripple.directive";
+import { PageHeaderComponent } from "../../components/ui/page-header.component";
+
+interface NewAdminDraft {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  phone: string;
+}
 
 @Component({
   selector: "app-admins",
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatusChipComponent, RippleDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideDynamicIcon,
+    ModalDirective,
+    StatusChipComponent,
+    PageHeaderComponent,
+  ],
   template: `
-    <div class="space-y-6">
-      <!-- Super Admin Access Guard Check -->
-      @if (!isSuperAdmin()) {
-        <div
-          class="bg-error-container rounded-2xl p-8 text-center text-on-error-container"
-        >
-          <span class="material-symbols-outlined text-5xl mb-2">lock</span>
-          <h2 class="text-xl font-bold">Access Restricted</h2>
-          <p class="text-sm mt-1">
+    @if (!isSuperAdmin()) {
+      <section class="ui-panel">
+        <div class="ui-panel-body px-4 py-10 text-center">
+          <svg
+            [lucideIcon]="LockIcon"
+            [size]="40"
+            class="mx-auto mb-2 text-ui-faint"
+          ></svg>
+          <h2 class="text-xl font-semibold text-ui-ink">Access Restricted</h2>
+          <p class="mt-1 text-sm text-ui-muted">
             This section requires the SUPER_ADMIN role. Your account does not
             have sufficient permissions.
           </p>
         </div>
-      } @else {
-        <!-- Page header -->
-        <div
-          class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      </section>
+    } @else {
+      <app-page-header
+        title="Administrators"
+        [icon]="UserCogIcon"
+        subtitle="Manage back-office admin accounts, roles, security credentials, and TOTP"
+      >
+        <button
+          type="button"
+          class="ui-btn ui-btn-primary"
+          (click)="showCreateModal.set(true)"
         >
-          <div>
-            <h1 class="text-xl sm:text-2xl font-bold text-on-surface">
-              Administrators
-            </h1>
-            <p class="text-sm text-on-surface-variant mt-1">
-              Manage back-office admin accounts, roles, security credentials,
-              and TOTP
-            </p>
-          </div>
-          <button
-            solexRipple
-            (click)="showCreateModal.set(true)"
-            class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm hover:brightness-110 flex items-center justify-center gap-2"
-          >
-            <span class="material-symbols-outlined text-sm">person_add</span>
-            Create Admin
-          </button>
-        </div>
+          <svg [lucideIcon]="UserPlusIcon" [size]="15"></svg>
+          Create Admin
+        </button>
+      </app-page-header>
 
+      <div class="space-y-4">
         <!-- Admins Table -->
-        <div
-          class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-        >
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[850px]">
-              <thead>
-                <tr class="bg-surface-container text-left">
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Administrator
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Role
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Status
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Last Login
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Created
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (loading()) {
-                  @for (n of [1, 2, 3]; track n) {
-                    <tr class="border-t border-surface-container animate-pulse">
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-36 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-20 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-16 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-24 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-20 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4 text-right">
-                        <div
-                          class="h-4 w-24 bg-surface-container-high rounded ml-auto"
-                        ></div>
-                      </td>
-                    </tr>
-                  }
-                } @else {
-                  @for (admin of admins(); track admin.id) {
-                    <tr
-                      class="border-t border-surface-container hover:bg-surface-container-low transition-colors"
-                    >
-                      <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                          <div
-                            class="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center font-bold text-primary text-sm"
-                          >
-                            {{ admin.firstName[0] || "A" }}
-                          </div>
-                          <div>
-                            <p class="text-sm font-semibold text-on-surface">
-                              {{ admin.firstName }} {{ admin.lastName }}
-                            </p>
-                            <p class="text-xs text-on-surface-variant">
-                              {{ admin.email }}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <span
-                          class="px-2.5 py-1 rounded-full text-xs font-bold tracking-wide uppercase"
-                          [class]="
-                            admin.role === 'SUPER_ADMIN'
-                              ? 'bg-primary-fixed text-primary'
-                              : admin.role === 'OPS'
-                                ? 'bg-secondary-fixed text-secondary'
-                                : admin.role === 'COMPLIANCE'
-                                  ? 'bg-tertiary-fixed text-tertiary'
-                                  : 'bg-surface-container-high text-on-surface'
-                          "
-                        >
-                          {{ admin.role }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4">
-                        <app-status-chip
-                          [status]="admin.status"
-                        ></app-status-chip>
-                      </td>
-                      <td
-                        class="px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap"
-                      >
-                        {{
-                          admin.lastLoginAt
-                            ? (admin.lastLoginAt | date: "short")
-                            : "Never"
-                        }}
-                      </td>
-                      <td
-                        class="px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap"
-                      >
-                        {{ admin.createdAt | date: "mediumDate" }}
-                      </td>
-                      <td class="px-6 py-4 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                          <button
-                            solexRipple
-                            (click)="resetTotpMutation.mutate(admin.id)"
-                            [disabled]="resetTotpMutation.isPending()"
-                            class="px-2.5 py-1.5 bg-surface-container text-on-surface hover:bg-surface-container-high rounded-lg text-xs font-bold transition-all disabled:opacity-50"
-                            title="Reset TOTP 2FA secret"
-                          >
-                            Reset TOTP
-                          </button>
-                          @if (admin.status === "ACTIVE") {
-                            <button
-                              solexRipple
-                              (click)="disableMutation.mutate(admin.id)"
-                              [disabled]="disableMutation.isPending()"
-                              class="px-2.5 py-1.5 bg-error-container text-on-error-container hover:bg-error hover:text-on-error rounded-lg text-xs font-bold transition-all disabled:opacity-50"
-                              title="Disable administrator account"
-                            >
-                              Disable
-                            </button>
-                          }
-                        </div>
-                      </td>
-                    </tr>
-                  }
-                }
-              </tbody>
-            </table>
+        <section class="ui-panel">
+          <div class="ui-panel-head">
+            <h2 class="ui-panel-title">All administrators</h2>
+            <span class="ui-meta">{{ admins().length }} accounts</span>
           </div>
 
-          @if (!loading() && admins().length === 0) {
-            <div class="text-center py-12">
-              <span
-                class="material-symbols-outlined text-4xl text-surface-variant"
-                >admin_panel_settings</span
-              >
-              <p class="text-sm text-on-surface-variant mt-2">
-                No administrators found
-              </p>
+          <div class="ui-panel-body overflow-hidden">
+            <div class="ui-table-wrap">
+              <table class="ui-table md:min-w-[760px]">
+                <thead>
+                  <tr>
+                    <th>Administrator</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th class="hidden md:table-cell">Last Login</th>
+                    <th class="hidden md:table-cell">Created</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (loading()) {
+                    @for (n of [1, 2, 3]; track n) {
+                      <tr>
+                        <td><div class="ui-skel h-4 w-36"></div></td>
+                        <td>
+                          <div class="ui-skel h-5 w-20 rounded-full"></div>
+                        </td>
+                        <td>
+                          <div class="ui-skel h-5 w-16 rounded-full"></div>
+                        </td>
+                        <td class="hidden md:table-cell">
+                          <div class="ui-skel h-4 w-24"></div>
+                        </td>
+                        <td class="hidden md:table-cell">
+                          <div class="ui-skel h-4 w-20"></div>
+                        </td>
+                        <td>
+                          <div class="ui-skel ml-auto h-4 w-24"></div>
+                        </td>
+                      </tr>
+                    }
+                  } @else if (adminsQuery.isError()) {
+                    <tr>
+                      <td [attr.colspan]="6">
+                        <div class="ui-empty">
+                          <svg
+                            [lucideIcon]="CircleAlertIcon"
+                            [size]="28"
+                            class="text-ui-danger"
+                          ></svg>
+                          <p>Couldn't load administrators.</p>
+                          <button
+                            type="button"
+                            class="ui-btn ui-btn-sm"
+                            (click)="adminsQuery.refetch()"
+                          >
+                            Try again
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @else {
+                    @for (admin of admins(); track admin.id) {
+                      <tr>
+                        <td>
+                          <div class="flex items-center gap-2.5">
+                            <span class="ui-avatar">{{
+                              admin.firstName[0] || "A"
+                            }}</span>
+                            <div class="min-w-0">
+                              <p class="truncate font-medium text-ui-ink">
+                                {{ admin.firstName }} {{ admin.lastName }}
+                                @if (isSelf(admin)) {
+                                  <span class="ui-badge ui-badge-info"
+                                    >You</span
+                                  >
+                                }
+                              </p>
+                              <p class="truncate text-xs text-ui-muted">
+                                {{ admin.email }}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="ui-badge ui-badge-neutral">
+                            {{ admin.role }}
+                          </span>
+                        </td>
+                        <td>
+                          <app-status-chip
+                            [status]="admin.status"
+                          ></app-status-chip>
+                        </td>
+                        <td
+                          class="hidden whitespace-nowrap text-ui-muted md:table-cell"
+                        >
+                          {{
+                            admin.lastLoginAt
+                              ? (admin.lastLoginAt | date: "short")
+                              : "Never"
+                          }}
+                        </td>
+                        <td
+                          class="hidden whitespace-nowrap text-ui-muted md:table-cell"
+                        >
+                          {{ admin.createdAt | date: "mediumDate" }}
+                        </td>
+                        <td>
+                          <div
+                            class="flex flex-wrap items-center justify-end gap-1.5"
+                          >
+                            <button
+                              type="button"
+                              (click)="resetTotp(admin)"
+                              [disabled]="
+                                resetTotpMutation.isPending() &&
+                                resetTotpMutation.variables() === admin.id
+                              "
+                              class="ui-btn ui-btn-sm"
+                              title="Reset TOTP 2FA secret"
+                            >
+                              Reset TOTP
+                            </button>
+                            @if (admin.status === "ACTIVE" && !isSelf(admin)) {
+                              <button
+                                type="button"
+                                (click)="disableAdmin(admin)"
+                                [disabled]="
+                                  disableMutation.isPending() &&
+                                  disableMutation.variables() === admin.id
+                                "
+                                class="ui-btn ui-btn-danger ui-btn-sm"
+                                title="Disable administrator account"
+                              >
+                                Disable
+                              </button>
+                            }
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                    @if (admins().length === 0) {
+                      <tr>
+                        <td [attr.colspan]="6">
+                          <div class="ui-empty">
+                            <svg
+                              [lucideIcon]="UserCogIcon"
+                              [size]="28"
+                              class="text-ui-faint"
+                            ></svg>
+                            <p>No administrators found</p>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
             </div>
-          }
 
-          @if (hasMore()) {
-            <div
-              class="flex justify-center p-4 border-t border-surface-container"
-            >
-              <button
-                (click)="loadMore()"
-                [disabled]="isLoadingMore()"
-                class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
-              >
-                @if (isLoadingMore()) {
-                  <span
-                    class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                  ></span>
-                  <span>Loading...</span>
-                } @else {
-                  <span>Load more</span>
-                  <span class="material-symbols-outlined text-sm"
-                    >expand_more</span
-                  >
-                }
-              </button>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Create Admin Modal -->
-      @if (showCreateModal()) {
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/30 backdrop-blur-md"
-        >
-          <div
-            class="relative bg-surface-container-lowest rounded-2xl p-6 w-full max-w-md shadow-2xl"
-          >
-            <h2 class="text-lg font-bold text-on-surface mb-4">
-              Create New Administrator
-            </h2>
-
-            <form (ngSubmit)="submitCreateAdmin()" class="space-y-4">
-              <div>
-                <label
-                  for="admin-first-name"
-                  class="block text-xs font-semibold text-on-surface mb-1"
-                  >First Name</label
+            <!-- Load more -->
+            <div class="ui-table-foot">
+              <p>Showing {{ admins().length }} administrators</p>
+              @if (hasMore()) {
+                <button
+                  type="button"
+                  class="ui-btn ui-btn-sm"
+                  (click)="loadMore()"
+                  [disabled]="isLoadingMore()"
                 >
+                  @if (isLoadingMore()) {
+                    <svg
+                      [lucideIcon]="LoaderIcon"
+                      [size]="15"
+                      class="animate-spin"
+                    ></svg>
+                    <span>Loading...</span>
+                  } @else {
+                    <span>Load more</span>
+                    <svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+      </div>
+    }
+
+    <!-- Create Admin Modal -->
+    @if (showCreateModal()) {
+      <div class="ui-overlay">
+        <div class="ui-backdrop" aria-hidden="true"></div>
+        <div
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="showCreateModal.set(false)"
+        >
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">Create New Administrator</h2>
+            <button
+              type="button"
+              class="ui-icon-btn"
+              (click)="showCreateModal.set(false)"
+              aria-label="Close"
+            >
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
+            </button>
+          </div>
+
+          <form
+            (ngSubmit)="submitCreateAdmin()"
+            class="flex min-h-0 flex-1 flex-col"
+          >
+            <div class="ui-modal-body space-y-4">
+              <div>
+                <label for="admin-first-name" class="ui-label">
+                  First Name
+                  <span class="text-ui-danger" aria-hidden="true">*</span>
+                </label>
                 <input
                   id="admin-first-name"
                   type="text"
-                  [(ngModel)]="newAdmin.firstName"
+                  [ngModel]="newAdmin().firstName"
+                  (ngModelChange)="
+                    newAdmin.update((v) => ({ ...v, firstName: $event }))
+                  "
                   name="firstName"
                   required
-                  class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                  class="ui-input"
+                  data-autofocus
                 />
               </div>
 
               <div>
-                <label
-                  for="admin-last-name"
-                  class="block text-xs font-semibold text-on-surface mb-1"
-                  >Last Name</label
-                >
+                <label for="admin-last-name" class="ui-label">
+                  Last Name
+                  <span class="text-ui-danger" aria-hidden="true">*</span>
+                </label>
                 <input
                   id="admin-last-name"
                   type="text"
-                  [(ngModel)]="newAdmin.lastName"
+                  [ngModel]="newAdmin().lastName"
+                  (ngModelChange)="
+                    newAdmin.update((v) => ({ ...v, lastName: $event }))
+                  "
                   name="lastName"
                   required
-                  class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                  class="ui-input"
                 />
               </div>
 
               <div>
-                <label
-                  for="admin-email"
-                  class="block text-xs font-semibold text-on-surface mb-1"
-                  >Email Address</label
-                >
+                <label for="admin-email" class="ui-label">
+                  Email Address
+                  <span class="text-ui-danger" aria-hidden="true">*</span>
+                </label>
                 <input
                   id="admin-email"
                   type="email"
-                  [(ngModel)]="newAdmin.email"
+                  [ngModel]="newAdmin().email"
+                  (ngModelChange)="
+                    newAdmin.update((v) => ({ ...v, email: $event }))
+                  "
                   name="email"
                   required
-                  class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                  class="ui-input"
                 />
+                @if (emailInvalid()) {
+                  <p class="mt-1 text-xs text-ui-danger">Enter a valid email</p>
+                }
               </div>
 
               <div>
-                <label
-                  for="admin-role"
-                  class="block text-xs font-semibold text-on-surface mb-1"
-                  >Role</label
-                >
+                <label for="admin-role" class="ui-label"> Role </label>
                 <select
                   id="admin-role"
-                  [(ngModel)]="newAdmin.role"
+                  [ngModel]="newAdmin().role"
+                  (ngModelChange)="
+                    newAdmin.update((v) => ({ ...v, role: $event }))
+                  "
                   name="role"
-                  class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm outline-none cursor-pointer"
+                  class="ui-input cursor-pointer"
                 >
                   <option value="SUPPORT">SUPPORT</option>
                   <option value="OPS">OPS</option>
@@ -343,88 +379,91 @@ import { RippleDirective } from "../../directives/ripple.directive";
               </div>
 
               <div>
-                <label
-                  for="admin-phone"
-                  class="block text-xs font-semibold text-on-surface mb-1"
-                  >Phone (Optional)</label
-                >
+                <label for="admin-phone" class="ui-label">
+                  Phone (Optional)
+                </label>
                 <input
                   id="admin-phone"
                   type="tel"
-                  [(ngModel)]="newAdmin.phone"
+                  [ngModel]="newAdmin().phone"
+                  (ngModelChange)="
+                    newAdmin.update((v) => ({ ...v, phone: $event }))
+                  "
                   name="phone"
-                  class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm outline-none"
+                  class="ui-input"
                 />
               </div>
-
-              <div class="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  (click)="showCreateModal.set(false)"
-                  class="px-4 py-2 bg-surface-container text-on-surface rounded-xl font-bold text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  solexRipple
-                  type="submit"
-                  [disabled]="createMutation.isPending()"
-                  class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm disabled:opacity-50"
-                >
-                  {{
-                    createMutation.isPending() ? "Creating..." : "Create Admin"
-                  }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      }
-
-      <!-- One-Time Temporary Password Display Modal -->
-      @if (createdResult()) {
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/40 backdrop-blur-md"
-        >
-          <div
-            class="relative bg-surface-container-lowest rounded-2xl p-6 w-full max-w-md shadow-2xl border-2 border-primary"
-          >
-            <div class="flex items-center gap-2 mb-2 text-primary font-bold">
-              <span class="material-symbols-outlined">key</span>
-              <h2 class="text-lg">One-Time Temporary Password</h2>
             </div>
 
-            <p
-              class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4"
-            >
-              <strong>CRITICAL:</strong> Save this temporary password now. It
-              will only be displayed ONCE and cannot be recovered later!
-            </p>
+            <div class="ui-modal-foot">
+              <button
+                type="button"
+                class="ui-btn"
+                (click)="showCreateModal.set(false)"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                [disabled]="createMutation.isPending() || !canSubmitCreate()"
+                class="ui-btn ui-btn-primary"
+              >
+                {{
+                  createMutation.isPending() ? "Creating..." : "Create Admin"
+                }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
 
-            <div class="bg-surface-container rounded-xl p-4 mb-4">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs text-on-surface-variant font-semibold"
-                  >Temporary Password</span
-                >
+    <!-- One-Time Temporary Password Display Modal -->
+    @if (createdResult()) {
+      <div class="ui-overlay">
+        <div class="ui-backdrop" aria-hidden="true"></div>
+        <div class="ui-modal" role="dialog" aria-modal="true" uiModal>
+          <div class="ui-modal-head">
+            <div class="flex min-w-0 items-center gap-2">
+              <svg
+                [lucideIcon]="KeyRoundIcon"
+                [size]="18"
+                class="shrink-0 text-ui-accent"
+              ></svg>
+              <h2 class="ui-modal-title">One-Time Temporary Password</h2>
+            </div>
+          </div>
+
+          <div class="ui-modal-body space-y-4">
+            <div class="ui-alert ui-alert-warning">
+              <p>
+                <strong>CRITICAL:</strong> Save this temporary password now. It
+                will only be displayed ONCE and cannot be recovered later!
+              </p>
+            </div>
+
+            <div class="rounded-xl border border-ui-line bg-ui-sunken p-4">
+              <div class="mb-1 flex items-center justify-between gap-3">
+                <span class="text-xs font-medium text-ui-muted">
+                  Temporary Password
+                </span>
                 <button
                   type="button"
                   (click)="copyPassword(createdResult()!.temporaryPassword)"
-                  class="text-xs text-primary font-bold hover:underline flex items-center gap-1"
+                  class="inline-flex items-center gap-1 text-xs font-medium text-ui-accent hover:underline"
                 >
-                  <span class="material-symbols-outlined text-xs"
-                    >content_copy</span
-                  >
+                  <svg [lucideIcon]="CopyIcon" [size]="13"></svg>
                   Copy
                 </button>
               </div>
               <p
-                class="font-mono text-base font-bold text-on-surface select-all break-all"
+                class="select-all break-all font-mono text-base font-semibold text-ui-ink"
               >
                 {{ createdResult()!.temporaryPassword }}
               </p>
             </div>
 
-            <div class="text-xs text-on-surface-variant space-y-1 mb-6">
+            <div class="space-y-1 text-xs text-ui-muted">
               <p>
                 Account: <strong>{{ createdResult()!.admin.email }}</strong>
               </p>
@@ -436,29 +475,46 @@ import { RippleDirective } from "../../directives/ripple.directive";
                 authentication upon first login.
               </p>
             </div>
+          </div>
 
-            <div class="flex justify-end">
-              <button
-                solexRipple
-                (click)="createdResult.set(null)"
-                class="px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm hover:brightness-110"
-              >
-                I have saved this password
-              </button>
-            </div>
+          <div class="ui-modal-foot">
+            <button
+              type="button"
+              class="ui-btn ui-btn-primary"
+              (click)="createdResult.set(null)"
+            >
+              I have saved this password
+            </button>
           </div>
         </div>
-      }
-    </div>
+      </div>
+    }
   `,
 })
 export class AdminsPageComponent {
   private adminService = inject(AdminService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
   private queryClient = injectQueryClient();
 
+  readonly UserCogIcon = UserCog;
+  readonly UserPlusIcon = UserPlus;
+  readonly LockIcon = Lock;
+  readonly XIcon = X;
+  readonly KeyRoundIcon = KeyRound;
+  readonly CopyIcon = Copy;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly LoaderIcon = LoaderCircle;
+  readonly CircleAlertIcon = CircleAlert;
+
+  private static readonly EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
   isSuperAdmin = computed(() => this.auth.getAdminRole() === "SUPER_ADMIN");
+
+  isSelf(admin: AdminUser): boolean {
+    return admin.id === this.auth.getAdmin()?.id;
+  }
 
   adminsQuery = injectQuery(() => ({
     queryKey: ["admin-users"],
@@ -483,31 +539,52 @@ export class AdminsPageComponent {
     return [...initial, ...this.rawAppended()];
   });
 
+  private resetPages() {
+    this.rawAppended.set([]);
+    this.rawHasMore.set(null);
+    this.nextCursor.set(null);
+  }
+
   showCreateModal = signal(false);
   createdResult = signal<CreateAdminResult | null>(null);
 
-  newAdmin = {
+  newAdmin = signal<NewAdminDraft>({
     firstName: "",
     lastName: "",
     email: "",
     role: "SUPPORT",
     phone: "",
-  };
+  });
+
+  emailInvalid = computed(() => {
+    const email = this.newAdmin().email.trim();
+    return email.length > 0 && !AdminsPageComponent.EMAIL_RE.test(email);
+  });
+
+  canSubmitCreate = computed(() => {
+    const v = this.newAdmin();
+    return (
+      !!v.firstName.trim() &&
+      !!v.lastName.trim() &&
+      AdminsPageComponent.EMAIL_RE.test(v.email.trim())
+    );
+  });
 
   createMutation = injectMutation(() => ({
-    mutationFn: (data: typeof this.newAdmin) =>
+    mutationFn: (data: NewAdminDraft) =>
       lastValueFrom(this.adminService.createAdminUser(data)),
     onSuccess: (res: CreateAdminResult) => {
       this.showCreateModal.set(false);
       this.createdResult.set(res);
-      this.newAdmin = {
+      this.newAdmin.set({
         firstName: "",
         lastName: "",
         email: "",
         role: "SUPPORT",
         phone: "",
-      };
+      });
       this.queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      this.resetPages();
     },
     onError: (err: unknown) => {
       const message =
@@ -523,6 +600,7 @@ export class AdminsPageComponent {
     onSuccess: () => {
       this.toast.show("success", "Administrator account disabled");
       this.queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      this.resetPages();
     },
     onError: (err: unknown) => {
       const message =
@@ -531,6 +609,19 @@ export class AdminsPageComponent {
       this.toast.show("error", message);
     },
   }));
+
+  async disableAdmin(admin: AdminUser) {
+    const ok = await this.confirm.ask({
+      title: `Disable ${admin.firstName} ${admin.lastName}?`,
+      message:
+        "They're signed out and can't sign in again. There's no re-enable yet, so they'd need a new account.",
+      confirmLabel: "Disable",
+      tone: "danger",
+      typeToConfirm: "DISABLE",
+    });
+    if (!ok) return;
+    this.disableMutation.mutate(admin.id);
+  }
 
   resetTotpMutation = injectMutation(() => ({
     mutationFn: (id: string) =>
@@ -549,22 +640,32 @@ export class AdminsPageComponent {
     },
   }));
 
+  async resetTotp(admin: AdminUser) {
+    const ok = await this.confirm.ask({
+      title: `Reset two-factor for ${admin.firstName}?`,
+      message:
+        "They'll set up their authenticator app again at their next sign-in.",
+      confirmLabel: "Reset",
+      tone: "danger",
+    });
+    if (!ok) return;
+    this.resetTotpMutation.mutate(admin.id);
+  }
+
   submitCreateAdmin() {
-    if (
-      !this.newAdmin.firstName ||
-      !this.newAdmin.lastName ||
-      !this.newAdmin.email
-    ) {
+    if (!this.canSubmitCreate()) {
       this.toast.show("error", "Please fill in all required fields");
       return;
     }
-    this.createMutation.mutate(this.newAdmin);
+    this.createMutation.mutate(this.newAdmin());
   }
 
-  copyPassword(pass: string) {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(pass);
+  async copyPassword(pass: string) {
+    try {
+      await navigator.clipboard.writeText(pass);
       this.toast.show("success", "Password copied to clipboard");
+    } catch {
+      this.toast.show("error", "Failed to copy password");
     }
   }
 

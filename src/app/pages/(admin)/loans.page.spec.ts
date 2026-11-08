@@ -13,6 +13,7 @@ import {
 import { LoansPageComponent } from "./loans.page";
 import { AdminService, Loan } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
+import { ConfirmService } from "../../services/confirm.service";
 import { of } from "rxjs";
 import { vi } from "vitest";
 
@@ -21,6 +22,7 @@ describe("LoansPageComponent", () => {
   let fixture: ComponentFixture<LoansPageComponent>;
   let adminService: AdminService;
   let toastService: ToastService;
+  let confirmService: { ask: ReturnType<typeof vi.fn> };
 
   const mockLoans: Loan[] = [
     {
@@ -69,12 +71,20 @@ describe("LoansPageComponent", () => {
           hasMore: false,
         }),
       ),
+      getDashboardMetrics: vi
+        .fn()
+        .mockReturnValue(
+          of({ totalLoanPortfolio: 450000, activeLoans: 1, overdueLoans: 0 }),
+        ),
       approveLoan: vi.fn().mockReturnValue(of({ success: true })),
       rejectLoan: vi.fn().mockReturnValue(of({ success: true })),
     };
 
     const mockToastService = {
       show: vi.fn(),
+    };
+    confirmService = {
+      ask: vi.fn().mockResolvedValue({ reason: "Test reason" }),
     };
 
     const queryClient = new QueryClient({
@@ -95,6 +105,11 @@ describe("LoansPageComponent", () => {
       nextCursor: null,
       hasMore: false,
     });
+    queryClient.setQueryData(["dashboard-metrics"], {
+      totalLoanPortfolio: 450000,
+      activeLoans: 1,
+      overdueLoans: 0,
+    });
     queryClient.setQueryData(["loans-overdue"], {
       items: [],
       nextCursor: null,
@@ -108,6 +123,7 @@ describe("LoansPageComponent", () => {
         provideQueryClient(queryClient),
         { provide: AdminService, useValue: mockAdminService },
         { provide: ToastService, useValue: mockToastService },
+        { provide: ConfirmService, useValue: confirmService },
       ],
     });
 
@@ -132,8 +148,8 @@ describe("LoansPageComponent", () => {
 
     expect(component.loans()).toEqual(mockLoans);
     expect(component.pendingCount()).toBe(1);
-    expect(component.totalPortfolio()).toBe(450000);
-    expect(component.disbursedTotal()).toBe(300000);
+    expect(component.dashboardQuery.data()?.totalLoanPortfolio).toBe(450000);
+    expect(component.dashboardQuery.data()?.activeLoans).toBe(1);
   }));
 
   it("should filter locally by statusFilter tab", fakeAsync(() => {
@@ -149,29 +165,45 @@ describe("LoansPageComponent", () => {
   }));
 
   it("should call mutations correctly on actions", async () => {
-    await component.approveMutation.mutateAsync("loan-1");
+    await component.approve(mockLoans[0]!);
+    await vi.waitFor(() =>
+      expect(adminService.approveLoan).toHaveBeenCalledWith("loan-1"),
+    );
     expect(adminService.approveLoan).toHaveBeenCalledWith("loan-1");
-    expect(toastService.show).toHaveBeenCalledWith(
-      "success",
-      "Loan loan-1 approved",
+    await vi.waitFor(() =>
+      expect(toastService.show).toHaveBeenCalledWith(
+        "success",
+        "Loan approved for John Doe",
+      ),
     );
 
-    await component.rejectMutation.mutateAsync("loan-1");
+    await component.reject(mockLoans[0]!);
+    await vi.waitFor(() =>
+      expect(adminService.rejectLoan).toHaveBeenCalledWith(
+        "loan-1",
+        "Test reason",
+      ),
+    );
     expect(adminService.rejectLoan).toHaveBeenCalledWith(
       "loan-1",
-      "Rejected by operations",
+      "Test reason",
     );
-    expect(toastService.show).toHaveBeenCalledWith(
-      "success",
-      "Loan loan-1 rejected",
+    await vi.waitFor(() =>
+      expect(toastService.show).toHaveBeenCalledWith(
+        "success",
+        "Loan rejected for John Doe",
+      ),
     );
   });
 
-  it("should trigger toast details when viewing loan info", () => {
+  it("should not approve a loan when confirmation is cancelled", async () => {
+    confirmService.ask.mockResolvedValueOnce(null);
+    await component.approve(mockLoans[0]!);
+    expect(adminService.approveLoan).not.toHaveBeenCalled();
+  });
+
+  it("should open the selected loan detail modal", () => {
     component.viewLoan(mockLoans[0]!);
-    expect(toastService.show).toHaveBeenCalledWith(
-      "info",
-      "Viewing loan: loan-1",
-    );
+    expect(component.selectedLoan()).toEqual(mockLoans[0]);
   });
 });

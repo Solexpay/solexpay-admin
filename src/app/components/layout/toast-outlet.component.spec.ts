@@ -42,7 +42,7 @@ describe("ToastOutletComponent", () => {
 
   it("should render no toasts initially", () => {
     const toastContainers = fixture.debugElement.queryAll(
-      By.css(".flex.items-center"),
+      By.css("[data-testid=toast]"),
     );
     expect(toastContainers.length).toBe(0);
   });
@@ -56,25 +56,16 @@ describe("ToastOutletComponent", () => {
     fixture.detectChanges();
 
     const toastContainers = fixture.debugElement.queryAll(
-      By.css(".flex.items-center"),
+      By.css("[data-testid=toast]"),
     );
     expect(toastContainers.length).toBe(2);
-
-    console.log(
-      "RENDERED TOAST 1 HTML:",
-      toastContainers[0]!.nativeElement.outerHTML,
-    );
-    console.log(
-      "RENDERED TOAST 2 HTML:",
-      toastContainers[1]!.nativeElement.outerHTML,
-    );
 
     expect(toastContainers[0]!.nativeElement.textContent).toContain(
       "Task succeeded",
     );
     expect(toastContainers[0]!.nativeElement.className).toContain("flex");
     expect(toastContainers[0]!.nativeElement.className).toContain(
-      "items-center",
+      "toast-success",
     );
 
     expect(toastContainers[1]!.nativeElement.textContent).toContain(
@@ -82,7 +73,7 @@ describe("ToastOutletComponent", () => {
     );
     expect(toastContainers[1]!.nativeElement.className).toContain("flex");
     expect(toastContainers[1]!.nativeElement.className).toContain(
-      "items-center",
+      "toast-error",
     );
 
     // Click dismiss button of first toast

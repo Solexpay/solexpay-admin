@@ -1,114 +1,153 @@
-import { Component, computed, inject, output } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { RouterLink, RouterLinkActive, Router } from "@angular/router";
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  computed,
+  inject,
+  output,
+  signal,
+  viewChild,
+} from "@angular/core";
+import { RouterLink, Router, NavigationEnd } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { filter, map } from "rxjs/operators";
-import { NavigationEnd } from "@angular/router";
+import {
+  LucideDynamicIcon,
+  LucideIcon,
+  LucideArrowLeftRight as ArrowLeftRight,
+  LucideBell as Bell,
+  LucideGift as Gift,
+  LucideHandCoins as HandCoins,
+  LucideLayoutDashboard as LayoutDashboard,
+  LucideLogOut as LogOut,
+  LucideSchool as School,
+  LucideScrollText as ScrollText,
+  LucideSearch as Search,
+  LucideSend as Send,
+  LucideShieldCheck as ShieldCheck,
+  LucideUser as User,
+  LucideUserCog as UserCog,
+  LucideUsers as Users,
+  LucideWorkflow as Workflow,
+} from "@lucide/angular";
 import { AuthService } from "../../services/auth.service";
-import { TooltipDirective } from "../../directives/tooltip.directive";
-import { PulseAnimationDirective } from "../../directives/pulse-animation.directive";
-import { HoverScaleDirective } from "../../directives/hover-scale.directive";
+import { SECTION_ROLES } from "../../core/access";
 
 export interface NavItem {
   route: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
+  group: string;
   roles?: string[];
 }
 
 @Component({
   selector: "app-sidebar",
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    RouterLinkActive,
-    TooltipDirective,
-    PulseAnimationDirective,
-    HoverScaleDirective,
-  ],
+  imports: [RouterLink, LucideDynamicIcon],
   template: `
-    <aside class="w-64 h-full bg-surface-container-low flex flex-col">
-      <!-- Logo -->
-      <div class="p-4 sm:p-6 border-b border-outline-variant/10">
-        <div
-          class="flex items-center gap-3 hover-scale cursor-pointer"
-          hoverScale="sm"
-        >
-          <div
-            class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center"
-            pulseAnimation="ring"
-          >
-            <span class="material-symbols-outlined text-on-primary text-xl"
-              >account_balance</span
-            >
-          </div>
-          <div>
-            <h1 class="text-lg font-bold text-on-surface">SolexPay</h1>
-            <p class="text-xs text-on-surface-variant">Admin Portal</p>
+    <aside
+      class="flex h-full w-[256px] flex-col border-r border-ui-line bg-ui-rail lg:rounded-2xl lg:border"
+    >
+      <!-- Brand -->
+      <div class="p-3 pb-2">
+        <div class="flex items-center gap-2.5 px-1.5 py-1">
+          <img
+            src="/logo-icon.png"
+            alt=""
+            width="32"
+            height="28"
+            class="h-7 w-8 object-contain"
+          />
+          <div class="min-w-0">
+            <p class="text-[15px] font-semibold leading-5 text-ui-ink">
+              SolexPay
+            </p>
+            <p class="truncate text-xs text-ui-muted">Operations console</p>
           </div>
         </div>
       </div>
 
-      <!-- Navigation -->
-      <nav class="flex-1 py-4 px-3 relative overflow-y-auto">
-        <!-- Sliding indicator pill -->
-        <div
-          class="absolute left-0 w-1 bg-primary rounded-r-full transition-all duration-300 ease-out"
-          [style.top.px]="activePillTop()"
-          [style.height.px]="48"
-          [style.opacity]="activeIndex() >= 0 ? 1 : 0"
-        ></div>
-
-        @for (item of navItems; track item.route; let i = $index) {
-          <a
-            [routerLink]="item.route"
-            routerLinkActive="bg-primary-fixed text-primary font-bold"
-            class="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl mx-2 sm:mx-3 mb-1 transition-all duration-200 relative group"
-            [class]="
-              isActive(item.route)
-                ? 'bg-primary-fixed text-primary font-bold'
-                : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface hover:translate-x-1'
-            "
-            (click)="onNavClick()"
-            [tooltip]="item.label"
-            tooltipPosition="right"
+      <!-- Jump to a page -->
+      <div class="px-3 pb-1">
+        <div class="ui-search">
+          <svg [lucideIcon]="SearchIcon" [size]="15"></svg>
+          <input
+            #search
+            class="ui-input h-8 pr-11 text-[13px]"
+            placeholder="Jump to…"
+            aria-label="Jump to a page"
+            [value]="query()"
+            (input)="query.set(search.value)"
+            (keydown.enter)="jumpToFirst()"
+            (keydown.escape)="clearSearch()"
+          />
+          <kbd
+            class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-sm border border-ui-line bg-ui-rail px-1 text-[10px] font-medium text-ui-faint"
+            >{{ shortcutLabel }}</kbd
           >
-            <span
-              class="material-symbols-outlined transition-transform duration-200 group-hover:scale-110"
-              >{{ item.icon }}</span
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto px-3 pb-3" aria-label="Main">
+        @for (group of groups(); track group.name) {
+          @if (group.name) {
+            <p
+              class="px-2.5 pb-1 pt-4 text-[11px] font-medium uppercase tracking-wider text-ui-faint"
             >
-            <span class="text-sm">{{ item.label }}</span>
-          </a>
+              {{ group.name }}
+            </p>
+          } @else {
+            <div class="pt-2"></div>
+          }
+          @for (item of group.items; track item.route) {
+            <a
+              [routerLink]="item.route"
+              class="mb-0.5 flex h-9 items-center gap-2.5 rounded-lg border px-2.5 text-[13.5px] transition-colors"
+              [class]="
+                isActive(item.route)
+                  ? 'border-ui-line bg-white font-medium text-ui-ink shadow-[0_1px_2px_rgba(16,24,40,0.05)]'
+                  : 'border-transparent text-ui-body hover:bg-white/70 hover:text-ui-ink'
+              "
+              [attr.aria-current]="isActive(item.route) ? 'page' : null"
+              (click)="onNavClick()"
+            >
+              <svg
+                [lucideIcon]="item.icon"
+                [size]="17"
+                [class]="isActive(item.route) ? 'text-ui-ink' : 'text-ui-muted'"
+              ></svg>
+              <span class="truncate">{{ item.label }}</span>
+            </a>
+          }
+        } @empty {
+          <p class="px-2.5 py-6 text-center text-[13px] text-ui-muted">
+            No page called “{{ query() }}”
+          </p>
         }
       </nav>
 
-      <!-- User info at bottom -->
-      <div class="p-3 sm:p-4 border-t border-outline-variant/10">
-        <div
-          class="flex items-center gap-3 px-2 sm:px-3 py-2 rounded-xl bg-surface-container hover-lift cursor-pointer transition-all duration-200"
-        >
-          <div
-            class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0"
+      <!-- Signed-in admin -->
+      <div class="border-t border-ui-line p-3">
+        <div class="flex items-center gap-2.5 px-1">
+          <span class="ui-avatar">{{ initials() }}</span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-[13px] font-medium text-ui-ink">
+              {{ displayName() }}
+            </p>
+            <p class="truncate text-xs text-ui-muted">
+              {{ currentAdmin()?.email || roleLabel() }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="ui-icon-btn"
+            title="Sign out"
+            aria-label="Sign out"
+            (click)="logout()"
           >
-            <span
-              class="material-symbols-outlined text-on-primary-container text-sm"
-              >person</span
-            >
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-on-surface truncate">
-              {{
-                currentAdmin()?.firstName
-                  ? currentAdmin()!.firstName + " " + currentAdmin()!.lastName
-                  : "Admin User"
-              }}
-            </p>
-            <p class="text-xs text-on-surface-variant truncate">
-              {{ currentAdmin()?.role || "ADMIN" }} ·
-              {{ currentAdmin()?.email || "admin@solexpay.com" }}
-            </p>
-          </div>
+            <svg [lucideIcon]="LogOutIcon" [size]="16"></svg>
+          </button>
         </div>
       </div>
     </aside>
@@ -119,62 +158,105 @@ export class SidebarComponent {
   private auth = inject(AuthService);
   closeSidebar = output<void>();
 
+  private searchInput = viewChild<ElementRef<HTMLInputElement>>("search");
+
+  readonly SearchIcon = Search;
+  readonly shortcutLabel =
+    typeof navigator !== "undefined" &&
+    /Mac|iP(hone|ad)/.test(navigator.platform)
+      ? "⌘K"
+      : "Ctrl K";
+  readonly LogOutIcon = LogOut;
+
+  // In display order: groups render in the order their first item appears.
   readonly allNavItems: NavItem[] = [
-    { route: "/dashboard", label: "Dashboard", icon: "dashboard" },
+    {
+      route: "/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      group: "",
+    },
     {
       route: "/users",
       label: "Users",
-      icon: "people",
-      roles: ["SUPPORT", "OPS", "COMPLIANCE"],
+      icon: Users,
+      group: "Customers",
+      roles: SECTION_ROLES["users"],
+    },
+    {
+      route: "/kyc",
+      label: "KYC queue",
+      icon: ShieldCheck,
+      group: "Customers",
+      roles: SECTION_ROLES["kyc"],
+    },
+    {
+      route: "/schools",
+      label: "Schools",
+      icon: School,
+      group: "Customers",
+      roles: SECTION_ROLES["schools"],
     },
     {
       route: "/transactions",
       label: "Transactions",
-      icon: "receipt_long",
-      roles: ["SUPPORT", "OPS", "COMPLIANCE"],
+      icon: ArrowLeftRight,
+      group: "Money",
+      roles: SECTION_ROLES["transactions"],
     },
     {
       route: "/loans",
       label: "Loans",
-      icon: "credit_card",
-      roles: ["SUPPORT", "OPS", "COMPLIANCE"],
+      icon: HandCoins,
+      group: "Money",
+      roles: SECTION_ROLES["loans"],
     },
     {
       route: "/nip-transfers",
-      label: "NIP Transfers",
-      icon: "send_money",
-      roles: ["SUPPORT", "OPS", "COMPLIANCE"],
+      label: "NIP transfers",
+      icon: Send,
+      group: "Money",
+      roles: SECTION_ROLES["nip-transfers"],
     },
     {
       route: "/gift-cards",
-      label: "Gift Cards",
-      icon: "card_membership",
-      roles: ["OPS"],
+      label: "Gift cards",
+      icon: Gift,
+      group: "Money",
+      roles: SECTION_ROLES["gift-cards"],
     },
-    { route: "/schools", label: "Schools", icon: "school", roles: ["OPS"] },
     {
       route: "/ops",
       label: "Operations",
-      icon: "manufacturing",
-      roles: ["OPS", "COMPLIANCE"],
-    },
-    {
-      route: "/kyc",
-      label: "KYC Queue",
-      icon: "verified_user",
-      roles: ["COMPLIANCE"],
+      icon: Workflow,
+      group: "Control",
+      roles: SECTION_ROLES["ops"],
     },
     {
       route: "/audit",
-      label: "Audit Ledger",
-      icon: "history_edu",
-      roles: ["COMPLIANCE"],
+      label: "Audit ledger",
+      icon: ScrollText,
+      group: "Control",
+      roles: SECTION_ROLES["audit"],
     },
     {
       route: "/admins",
       label: "Admins",
-      icon: "admin_panel_settings",
-      roles: ["SUPER_ADMIN"],
+      icon: UserCog,
+      group: "Control",
+      roles: SECTION_ROLES["admins"],
+    },
+    {
+      route: "/settings/profile",
+      label: "Profile",
+      icon: User,
+      group: "Account",
+    },
+    {
+      route: "/settings/notifications",
+      label: "Notifications",
+      icon: Bell,
+      group: "Account",
     },
   ];
 
@@ -195,7 +277,39 @@ export class SidebarComponent {
     );
   }
 
+  query = signal("");
+
+  groups = computed(() => {
+    const q = this.query().trim().toLowerCase();
+    const groups: { name: string; items: NavItem[] }[] = [];
+    for (const item of this.navItems) {
+      if (q && !item.label.toLowerCase().includes(q)) continue;
+      let group = groups.find((g) => g.name === item.group);
+      if (!group) {
+        group = { name: item.group, items: [] };
+        groups.push(group);
+      }
+      group.items.push(item);
+    }
+    return groups;
+  });
+
   currentAdmin = computed(() => this.auth.getAdmin());
+
+  displayName = computed(() => {
+    const a = this.currentAdmin();
+    return a?.firstName ? `${a.firstName} ${a.lastName ?? ""}`.trim() : "Admin";
+  });
+
+  initials = computed(() => {
+    const a = this.currentAdmin();
+    const s = `${a?.firstName?.[0] ?? ""}${a?.lastName?.[0] ?? ""}`;
+    return s || "A";
+  });
+
+  roleLabel = computed(() =>
+    (this.currentAdmin()?.role ?? "ADMIN").replace(/_/g, " ").toLowerCase(),
+  );
 
   activeRoute = toSignal(
     this.router.events.pipe(
@@ -210,13 +324,33 @@ export class SidebarComponent {
     return this.navItems.findIndex((item) => url.startsWith(item.route));
   });
 
-  activePillTop = computed(() => {
-    const index = this.activeIndex();
-    return index >= 0 ? 16 + index * 56 : 0;
-  });
-
   isActive(route: string): boolean {
     return this.activeRoute()?.startsWith(route) ?? false;
+  }
+
+  @HostListener("document:keydown", ["$event"])
+  onShortcut(event: KeyboardEvent) {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      this.searchInput()?.nativeElement.focus();
+    }
+  }
+
+  jumpToFirst() {
+    const first = this.groups()[0]?.items[0];
+    if (!first) return;
+    this.router.navigate([first.route]);
+    this.clearSearch();
+    this.onNavClick();
+  }
+
+  clearSearch() {
+    this.query.set("");
+    this.searchInput()?.nativeElement.blur();
+  }
+
+  logout() {
+    this.auth.logout();
   }
 
   onNavClick() {

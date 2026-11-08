@@ -8,9 +8,19 @@ import {
 } from "@angular/core";
 import { ToastService } from "../services/toast.service";
 
+/**
+ * Copies on click, Enter or Space. Pass the exact value when the element
+ * shows a label or a masked form of it:
+ *
+ *   <p [copyToClipboard]="user.id">ID: {{ user.id }}</p>
+ */
 @Directive({
   selector: "[copyToClipboard]",
   standalone: true,
+  host: {
+    role: "button",
+    tabindex: "0",
+  },
 })
 export class CopyToClipboardDirective implements OnInit {
   private el = inject(ElementRef);
@@ -25,11 +35,19 @@ export class CopyToClipboardDirective implements OnInit {
     const element = this.el.nativeElement;
     this.renderer.setStyle(element, "cursor", "pointer");
 
-    this.renderer.listen(element, "click", (event: MouseEvent) => {
+    const copy = (event: Event) => {
       event.stopPropagation(); // Prevent trigger parent click events (like accordion toggle)
       const textToCopy = this.customText || element.textContent?.trim() || "";
       if (textToCopy) {
         this.copyToClipboard(textToCopy);
+      }
+    };
+
+    this.renderer.listen(element, "click", copy);
+    this.renderer.listen(element, "keydown", (event: KeyboardEvent) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        copy(event);
       }
     });
   }

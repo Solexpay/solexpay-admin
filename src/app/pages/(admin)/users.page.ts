@@ -1,6 +1,5 @@
-import { Component, inject, signal, computed } from "@angular/core";
+import { Component, DestroyRef, inject, signal, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import {
   injectQuery,
@@ -9,637 +8,686 @@ import {
   keepPreviousData,
 } from "@tanstack/angular-query-experimental";
 import { lastValueFrom } from "rxjs";
+import {
+  LucideDynamicIcon,
+  LucideBan as Ban,
+  LucideChevronDown as ChevronDown,
+  LucideCircleAlert as CircleAlert,
+  LucideCircleCheck as CircleCheck,
+  LucideDownload as Download,
+  LucideEye as Eye,
+  LucideLoaderCircle as LoaderCircle,
+  LucideSearch as Search,
+  LucideSearchX as SearchX,
+  LucideUsers as Users,
+  LucideX as X,
+} from "@lucide/angular";
 import { AdminService, User } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
 import { StatusChipComponent } from "../../components/ui/status-chip.component";
-import { RippleDirective } from "../../directives/ripple.directive";
-import { HoverScaleDirective } from "../../directives/hover-scale.directive";
+import { PageHeaderComponent } from "../../components/ui/page-header.component";
 import { TooltipDirective } from "../../directives/tooltip.directive";
 import { CopyToClipboardDirective } from "../../directives/copy-to-clipboard.directive";
-import { ScrollRevealDirective } from "../../directives/scroll-reveal.directive";
-import { MagneticDirective } from "../../directives/magnetic.directive";
+import { ModalDirective } from "../../directives/modal.directive";
+import { ConfirmService } from "../../services/confirm.service";
+import { downloadCsv } from "../../core/csv";
 
 @Component({
   selector: "app-users",
-  standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
-    StatusChipComponent,
-    RippleDirective,
     FormsModule,
-    HoverScaleDirective,
+    LucideDynamicIcon,
+    StatusChipComponent,
+    PageHeaderComponent,
     TooltipDirective,
     CopyToClipboardDirective,
-    ScrollRevealDirective,
-    MagneticDirective,
+    ModalDirective,
   ],
   template: `
-    <div class="space-y-6">
-      <!-- Page header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+    <app-page-header
+      title="Users"
+      [icon]="UsersIcon"
+      subtitle="Manage user accounts and KYC status"
+    >
+      <button
+        type="button"
+        class="ui-btn"
+        (click)="exportCsv()"
+        title="Exports the rows loaded on screen"
       >
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">Users</h1>
-          <p class="text-sm text-on-surface-variant mt-1">
-            Manage user accounts and KYC status
-          </p>
-        </div>
-        <div class="flex items-center gap-3">
-          <button
-            solexRipple
-            magnetic
-            class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm transition-all hover:brightness-110 w-full sm:w-auto"
+        <svg [lucideIcon]="DownloadIcon" [size]="15"></svg>
+        Export CSV
+      </button>
+    </app-page-header>
+
+    <div class="space-y-4">
+      <!-- Users table -->
+      <section class="ui-panel">
+        <div class="ui-panel-head">
+          <h2 class="ui-panel-title">All users</h2>
+          <div
+            class="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center"
           >
-            <span class="flex items-center justify-center gap-2">
-              <span class="material-symbols-outlined text-sm">download</span>
-              Export
-            </span>
-          </button>
+            <div class="ui-search w-full lg:w-64">
+              <svg [lucideIcon]="SearchIcon" [size]="15"></svg>
+              <input
+                type="text"
+                class="ui-input"
+                [ngModel]="searchInput()"
+                (ngModelChange)="onSearch($event)"
+                placeholder="Search by name, email, phone..."
+                (keydown.escape)="clearSearch()"
+              />
+              @if (searchInput()) {
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  class="ui-icon-btn absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+                  (click)="clearSearch()"
+                >
+                  <svg [lucideIcon]="XIcon" [size]="14"></svg>
+                </button>
+              }
+            </div>
+            <select
+              class="ui-input w-full cursor-pointer lg:w-auto"
+              [ngModel]="kycFilter()"
+              (ngModelChange)="onKycChange($event)"
+            >
+              <option value="">All tiers</option>
+              <option value="TIER_0">Tier 0</option>
+              <option value="TIER_1">Tier 1</option>
+              <option value="TIER_2">Tier 2</option>
+              <option value="TIER_3">Tier 3</option>
+            </select>
+            <div class="ui-tabs">
+              <button
+                type="button"
+                class="ui-tab"
+                [class.ui-tab-active]="statusFilter() === ''"
+                (click)="onStatusChange('')"
+              >
+                All
+              </button>
+              <button
+                type="button"
+                class="ui-tab"
+                [class.ui-tab-active]="statusFilter() === 'ACTIVE'"
+                (click)="onStatusChange('ACTIVE')"
+              >
+                Active
+              </button>
+              <button
+                type="button"
+                class="ui-tab"
+                [class.ui-tab-active]="statusFilter() === 'SUSPENDED'"
+                (click)="onStatusChange('SUSPENDED')"
+              >
+                Suspended
+              </button>
+              <button
+                type="button"
+                class="ui-tab"
+                [class.ui-tab-active]="statusFilter() === 'PENDING'"
+                (click)="onStatusChange('PENDING')"
+              >
+                Pending
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Filters -->
-      <div
-        class="bg-surface-container-lowest rounded-xl p-4 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-      >
-        <div class="flex-1 min-w-[200px] relative">
-          <span
-            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline"
-            >search</span
-          >
-          <input
-            type="text"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="onSearch($event)"
-            class="w-full bg-surface-container-highest rounded-xl py-2.5 pl-10 pr-4
-                   transition-all duration-200 text-sm font-medium outline-none
-                   focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20"
-            placeholder="Search by name, email, phone..."
-          />
-        </div>
-
-        <select
-          [ngModel]="statusFilter()"
-          (ngModelChange)="onStatusChange($event)"
-          class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none
-                 focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 cursor-pointer w-full sm:w-auto"
-        >
-          <option value="">All Status</option>
-          <option value="ACTIVE">Active</option>
-          <option value="SUSPENDED">Suspended</option>
-          <option value="PENDING">Pending</option>
-        </select>
-
-        <select
-          [ngModel]="kycFilter()"
-          (ngModelChange)="kycFilter.set($event)"
-          class="bg-surface-container-highest rounded-xl py-2.5 px-4 text-sm font-medium outline-none
-                 focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 cursor-pointer w-full sm:w-auto"
-        >
-          <option value="">All KYC</option>
-          <option value="VERIFIED">Verified</option>
-          <option value="PENDING">Pending</option>
-          <option value="UNVERIFIED">Unverified</option>
-        </select>
-      </div>
-
-      <!-- Users Table -->
-      <div
-        class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-      >
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[900px]">
-            <thead>
-              <tr class="bg-surface-container text-left">
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  User
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Contact
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  KYC
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Balance
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Joined
-                </th>
-                <th
-                  class="px-4 sm:px-6 py-3 sm:py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (loading()) {
-                @for (n of [1, 2, 3, 4, 5]; track n; let i = $index) {
-                  <tr class="border-t border-surface-container">
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-32 bg-surface-container-high rounded-full skeleton-peak"
-                        [style.animation-delay]="150 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-40 bg-surface-container-high rounded-full skeleton-peak"
-                        [style.animation-delay]="300 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded-full skeleton-peak"
-                        [style.animation-delay]="450 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-16 bg-surface-container-high rounded-full skeleton-peak"
-                        [style.animation-delay]="600 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-20 bg-surface-container-high rounded-full skeleton-peak"
-                        [style.animation-delay]="750 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-24 bg-surface-container-high rounded-full skeleton-peak"
-                        [style.animation-delay]="900 + 'ms'"
-                      ></div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <div
-                        class="h-4 w-8 bg-surface-container-high rounded-full ml-auto skeleton-peak"
-                        [style.animation-delay]="1050 + 'ms'"
-                      ></div>
-                    </td>
-                  </tr>
-                }
-              } @else {
-                @for (user of users(); track user.id; let i = $index) {
-                  <tr
-                    class="border-t border-surface-container hover:bg-surface-container-low transition-colors duration-150 animate-stagger-in opacity-0"
-                    scrollReveal
-                    [style.animation-delay]="i * 40 + 'ms'"
-                    [style.animation-fill-mode]="'forwards'"
-                  >
-                    <td class="px-4 sm:px-6 py-4">
-                      <div class="flex items-center gap-3">
-                        <div
-                          class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center shrink-0"
+        <div class="ui-panel-body overflow-hidden">
+          <div class="ui-table-wrap">
+            <table class="ui-table md:min-w-[760px]">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th class="hidden md:table-cell">Contact</th>
+                  <th>Status</th>
+                  <th class="hidden md:table-cell">KYC</th>
+                  <th>Balance</th>
+                  <th class="hidden md:table-cell">Joined</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (loading()) {
+                  @for (n of [1, 2, 3, 4, 5]; track n; let i = $index) {
+                    <tr>
+                      <td><div class="ui-skel h-4 w-32"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-40"></div>
+                      </td>
+                      <td><div class="ui-skel h-5 w-16 rounded-full"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-5 w-16 rounded-full"></div>
+                      </td>
+                      <td><div class="ui-skel h-4 w-20"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-24"></div>
+                      </td>
+                      <td><div class="ui-skel ml-auto h-4 w-8"></div></td>
+                    </tr>
+                  }
+                } @else if (usersQuery.isError()) {
+                  <tr>
+                    <td [attr.colspan]="7">
+                      <div class="ui-empty">
+                        <svg
+                          [lucideIcon]="CircleAlertIcon"
+                          [size]="28"
+                          class="text-ui-danger"
+                        ></svg>
+                        <p>Couldn't load users.</p>
+                        <button
+                          type="button"
+                          class="ui-btn ui-btn-sm"
+                          (click)="usersQuery.refetch()"
                         >
-                          <span class="text-sm font-bold text-primary"
-                            >{{ user.firstName[0] }}{{ user.lastName[0] }}</span
-                          >
-                        </div>
-                        <div class="min-w-0">
-                          <p
-                            class="text-sm font-semibold text-on-surface truncate"
-                          >
-                            {{ user.firstName }} {{ user.lastName }}
-                          </p>
-                          <p
-                            class="text-xs text-on-surface-variant cursor-pointer hover:text-primary transition-colors truncate"
-                            copyToClipboard
-                            tooltip="Click to copy user ID"
-                            tooltipPosition="bottom"
-                          >
-                            ID: {{ user.id }}
-                          </p>
-                        </div>
+                          Try again
+                        </button>
                       </div>
                     </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <p
-                        class="text-sm text-on-surface cursor-pointer hover:text-primary transition-colors truncate max-w-[150px]"
-                        copyToClipboard
-                        tooltip="Click to copy email"
-                        tooltipPosition="bottom"
-                      >
-                        {{ user.email }}
-                      </p>
-                      <p
-                        class="text-xs text-on-surface-variant cursor-pointer hover:text-primary transition-colors"
-                        copyToClipboard
-                        tooltip="Click to copy phone"
-                        tooltipPosition="bottom"
-                      >
-                        {{ user.phone }}
-                      </p>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <app-status-chip [status]="user.status"></app-status-chip>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <app-status-chip
-                        [status]="user.kycStatus"
-                      ></app-status-chip>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <span
-                        class="text-sm font-semibold text-on-surface whitespace-nowrap"
-                      >
-                        <span class="text-on-surface-variant">₦</span
-                        >{{ user.walletBalance | number: "1.0-0" : "en-NG" }}
-                      </span>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4">
-                      <span
-                        class="text-sm text-on-surface-variant whitespace-nowrap"
-                        >{{ user.createdAt | date: "mediumDate" }}</span
-                      >
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 text-right">
-                      <div class="flex items-center justify-end gap-1 sm:gap-2">
-                        <button
-                          (click)="viewUser(user)"
-                          class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
-                          tooltip="View user details"
-                          tooltipPosition="left"
+                  </tr>
+                } @else {
+                  @for (user of users(); track user.id; let i = $index) {
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-2.5">
+                          <span class="ui-avatar"
+                            >{{ user.firstName[0] }}{{ user.lastName[0] }}</span
+                          >
+                          <div class="min-w-0">
+                            <button
+                              type="button"
+                              class="truncate text-left font-medium text-ui-ink hover:text-ui-accent"
+                              [title]="user.firstName + ' ' + user.lastName"
+                              (click)="viewUser(user)"
+                            >
+                              {{ user.firstName }} {{ user.lastName }}
+                            </button>
+                            <p
+                              class="max-w-[180px] cursor-pointer truncate text-xs text-ui-muted transition-colors hover:text-ui-accent"
+                              tooltip="Click to copy user ID"
+                              tooltipPosition="bottom"
+                              [copyToClipboard]="user.id"
+                            >
+                              ID: {{ user.id }}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <p
+                          class="max-w-[180px] cursor-pointer truncate text-ui-ink transition-colors hover:text-ui-accent"
+                          tooltip="Click to copy email"
+                          tooltipPosition="bottom"
+                          [copyToClipboard]="user.email"
                         >
-                          <span
-                            class="material-symbols-outlined text-on-surface-variant text-sm"
-                            >visibility</span
-                          >
-                        </button>
-                        @if (user.status === "ACTIVE") {
+                          {{ user.email }}
+                        </p>
+                        <p
+                          class="cursor-pointer text-xs text-ui-muted transition-colors hover:text-ui-accent"
+                          tooltip="Click to copy phone"
+                          tooltipPosition="bottom"
+                          [copyToClipboard]="user.phone"
+                        >
+                          {{ user.phone }}
+                        </p>
+                      </td>
+                      <td><app-status-chip [status]="user.status" /></td>
+                      <td class="hidden md:table-cell">
+                        <span class="ui-badge ui-badge-neutral">{{
+                          tierLabel(user.kycTier)
+                        }}</span>
+                      </td>
+                      <td class="whitespace-nowrap tabular-nums text-ui-ink">
+                        ₦{{ user.walletBalance | number: "1.0-0" : "en-NG" }}
+                      </td>
+                      <td
+                        class="hidden whitespace-nowrap text-ui-muted md:table-cell"
+                      >
+                        {{ user.createdAt | date: "mediumDate" }}
+                      </td>
+                      <td>
+                        <div class="flex items-center justify-end gap-1">
                           <button
-                            (click)="
-                              suspendMutation.mutate({
-                                userId: user.id,
-                                userName: user.firstName + ' ' + user.lastName,
-                              })
-                            "
-                            [disabled]="suspendMutation.isPending()"
-                            class="p-2 rounded-lg hover:bg-error-container transition-colors disabled:opacity-50"
-                            tooltip="Suspend user account"
+                            type="button"
+                            class="ui-icon-btn"
+                            (click)="viewUser(user)"
+                            tooltip="View user details"
                             tooltipPosition="left"
+                            aria-label="View user details"
                           >
-                            <span
-                              class="material-symbols-outlined text-error text-sm"
-                              >block</span
-                            >
+                            <svg [lucideIcon]="EyeIcon" [size]="16"></svg>
                           </button>
-                        } @else {
-                          <button
-                            (click)="
-                              reactivateMutation.mutate({
-                                userId: user.id,
-                                userName: user.firstName + ' ' + user.lastName,
-                              })
-                            "
-                            [disabled]="reactivateMutation.isPending()"
-                            class="p-2 rounded-lg hover:bg-tertiary-fixed transition-colors disabled:opacity-50"
-                            tooltip="Reactivate user account"
-                            tooltipPosition="left"
-                          >
-                            <span
-                              class="material-symbols-outlined text-tertiary text-sm"
-                              >check_circle</span
+                          @if (user.status === "ACTIVE") {
+                            <button
+                              type="button"
+                              class="ui-icon-btn hover:bg-ui-danger-soft hover:text-ui-danger"
+                              (click)="suspend(user)"
+                              [disabled]="
+                                suspendMutation.isPending() &&
+                                suspendMutation.variables()?.userId === user.id
+                              "
+                              tooltip="Suspend user account"
+                              tooltipPosition="left"
+                              aria-label="Suspend user account"
                             >
+                              @if (
+                                suspendMutation.isPending() &&
+                                suspendMutation.variables()?.userId === user.id
+                              ) {
+                                <svg
+                                  [lucideIcon]="LoaderIcon"
+                                  [size]="16"
+                                  class="animate-spin"
+                                ></svg>
+                              } @else {
+                                <svg [lucideIcon]="BanIcon" [size]="16"></svg>
+                              }
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              class="ui-icon-btn hover:bg-ui-success-soft hover:text-ui-success"
+                              (click)="reactivate(user)"
+                              [disabled]="
+                                reactivateMutation.isPending() &&
+                                reactivateMutation.variables()?.userId ===
+                                  user.id
+                              "
+                              tooltip="Reactivate user account"
+                              tooltipPosition="left"
+                              aria-label="Reactivate user account"
+                            >
+                              @if (
+                                reactivateMutation.isPending() &&
+                                reactivateMutation.variables()?.userId ===
+                                  user.id
+                              ) {
+                                <svg
+                                  [lucideIcon]="LoaderIcon"
+                                  [size]="16"
+                                  class="animate-spin"
+                                ></svg>
+                              } @else {
+                                <svg
+                                  [lucideIcon]="CircleCheckIcon"
+                                  [size]="16"
+                                ></svg>
+                              }
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+                @if (
+                  !loading() && !usersQuery.isError() && users().length === 0
+                ) {
+                  <tr>
+                    <td [attr.colspan]="7">
+                      <div class="ui-empty">
+                        <svg
+                          [lucideIcon]="SearchXIcon"
+                          [size]="28"
+                          class="text-ui-faint"
+                        ></svg>
+                        <p>No users found matching your criteria</p>
+                        @if (filtersActive()) {
+                          <button
+                            type="button"
+                            class="ui-btn ui-btn-sm"
+                            (click)="clearFilters()"
+                          >
+                            Clear filters
                           </button>
                         }
                       </div>
                     </td>
                   </tr>
                 }
-              }
-            </tbody>
-          </table>
-        </div>
-
-        @if (!loading() && users().length === 0) {
-          <div class="text-center py-12">
-            <span
-              class="material-symbols-outlined text-4xl text-surface-variant"
-              >search_off</span
-            >
-            <p class="text-sm text-on-surface-variant mt-2">
-              No users found matching your criteria
-            </p>
+              </tbody>
+            </table>
           </div>
-        }
-      </div>
 
-      <!-- Pagination / Load More -->
-      <div
-        class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4"
-      >
-        <p class="text-sm text-on-surface-variant">
-          Showing {{ users().length }} users
-        </p>
-        @if (hasMore()) {
-          <button
-            (click)="loadMore()"
-            [disabled]="isLoadingMore()"
-            class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
-          >
-            @if (isLoadingMore()) {
-              <span
-                class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-              ></span>
-              <span>Loading...</span>
-            } @else {
-              <span>Load more</span>
-              <span class="material-symbols-outlined text-sm">expand_more</span>
+          <!-- Pagination / Load more -->
+          <div class="ui-table-foot">
+            <p>
+              Showing {{ users().length }} users{{
+                hasMore() ? " · more available" : ""
+              }}
+            </p>
+            @if (hasMore()) {
+              <button
+                type="button"
+                class="ui-btn ui-btn-sm"
+                (click)="loadMore()"
+                [disabled]="isLoadingMore()"
+              >
+                @if (isLoadingMore()) {
+                  <svg
+                    [lucideIcon]="LoaderIcon"
+                    [size]="15"
+                    class="animate-spin"
+                  ></svg>
+                  <span>Loading...</span>
+                } @else {
+                  <span>Load more</span>
+                  <svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                }
+              </button>
             }
-          </button>
-        }
-      </div>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- User Detail Modal -->
+    <!-- User detail modal -->
     @if (selectedUserId()) {
-      <div
-        class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-      >
+      <div class="ui-overlay">
         <div
-          class="absolute inset-0 bg-inverse-surface/30 backdrop-blur-md"
-          tabindex="0"
+          class="ui-backdrop"
+          aria-hidden="true"
           (click)="closeUserDetail()"
-          (keydown.enter)="closeUserDetail()"
         ></div>
         <div
-          class="relative bg-surface-container-lowest rounded-t-xl sm:rounded-xl p-4 sm:p-6 w-full sm:max-w-lg shadow-[0_32px_64px_rgba(25,28,29,0.12)] animate-modal-scale-in max-h-[90vh] overflow-y-auto"
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="closeUserDetail()"
         >
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-on-surface">User Details</h2>
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">User Details</h2>
             <button
+              type="button"
+              class="ui-icon-btn"
               (click)="closeUserDetail()"
-              class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
+              aria-label="Close"
             >
-              <span class="material-symbols-outlined text-on-surface-variant"
-                >close</span
-              >
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
             </button>
           </div>
 
-          @if (userDetailQuery.isPending()) {
-            <div class="space-y-3 py-2">
-              <div
-                class="h-12 w-12 rounded-full bg-surface-container-high skeleton-peak"
-              ></div>
-              <div
-                class="h-4 w-40 bg-surface-container-high rounded-full skeleton-peak"
-                [style.animation-delay]="'150ms'"
-              ></div>
-              <div
-                class="h-4 w-56 bg-surface-container-high rounded-full skeleton-peak"
-                [style.animation-delay]="'300ms'"
-              ></div>
-              <div
-                class="h-4 w-32 bg-surface-container-high rounded-full skeleton-peak"
-                [style.animation-delay]="'450ms'"
-              ></div>
-            </div>
-          } @else if (userDetailQuery.isError()) {
-            <div class="text-center py-8">
-              <span class="material-symbols-outlined text-4xl text-error"
-                >error_outline</span
-              >
-              <p class="text-sm text-on-surface-variant mt-2">
-                Failed to load user details
-              </p>
-            </div>
-          } @else {
-            @if (userDetailQuery.data(); as detail) {
-              <!-- Identity -->
-              <div class="flex items-center gap-3 mb-5">
-                <div
-                  class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center shrink-0"
+          <div class="ui-modal-body">
+            @if (userDetailQuery.isPending()) {
+              <div class="space-y-3 py-2">
+                <div class="ui-skel h-12 w-12 rounded-full"></div>
+                <div class="ui-skel h-4 w-40"></div>
+                <div class="ui-skel h-4 w-56"></div>
+                <div class="ui-skel h-4 w-32"></div>
+              </div>
+            } @else if (userDetailQuery.isError()) {
+              <div class="ui-empty">
+                <svg
+                  [lucideIcon]="CircleAlertIcon"
+                  [size]="28"
+                  class="text-ui-danger"
+                ></svg>
+                <p>Failed to load user details</p>
+                <button
+                  type="button"
+                  class="ui-btn ui-btn-sm"
+                  (click)="userDetailQuery.refetch()"
                 >
-                  <span class="text-lg font-bold text-primary"
-                    >{{ detail.firstName[0] }}{{ detail.lastName[0] }}</span
-                  >
-                </div>
-                <div class="min-w-0">
-                  <p class="text-base font-bold text-on-surface truncate">
-                    {{ detail.firstName }} {{ detail.lastName }}
-                  </p>
-                  <p
-                    class="text-xs text-on-surface-variant cursor-pointer hover:text-primary transition-colors truncate"
-                    copyToClipboard
-                    tooltip="Click to copy user ID"
-                    tooltipPosition="bottom"
-                  >
-                    ID: {{ detail.id }}
-                  </p>
-                </div>
-                <div class="ml-auto flex flex-col items-end gap-1.5 shrink-0">
-                  <app-status-chip [status]="detail.status"></app-status-chip>
-                  <app-status-chip
-                    [status]="kycStatusFor(detail.kycTier)"
-                  ></app-status-chip>
-                </div>
+                  Try again
+                </button>
               </div>
+            } @else {
+              @if (userDetailQuery.data(); as detail) {
+                <div class="space-y-5">
+                  <!-- Identity -->
+                  <div class="flex items-center gap-3">
+                    <span class="ui-avatar h-12 w-12 text-sm"
+                      >{{ detail.firstName[0] }}{{ detail.lastName[0] }}</span
+                    >
+                    <div class="min-w-0">
+                      <p class="truncate text-base font-semibold text-ui-ink">
+                        {{ detail.firstName }} {{ detail.lastName }}
+                      </p>
+                      <p
+                        class="cursor-pointer truncate text-xs text-ui-muted transition-colors hover:text-ui-accent"
+                        tooltip="Click to copy user ID"
+                        tooltipPosition="bottom"
+                        [copyToClipboard]="detail.id"
+                      >
+                        ID: {{ detail.id }}
+                      </p>
+                    </div>
+                    <div
+                      class="ml-auto flex shrink-0 flex-col items-end gap-1.5"
+                    >
+                      <app-status-chip [status]="detail.status" />
+                      <span class="ui-badge ui-badge-neutral">{{
+                        tierLabel(detail.kycTier)
+                      }}</span>
+                    </div>
+                  </div>
 
-              <!-- Contact & wallet -->
-              <div class="grid grid-cols-2 gap-3 mb-5">
-                <div class="bg-surface-container rounded-xl p-3">
-                  <p class="text-xs text-on-surface-variant">Email</p>
-                  <p
-                    class="text-sm font-semibold text-on-surface truncate cursor-pointer hover:text-primary transition-colors"
-                    copyToClipboard
-                    tooltip="Click to copy email"
-                    tooltipPosition="top"
-                  >
-                    {{ detail.email }}
-                  </p>
-                </div>
-                <div class="bg-surface-container rounded-xl p-3">
-                  <p class="text-xs text-on-surface-variant">Phone</p>
-                  <p
-                    class="text-sm font-semibold text-on-surface cursor-pointer hover:text-primary transition-colors"
-                    copyToClipboard
-                    tooltip="Click to copy phone"
-                    tooltipPosition="top"
-                  >
-                    {{ detail.phoneNumber }}
-                  </p>
-                </div>
-                <div class="bg-surface-container rounded-xl p-3">
-                  <p class="text-xs text-on-surface-variant">Wallet Balance</p>
-                  <p class="text-sm font-semibold text-on-surface">
-                    <span class="text-on-surface-variant">₦</span
-                    >{{ detail.walletBalance | number: "1.0-0" : "en-NG" }}
-                  </p>
-                </div>
-                <div class="bg-surface-container rounded-xl p-3">
-                  <p class="text-xs text-on-surface-variant">Joined</p>
-                  <p class="text-sm font-semibold text-on-surface">
-                    {{ detail.createdAt | date: "mediumDate" }}
-                  </p>
-                </div>
-              </div>
+                  <!-- Contact & wallet -->
+                  <dl class="ui-dl">
+                    <div class="min-w-0">
+                      <dt class="ui-dt">Email</dt>
+                      <dd
+                        class="ui-dd cursor-pointer truncate transition-colors hover:text-ui-accent"
+                        tooltip="Click to copy email"
+                        tooltipPosition="top"
+                        [copyToClipboard]="detail.email"
+                      >
+                        {{ detail.email }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="ui-dt">Phone</dt>
+                      <dd
+                        class="ui-dd cursor-pointer transition-colors hover:text-ui-accent"
+                        tooltip="Click to copy phone"
+                        tooltipPosition="top"
+                        [copyToClipboard]="detail.phoneNumber"
+                      >
+                        {{ detail.phoneNumber }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="ui-dt">Wallet Balance</dt>
+                      <dd class="ui-dd tabular-nums">
+                        ₦{{ detail.walletBalance | number: "1.0-0" : "en-NG" }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="ui-dt">Joined</dt>
+                      <dd class="ui-dd">
+                        {{ detail.createdAt | date: "mediumDate" }}
+                      </dd>
+                    </div>
+                  </dl>
 
-              @if (detail.status === "SUSPENDED") {
-                <div class="bg-error-container rounded-xl p-3 mb-5">
-                  <p
-                    class="text-xs font-bold text-error uppercase tracking-wide"
-                  >
-                    Suspended
-                  </p>
-                  @if (detail.suspensionReason) {
-                    <p class="text-sm text-on-surface mt-1">
-                      {{ detail.suspensionReason }}
-                    </p>
+                  @if (detail.status === "SUSPENDED") {
+                    <div class="ui-alert ui-alert-danger">
+                      <svg
+                        [lucideIcon]="BanIcon"
+                        [size]="16"
+                        class="mt-0.5 shrink-0"
+                      ></svg>
+                      <div class="min-w-0">
+                        <p class="font-medium">Suspended</p>
+                        @if (detail.suspensionReason) {
+                          <p class="mt-1 text-ui-body">
+                            {{ detail.suspensionReason }}
+                          </p>
+                        }
+                        @if (detail.suspendedAt) {
+                          <p class="mt-1 text-xs text-ui-muted">
+                            {{ detail.suspendedAt | date: "medium" }}
+                          </p>
+                        }
+                      </div>
+                    </div>
                   }
-                  @if (detail.suspendedAt) {
-                    <p class="text-xs text-on-surface-variant mt-1">
-                      {{ detail.suspendedAt | date: "medium" }}
-                    </p>
-                  }
+
+                  <!-- Recent transactions -->
+                  <div>
+                    <h3 class="mb-2 text-[13px] font-semibold text-ui-ink">
+                      Recent Transactions
+                    </h3>
+                    @if (detail.recentTransactions.length === 0) {
+                      <p class="text-sm text-ui-muted">No transactions yet</p>
+                    } @else {
+                      <div
+                        class="divide-y divide-ui-line rounded-xl border border-ui-line"
+                      >
+                        @for (txn of detail.recentTransactions; track txn.id) {
+                          <div
+                            class="flex items-center justify-between gap-3 px-3 py-2.5"
+                          >
+                            <div class="min-w-0">
+                              <p
+                                class="truncate text-sm font-medium text-ui-ink"
+                              >
+                                {{ txn.description }}
+                              </p>
+                              <p class="truncate text-xs text-ui-muted">
+                                {{ txn.reference }} ·
+                                {{ txn.createdAt | date: "short" }}
+                              </p>
+                            </div>
+                            <div
+                              class="flex shrink-0 flex-col items-end gap-1 text-right"
+                            >
+                              <p
+                                class="whitespace-nowrap text-sm tabular-nums text-ui-ink"
+                              >
+                                ₦{{ txn.amount | number: "1.0-0" : "en-NG" }}
+                              </p>
+                              <app-status-chip [status]="txn.status" />
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Loans -->
+                  <div>
+                    <h3 class="mb-2 text-[13px] font-semibold text-ui-ink">
+                      Loans
+                    </h3>
+                    @if (detail.loans.length === 0) {
+                      <p class="text-sm text-ui-muted">No loans on record</p>
+                    } @else {
+                      <div
+                        class="divide-y divide-ui-line rounded-xl border border-ui-line"
+                      >
+                        @for (loan of detail.loans; track loan.id) {
+                          <div
+                            class="flex items-center justify-between gap-3 px-3 py-2.5"
+                          >
+                            <div class="min-w-0">
+                              <p
+                                class="truncate text-sm font-medium text-ui-ink"
+                              >
+                                {{ loan.schoolName }}
+                              </p>
+                              <p class="text-xs text-ui-muted">
+                                {{ loan.submittedAt | date: "mediumDate" }}
+                              </p>
+                            </div>
+                            <div
+                              class="flex shrink-0 flex-col items-end gap-1 text-right"
+                            >
+                              <p
+                                class="whitespace-nowrap text-sm tabular-nums text-ui-ink"
+                              >
+                                ₦{{ loan.amount | number: "1.0-0" : "en-NG" }}
+                              </p>
+                              <app-status-chip [status]="loan.status" />
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- KYC history -->
+                  <div>
+                    <h3 class="mb-2 text-[13px] font-semibold text-ui-ink">
+                      KYC Verifications
+                    </h3>
+                    @if (detail.kycVerifications.length === 0) {
+                      <p class="text-sm text-ui-muted">
+                        No KYC submissions yet
+                      </p>
+                    } @else {
+                      <div
+                        class="divide-y divide-ui-line rounded-xl border border-ui-line"
+                      >
+                        @for (kyc of detail.kycVerifications; track kyc.id) {
+                          <div
+                            class="flex items-center justify-between gap-3 px-3 py-2.5"
+                          >
+                            <div class="min-w-0">
+                              <p
+                                class="truncate text-sm font-medium text-ui-ink"
+                              >
+                                {{ kyc.idType }} · {{ kyc.requestedTier }}
+                              </p>
+                              <p class="text-xs text-ui-muted">
+                                {{ kyc.createdAt | date: "mediumDate" }}
+                              </p>
+                            </div>
+                            <app-status-chip [status]="kyc.status" />
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
               }
-
-              <!-- Recent Transactions -->
-              <div class="mb-5">
-                <h3
-                  class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2"
-                >
-                  Recent Transactions
-                </h3>
-                @if (detail.recentTransactions.length === 0) {
-                  <p class="text-sm text-on-surface-variant">
-                    No transactions yet
-                  </p>
-                } @else {
-                  <div class="space-y-2">
-                    @for (txn of detail.recentTransactions; track txn.id) {
-                      <div
-                        class="flex items-center justify-between bg-surface-container rounded-xl px-3 py-2.5"
-                      >
-                        <div class="min-w-0">
-                          <p
-                            class="text-sm font-semibold text-on-surface truncate"
-                          >
-                            {{ txn.description }}
-                          </p>
-                          <p class="text-xs text-on-surface-variant truncate">
-                            {{ txn.reference }} ·
-                            {{ txn.createdAt | date: "short" }}
-                          </p>
-                        </div>
-                        <div class="text-right shrink-0 ml-3">
-                          <p
-                            class="text-sm font-semibold text-on-surface whitespace-nowrap"
-                          >
-                            <span class="text-on-surface-variant">₦</span
-                            >{{ txn.amount | number: "1.0-0" : "en-NG" }}
-                          </p>
-                          <app-status-chip
-                            [status]="txn.status"
-                          ></app-status-chip>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-
-              <!-- Loans -->
-              <div class="mb-5">
-                <h3
-                  class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2"
-                >
-                  Loans
-                </h3>
-                @if (detail.loans.length === 0) {
-                  <p class="text-sm text-on-surface-variant">
-                    No loans on record
-                  </p>
-                } @else {
-                  <div class="space-y-2">
-                    @for (loan of detail.loans; track loan.id) {
-                      <div
-                        class="flex items-center justify-between bg-surface-container rounded-xl px-3 py-2.5"
-                      >
-                        <div class="min-w-0">
-                          <p
-                            class="text-sm font-semibold text-on-surface truncate"
-                          >
-                            {{ loan.schoolName }}
-                          </p>
-                          <p class="text-xs text-on-surface-variant">
-                            {{ loan.submittedAt | date: "mediumDate" }}
-                          </p>
-                        </div>
-                        <div class="text-right shrink-0 ml-3">
-                          <p
-                            class="text-sm font-semibold text-on-surface whitespace-nowrap"
-                          >
-                            <span class="text-on-surface-variant">₦</span
-                            >{{ loan.amount | number: "1.0-0" : "en-NG" }}
-                          </p>
-                          <app-status-chip
-                            [status]="loan.status"
-                          ></app-status-chip>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-
-              <!-- KYC History -->
-              <div>
-                <h3
-                  class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2"
-                >
-                  KYC Verifications
-                </h3>
-                @if (detail.kycVerifications.length === 0) {
-                  <p class="text-sm text-on-surface-variant">
-                    No KYC submissions yet
-                  </p>
-                } @else {
-                  <div class="space-y-2">
-                    @for (kyc of detail.kycVerifications; track kyc.id) {
-                      <div
-                        class="flex items-center justify-between bg-surface-container rounded-xl px-3 py-2.5"
-                      >
-                        <div class="min-w-0">
-                          <p
-                            class="text-sm font-semibold text-on-surface truncate"
-                          >
-                            {{ kyc.idType }} · {{ kyc.requestedTier }}
-                          </p>
-                          <p class="text-xs text-on-surface-variant">
-                            {{ kyc.createdAt | date: "mediumDate" }}
-                          </p>
-                        </div>
-                        <app-status-chip
-                          [status]="kyc.status"
-                        ></app-status-chip>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
             }
+          </div>
+          @if (userDetailQuery.data(); as detail) {
+            <div class="ui-modal-foot">
+              @if (detail.status === "ACTIVE") {
+                <button
+                  type="button"
+                  class="ui-btn ui-btn-danger"
+                  (click)="suspend(detail)"
+                  [disabled]="
+                    suspendMutation.isPending() &&
+                    suspendMutation.variables()?.userId === detail.id
+                  "
+                >
+                  {{
+                    suspendMutation.isPending() &&
+                    suspendMutation.variables()?.userId === detail.id
+                      ? "Suspending…"
+                      : "Suspend"
+                  }}
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="ui-btn"
+                  (click)="reactivate(detail)"
+                  [disabled]="
+                    reactivateMutation.isPending() &&
+                    reactivateMutation.variables()?.userId === detail.id
+                  "
+                >
+                  {{
+                    reactivateMutation.isPending() &&
+                    reactivateMutation.variables()?.userId === detail.id
+                      ? "Reactivating…"
+                      : "Reactivate"
+                  }}
+                </button>
+              }
+            </div>
           }
         </div>
       </div>
@@ -647,15 +695,35 @@ import { MagneticDirective } from "../../directives/magnetic.directive";
   `,
 })
 export class UsersPageComponent {
+  readonly UsersIcon = Users;
+  readonly DownloadIcon = Download;
+  readonly SearchIcon = Search;
+  readonly SearchXIcon = SearchX;
+  readonly EyeIcon = Eye;
+  readonly BanIcon = Ban;
+  readonly CircleCheckIcon = CircleCheck;
+  readonly CircleAlertIcon = CircleAlert;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly LoaderIcon = LoaderCircle;
+  readonly XIcon = X;
+
   private adminService = inject(AdminService);
   private toast = inject(ToastService);
   private queryClient = injectQueryClient();
-
+  private confirm = inject(ConfirmService);
+  private destroyRef = inject(DestroyRef);
   readonly pageSize = 20;
-  currentPage = signal(0);
+  searchInput = signal("");
   searchQuery = signal("");
   statusFilter = signal("");
   kycFilter = signal("");
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.searchTimer) clearTimeout(this.searchTimer);
+    });
+  }
 
   usersQuery = injectQuery(() => ({
     queryKey: [
@@ -663,13 +731,15 @@ export class UsersPageComponent {
       {
         search: this.searchQuery(),
         status: this.statusFilter(),
+        kycTier: this.kycFilter(),
       },
     ],
     queryFn: () =>
       lastValueFrom(
         this.adminService.getUsers({
-          phoneNumber: this.searchQuery() || undefined,
+          ...this.searchParams(),
           status: this.statusFilter() || undefined,
+          kycTier: this.kycFilter() || undefined,
           limit: this.pageSize,
         }),
       ),
@@ -677,11 +747,19 @@ export class UsersPageComponent {
   }));
 
   suspendMutation = injectMutation(() => ({
-    mutationFn: ({ userId }: { userId: string; userName: string }) =>
-      lastValueFrom(this.adminService.suspendUser(userId)),
+    mutationFn: ({
+      userId,
+      reason,
+    }: {
+      userId: string;
+      userName: string;
+      reason: string;
+    }) => lastValueFrom(this.adminService.suspendUser(userId, reason)),
     onSuccess: (_, { userName }) => {
       this.toast.show("success", `${userName} suspended`);
       this.queryClient.invalidateQueries({ queryKey: ["users"] });
+      this.resetPages();
+      if (this.selectedUserId()) this.userDetailQuery.refetch();
     },
     onError: (err: unknown) => {
       const httpErr = err as {
@@ -712,6 +790,8 @@ export class UsersPageComponent {
     onSuccess: (_, { userName }) => {
       this.toast.show("success", `${userName} reactivated`);
       this.queryClient.invalidateQueries({ queryKey: ["users"] });
+      this.resetPages();
+      if (this.selectedUserId()) this.userDetailQuery.refetch();
     },
     onError: (err: unknown) => {
       const httpErr = err as {
@@ -755,57 +835,114 @@ export class UsersPageComponent {
       [];
     const all = [...queryItems, ...this.rawAppendedUsers()];
 
-    let filtered = all.map((u: User) => ({
+    return all.map((u: User) => ({
       id: u.id,
       firstName: u.firstName || "User",
       lastName: u.lastName || "",
       email: u.email,
       phone: u.phoneNumber || "N/A",
       status: u.status || "ACTIVE",
-      kycStatus:
-        u.kycTier === "TIER_2"
-          ? "VERIFIED"
-          : u.kycTier === "TIER_1"
-            ? "PENDING"
-            : "UNVERIFIED",
+      kycTier: u.kycTier,
       createdAt: u.createdAt,
       walletBalance: u.walletBalance || 0,
     }));
-
-    const kycF = this.kycFilter();
-    if (kycF) {
-      filtered = filtered.filter((u) => u.kycStatus === kycF);
-    }
-    return filtered;
   });
-
-  totalItems = computed(() => {
-    const data = this.usersQuery.data();
-    return (
-      (data as unknown as { totalElements?: number })?.totalElements ||
-      this.users().length
-    );
-  });
-  totalPages = computed(
-    () =>
-      (this.usersQuery.data() as unknown as { totalPages?: number })
-        ?.totalPages || 1,
-  );
 
   onSearch(value: string) {
-    this.searchQuery.set(value);
-    this.currentPage.set(0);
+    this.searchInput.set(value);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.searchQuery.set(value.trim());
+      this.resetPages();
+    }, 300);
+  }
+
+  clearSearch() {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchInput.set("");
+    this.searchQuery.set("");
+    this.resetPages();
+  }
+
+  onStatusChange(value: string) {
+    this.statusFilter.set(value);
+    this.resetPages();
+  }
+
+  onKycChange(value: string) {
+    this.kycFilter.set(value);
+    this.resetPages();
+  }
+
+  filtersActive() {
+    return !!(this.searchQuery() || this.statusFilter() || this.kycFilter());
+  }
+
+  clearFilters() {
+    this.clearSearch();
+    this.statusFilter.set("");
+    this.kycFilter.set("");
+    this.resetPages();
+  }
+
+  private searchParams() {
+    const value = this.searchQuery().trim();
+    return /^\+?[\d\s-]{6,}$/.test(value)
+      ? { phoneNumber: value || undefined }
+      : { search: value || undefined };
+  }
+
+  private resetPages() {
     this.rawAppendedUsers.set([]);
     this.rawHasMore.set(null);
     this.nextCursor.set(null);
   }
 
-  onStatusChange(value: string) {
-    this.statusFilter.set(value);
-    this.currentPage.set(0);
-    this.rawAppendedUsers.set([]);
-    this.rawHasMore.set(null);
-    this.nextCursor.set(null);
+  tierLabel(tier: string) {
+    return tier?.replace("TIER_", "Tier ") || "—";
+  }
+
+  exportCsv() {
+    downloadCsv("users", this.users(), [
+      { label: "Name", value: (u) => `${u.firstName} ${u.lastName}`.trim() },
+      { label: "Email", value: (u) => u.email },
+      { label: "Phone", value: (u) => u.phone },
+      { label: "Status", value: (u) => u.status },
+      { label: "KYC tier", value: (u) => u.kycTier },
+      { label: "Wallet balance (NGN)", value: (u) => u.walletBalance },
+      { label: "Joined", value: (u) => u.createdAt },
+    ]);
+  }
+
+  async suspend(user: { id: string; firstName: string; lastName: string }) {
+    const name = `${user.firstName} ${user.lastName}`.trim();
+    const ok = await this.confirm.ask({
+      title: `Suspend ${name}?`,
+      message:
+        "They can't sign in or move money until an admin reactivates them.",
+      confirmLabel: "Suspend",
+      tone: "danger",
+      reasonLabel: "Reason",
+      reasonPlaceholder: "e.g. Suspected fraud",
+    });
+    if (!ok) return;
+    this.suspendMutation.mutate({
+      userId: user.id,
+      userName: name,
+      reason: ok.reason,
+    });
+  }
+
+  async reactivate(user: { id: string; firstName: string; lastName: string }) {
+    const name = `${user.firstName} ${user.lastName}`.trim();
+    const ok = await this.confirm.ask({
+      title: `Reactivate ${name}?`,
+      message: "They can sign in and use their wallet again.",
+      confirmLabel: "Reactivate",
+      tone: "primary",
+    });
+    if (!ok) return;
+    this.reactivateMutation.mutate({ userId: user.id, userName: name });
   }
 
   loadMore() {
@@ -814,8 +951,9 @@ export class UsersPageComponent {
     this.isLoadingMore.set(true);
     this.adminService
       .getUsers({
-        phoneNumber: this.searchQuery() || undefined,
+        ...this.searchParams(),
         status: this.statusFilter() || undefined,
+        kycTier: this.kycFilter() || undefined,
         limit: this.pageSize,
         cursor,
       })
@@ -836,13 +974,6 @@ export class UsersPageComponent {
       });
   }
 
-  prevPage() {
-    this.currentPage.update((p) => Math.max(0, p - 1));
-  }
-  nextPage() {
-    this.currentPage.update((p) => p + 1);
-  }
-
   selectedUserId = signal<string | null>(null);
 
   userDetailQuery = injectQuery(() => ({
@@ -858,13 +989,5 @@ export class UsersPageComponent {
 
   closeUserDetail() {
     this.selectedUserId.set(null);
-  }
-
-  kycStatusFor(kycTier: string): string {
-    return kycTier === "TIER_2"
-      ? "VERIFIED"
-      : kycTier === "TIER_1"
-        ? "PENDING"
-        : "UNVERIFIED";
   }
 }

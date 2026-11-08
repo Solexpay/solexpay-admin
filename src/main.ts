@@ -1,3 +1,4 @@
+import { provideZoneChangeDetection } from "@angular/core";
 import "zone.js";
 import "./styles.css";
 import { bootstrapApplication } from "@angular/platform-browser";
@@ -8,12 +9,15 @@ async function prepareApp() {
   if (import.meta.env.DEV) {
     const { worker } = await import("./mocks/browser");
     return worker.start({
-      onUnhandledRequest: "bypass",
+      onUnhandledFrame: "bypass",
     });
   }
   return Promise.resolve();
 }
 
 prepareApp().then(() => {
-  bootstrapApplication(AppComponent, appConfig);
+  bootstrapApplication(AppComponent, {
+    ...appConfig,
+    providers: [provideZoneChangeDetection(), ...appConfig.providers],
+  });
 });

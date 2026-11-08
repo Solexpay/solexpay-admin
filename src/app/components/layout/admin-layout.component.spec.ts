@@ -15,7 +15,6 @@ class DummyComponent {}
 describe("AdminLayoutComponent", () => {
   let component: AdminLayoutComponent;
   let fixture: ComponentFixture<AdminLayoutComponent>;
-  let titleService: Title;
 
   beforeEach(async () => {
     TestBed.resetTestingModule();
@@ -54,7 +53,6 @@ describe("AdminLayoutComponent", () => {
 
     fixture = TestBed.createComponent(AdminLayoutComponent);
     component = fixture.componentInstance;
-    titleService = TestBed.inject(Title);
     fixture.detectChanges();
   });
 
@@ -66,10 +64,10 @@ describe("AdminLayoutComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should set page title on init", () => {
-    const titleSpy = vi.spyOn(titleService, "setTitle");
-    component.ngOnInit();
-    expect(titleSpy).toHaveBeenCalledWith("Solexpay Admin Portal");
+  it("should close the drawer on Escape", () => {
+    component.sidebarOpen.set(true);
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(component.sidebarOpen()).toBe(false);
   });
 
   it("should have sidebar closed initially", () => {

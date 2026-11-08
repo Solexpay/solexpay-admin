@@ -13,7 +13,7 @@ import {
 import { KycPageComponent } from "./kyc.page";
 import { AdminService, KycItem } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
-import { ConfettiService } from "../../services/confetti.service";
+import { ConfirmService } from "../../services/confirm.service";
 import { of } from "rxjs";
 import { vi } from "vitest";
 
@@ -22,6 +22,7 @@ describe("KycPageComponent", () => {
   let fixture: ComponentFixture<KycPageComponent>;
   let adminService: AdminService;
   let toastService: ToastService;
+  let confirmService: { ask: ReturnType<typeof vi.fn> };
 
   const mockKycItems: KycItem[] = [
     {
@@ -74,9 +75,8 @@ describe("KycPageComponent", () => {
     const mockToastService = {
       show: vi.fn(),
     };
-
-    const mockConfettiService = {
-      success: vi.fn(),
+    confirmService = {
+      ask: vi.fn().mockResolvedValue({ reason: "Test reason" }),
     };
 
     const queryClient = new QueryClient({
@@ -87,7 +87,7 @@ describe("KycPageComponent", () => {
         },
       },
     });
-    queryClient.setQueryData(["kyc-queue"], {
+    queryClient.setQueryData(["kyc-queue", { status: "PENDING" }], {
       items: mockKycItems,
       nextCursor: null,
       hasMore: false,
@@ -100,7 +100,7 @@ describe("KycPageComponent", () => {
         provideQueryClient(queryClient),
         { provide: AdminService, useValue: mockAdminService },
         { provide: ToastService, useValue: mockToastService },
-        { provide: ConfettiService, useValue: mockConfettiService },
+        { provide: ConfirmService, useValue: confirmService },
       ],
     });
 
@@ -119,15 +119,13 @@ describe("KycPageComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should compute status and filters correctly", fakeAsync(() => {
+  it("should compute queue metrics from the current status query", fakeAsync(() => {
     // Wait for the query to populate
     tick(10000);
     flush();
     expect(component.kycQueue()).toEqual(mockKycItems);
-    expect(component.pendingCount()).toBe(1);
-    expect(component.totalToday()).toBe(2);
-    expect(component.approvedCount()).toBe(1);
-    expect(component.rejectedCount()).toBe(0);
+    expect(component.pendingCount()).toBe(2);
+    expect(component.oldestWaiting().unit).toBe("d");
   }));
 
   it("should mask document numbers except last 4 digits", () => {
@@ -135,35 +133,45 @@ describe("KycPageComponent", () => {
     expect(component.maskNumber("12")).toBe("12");
   });
 
-  it("should call approveMutation and show toast/confetti on success", async () => {
-    await component.approveMutation.mutateAsync({
-      id: "kyc1",
-      userName: "John Doe",
-    });
+  it("should call approveMutation and show a toast on success", async () => {
+    await component.approve(mockKycItems[0]!);
+    await vi.waitFor(() =>
+      expect(adminService.approveKyc).toHaveBeenCalledWith("kyc1"),
+    );
     expect(adminService.approveKyc).toHaveBeenCalledWith("kyc1");
-    expect(toastService.show).toHaveBeenCalledWith(
-      "success",
-      "KYC approved for John Doe",
+    await vi.waitFor(() =>
+      expect(toastService.show).toHaveBeenCalledWith(
+        "success",
+        "KYC approved for John Doe",
+      ),
     );
   });
 
-  it("should call rejectMutation on reject action", async () => {
-    await component.rejectMutation.mutateAsync({
-      id: "kyc1",
-      userName: "John Doe",
-    });
-    expect(adminService.rejectKyc).toHaveBeenCalledWith("kyc1");
-    expect(toastService.show).toHaveBeenCalledWith(
-      "success",
-      "KYC rejected for John Doe",
+  it("should call reject with the confirmed reason", async () => {
+    await component.reject(mockKycItems[0]!);
+    await vi.waitFor(() =>
+      expect(adminService.rejectKyc).toHaveBeenCalledWith(
+        "kyc1",
+        "Test reason",
+      ),
+    );
+    await vi.waitFor(() =>
+      expect(toastService.show).toHaveBeenCalledWith(
+        "success",
+        "KYC rejected for John Doe",
+      ),
     );
   });
 
-  it("should trigger toast notification when viewing details", () => {
+  it("should not reject KYC when confirmation is cancelled", async () => {
+    confirmService.ask.mockResolvedValueOnce(null);
+    await component.reject(mockKycItems[0]!);
+    expect(adminService.rejectKyc).not.toHaveBeenCalled();
+  });
+
+  it("should open the selected KYC detail modal", () => {
     component.viewDetails(mockKycItems[0]!);
-    expect(toastService.show).toHaveBeenCalledWith(
-      "info",
-      "Viewing details for John Doe",
-    );
+    expect(component.selectedItem()).toEqual(mockKycItems[0]);
+    expect(component.showDocumentNumber()).toBe(false);
   });
 });

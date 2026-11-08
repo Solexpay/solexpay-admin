@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from "@angular/core";
+import { Component, DestroyRef, inject, signal, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
@@ -7,442 +7,537 @@ import {
 } from "@tanstack/angular-query-experimental";
 import { lastValueFrom } from "rxjs";
 import {
+  LucideDynamicIcon,
+  LucideBadgeCheck as BadgeCheck,
+  LucideBraces as Braces,
+  LucideChevronDown as ChevronDown,
+  LucideCircleAlert as CircleAlert,
+  LucideCircleCheck as CircleCheck,
+  LucideDownload as Download,
+  LucideHistory as History,
+  LucideLoaderCircle as LoaderCircle,
+  LucideSearch as Search,
+  LucideShieldCheck as ShieldCheck,
+  LucideTriangleAlert as TriangleAlert,
+  LucideX as X,
+} from "@lucide/angular";
+import {
   AdminService,
   AuditLog,
   AuditVerifyResult,
 } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
-import { RippleDirective } from "../../directives/ripple.directive";
+import { PageHeaderComponent } from "../../components/ui/page-header.component";
+import { ModalDirective } from "../../directives/modal.directive";
+import { CopyToClipboardDirective } from "../../directives/copy-to-clipboard.directive";
+import { downloadCsv } from "../../core/csv";
 
 @Component({
   selector: "app-audit",
-  standalone: true,
-  imports: [CommonModule, FormsModule, RippleDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideDynamicIcon,
+    PageHeaderComponent,
+    ModalDirective,
+    CopyToClipboardDirective,
+  ],
   template: `
-    <div class="space-y-6">
-      <!-- Page header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-      >
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">
-            Audit Ledger
-          </h1>
-          <p class="text-sm text-on-surface-variant mt-1">
-            Immutable cryptographic audit trail and hash chain verification
-          </p>
+    <app-page-header
+      title="Audit Ledger"
+      [icon]="HistoryIcon"
+      subtitle="Immutable cryptographic audit trail and hash chain verification"
+    />
+
+    <div class="space-y-4">
+      <!-- Hash Chain Verification -->
+      <section class="ui-panel">
+        <div class="ui-panel-head">
+          <h2 class="ui-panel-title">Verify Cryptographic Hash Chain</h2>
+          <span class="ui-meta">Integrity check</span>
         </div>
-      </div>
-
-      <!-- Hash Chain Verification Card -->
-      <div
-        class="bg-surface-container-lowest rounded-2xl p-5 shadow-[0_2px_12px_rgba(25,28,29,0.06)] border border-primary/20"
-      >
-        <div class="flex items-center gap-2 mb-3">
-          <span class="material-symbols-outlined text-primary text-xl"
-            >link</span
-          >
-          <h2 class="text-base font-bold text-on-surface">
-            Verify Cryptographic Hash Chain
-          </h2>
-        </div>
-        <p class="text-xs text-on-surface-variant mb-4">
-          Verify cryptographic integrity of audit sequence entries. Each audit
-          record contains a hash of its payload and previous entry.
-        </p>
-
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-2">
-            <label
-              for="verify-from-seq"
-              class="text-xs font-semibold text-on-surface-variant"
-              >From Seq:</label
-            >
-            <input
-              id="verify-from-seq"
-              type="number"
-              [(ngModel)]="verifyFromSeq"
-              placeholder="1"
-              min="1"
-              class="w-24 bg-surface-container-highest rounded-xl py-2 px-3 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-          <div class="flex items-center gap-2">
-            <label
-              for="verify-to-seq"
-              class="text-xs font-semibold text-on-surface-variant"
-              >To Seq:</label
-            >
-            <input
-              id="verify-to-seq"
-              type="number"
-              [(ngModel)]="verifyToSeq"
-              placeholder="100"
-              min="1"
-              class="w-24 bg-surface-container-highest rounded-xl py-2 px-3 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-          <button
-            solexRipple
-            (click)="runVerifyChain()"
-            [disabled]="verifyMutation.isPending()"
-            class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm hover:brightness-110 disabled:opacity-50 flex items-center gap-1.5"
-          >
-            @if (verifyMutation.isPending()) {
-              <span
-                class="inline-block w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"
-              ></span>
-              <span>Verifying...</span>
-            } @else {
-              <span class="material-symbols-outlined text-sm">verified</span>
-              <span>Verify Chain</span>
-            }
-          </button>
-        </div>
-
-        <!-- Verification Result Banner -->
-        @if (verifyResult(); as res) {
-          <div
-            class="mt-4 p-4 rounded-xl text-sm flex items-start gap-3 transition-all"
-            [class]="
-              res.ok
-                ? 'bg-tertiary-fixed text-on-tertiary-fixed-variant'
-                : 'bg-error-container text-on-error-container'
-            "
-          >
-            <span class="material-symbols-outlined text-lg mt-0.5">
-              {{ res.ok ? "check_circle" : "error" }}
-            </span>
-            <div>
-              <p class="font-bold">
-                {{
-                  res.ok
-                    ? "Hash Chain Integrity Verified OK"
-                    : "Hash Chain Broken / Tampering Detected!"
-                }}
-              </p>
-              @if (res.ok) {
-                <p class="text-xs mt-0.5 opacity-90">
-                  Checked {{ res.checked }} sequence record{{
-                    res.checked === 1 ? "" : "s"
-                  }}
-                  in range. No discrepancies found.
-                </p>
-              } @else {
-                <p class="text-xs mt-0.5 font-mono">
-                  First broken sequence: #{{ res.firstBrokenChainSeq }} (Record
-                  ID: {{ res.firstBrokenAuditId }})
-                </p>
-              }
-            </div>
-          </div>
-        }
-      </div>
-
-      <!-- Filters -->
-      <div
-        class="bg-surface-container-lowest rounded-xl p-4 flex flex-wrap items-center gap-3 shadow-[0_2px_12px_rgba(25,28,29,0.06)]"
-      >
-        <div class="flex-1 min-w-[200px] relative">
-          <span
-            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline"
-            >search</span
-          >
-          <input
-            type="text"
-            [ngModel]="actionFilter()"
-            (ngModelChange)="onActionFilterChange($event)"
-            class="w-full bg-surface-container-highest rounded-xl py-2 pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20"
-            placeholder="Filter by action (e.g. user.suspend, auth.login)..."
-          />
-        </div>
-
-        <select
-          [ngModel]="actorTypeFilter()"
-          (ngModelChange)="onActorTypeChange($event)"
-          class="bg-surface-container-highest rounded-xl py-2 px-3 text-sm font-medium outline-none cursor-pointer"
-        >
-          <option value="">All Actors</option>
-          <option value="ADMIN">ADMIN</option>
-          <option value="USER">USER</option>
-          <option value="SYSTEM">SYSTEM</option>
-        </select>
-      </div>
-
-      <!-- Audit Logs Table -->
-      <div
-        class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-      >
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[900px]">
-            <thead>
-              <tr class="bg-surface-container text-left">
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Seq
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Action
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Actor
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Entity
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  IP / Client
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                >
-                  Timestamp
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right"
-                >
-                  Details
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (loading()) {
-                @for (n of [1, 2, 3, 4]; track n) {
-                  <tr class="border-t border-surface-container animate-pulse">
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-8 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-28 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-24 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-24 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-20 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div
-                        class="h-4 w-24 bg-surface-container-high rounded"
-                      ></div>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <div
-                        class="h-4 w-8 bg-surface-container-high rounded ml-auto"
-                      ></div>
-                    </td>
-                  </tr>
-                }
-              } @else {
-                @for (log of auditLogs(); track log.id) {
-                  <tr
-                    class="border-t border-surface-container hover:bg-surface-container-low transition-colors"
-                  >
-                    <td
-                      class="px-6 py-4 font-mono font-bold text-sm text-primary"
-                    >
-                      #{{ log.seq }}
-                    </td>
-                    <td class="px-6 py-4">
-                      <span
-                        class="px-2.5 py-1 bg-surface-container rounded-md font-mono text-xs font-semibold text-on-surface"
-                      >
-                        {{ log.action }}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4">
-                      <p class="text-sm font-semibold text-on-surface">
-                        {{ log.actorType }}
-                      </p>
-                      <p
-                        class="text-xs text-on-surface-variant font-mono truncate max-w-[120px]"
-                      >
-                        {{ log.actorId }}
-                      </p>
-                    </td>
-                    <td class="px-6 py-4">
-                      <p class="text-sm font-medium text-on-surface">
-                        {{ log.entityType }}
-                      </p>
-                      <p
-                        class="text-xs text-on-surface-variant font-mono truncate max-w-[120px]"
-                      >
-                        {{ log.entityId }}
-                      </p>
-                    </td>
-                    <td
-                      class="px-6 py-4 text-xs font-mono text-on-surface-variant"
-                    >
-                      <p>{{ log.ip }}</p>
-                      <p class="truncate max-w-[140px] text-[11px] opacity-75">
-                        {{ log.userAgent }}
-                      </p>
-                    </td>
-                    <td
-                      class="px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap"
-                    >
-                      {{ log.createdAt | date: "medium" }}
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <button
-                        (click)="selectedLog.set(log)"
-                        class="p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors"
-                        title="View Payload Data"
-                      >
-                        <span class="material-symbols-outlined text-sm"
-                          >data_object</span
-                        >
-                      </button>
-                    </td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
-        </div>
-
-        @if (!loading() && auditLogs().length === 0) {
-          <div class="text-center py-12">
-            <span
-              class="material-symbols-outlined text-4xl text-surface-variant"
-              >history_edu</span
-            >
-            <p class="text-sm text-on-surface-variant mt-2">
-              No audit logs found
+        <div class="ui-panel-body space-y-4 p-4">
+          <div class="flex items-start gap-2.5">
+            <svg
+              [lucideIcon]="ShieldCheckIcon"
+              [size]="18"
+              class="mt-0.5 shrink-0 text-ui-accent"
+            ></svg>
+            <p class="text-xs text-ui-muted">
+              Verify cryptographic integrity of audit sequence entries. Each
+              audit record contains a hash of its payload and previous entry.
             </p>
           </div>
-        }
 
-        @if (hasMore()) {
           <div
-            class="flex justify-center p-4 border-t border-surface-container"
+            class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
           >
+            <div>
+              <label for="verify-from-seq" class="ui-label">From Seq:</label>
+              <input
+                id="verify-from-seq"
+                type="number"
+                [ngModel]="verifyFromSeq()"
+                (ngModelChange)="verifyFromSeq.set(+$event)"
+                placeholder="1"
+                min="1"
+                class="ui-input w-24 font-mono"
+              />
+            </div>
+            <div>
+              <label for="verify-to-seq" class="ui-label">To Seq:</label>
+              <input
+                id="verify-to-seq"
+                type="number"
+                [ngModel]="verifyToSeq()"
+                (ngModelChange)="verifyToSeq.set(+$event)"
+                placeholder="100"
+                min="1"
+                class="ui-input w-24 font-mono"
+              />
+            </div>
             <button
-              (click)="loadMore()"
-              [disabled]="isLoadingMore()"
-              class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
+              type="button"
+              (click)="runVerifyChain()"
+              [disabled]="verifyMutation.isPending() || !!rangeError()"
+              class="ui-btn ui-btn-primary"
             >
-              @if (isLoadingMore()) {
-                <span
-                  class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                ></span>
-                <span>Loading...</span>
+              @if (verifyMutation.isPending()) {
+                <svg
+                  [lucideIcon]="LoaderIcon"
+                  [size]="15"
+                  class="animate-spin"
+                ></svg>
+                <span>Verifying...</span>
               } @else {
-                <span>Load more</span>
-                <span class="material-symbols-outlined text-sm"
-                  >expand_more</span
-                >
+                <svg [lucideIcon]="BadgeCheckIcon" [size]="15"></svg>
+                <span>Verify Chain</span>
               }
             </button>
           </div>
-        }
-      </div>
 
-      <!-- Payload Viewer Modal -->
-      @if (selectedLog()) {
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/30 backdrop-blur-md"
-        >
-          <div
-            class="relative bg-surface-container-lowest rounded-2xl p-6 w-full max-w-lg shadow-[0_32px_64px_rgba(25,28,29,0.12)] max-h-[90vh] overflow-y-auto"
-          >
+          @if (rangeError()) {
+            <p class="text-xs text-ui-danger">{{ rangeError() }}</p>
+          }
+
+          <!-- Verification Result Banner -->
+          @if (verifyResult(); as res) {
             <div
-              class="flex items-center justify-between mb-4 border-b border-surface-container pb-3"
+              class="ui-alert"
+              [class]="res.ok ? 'ui-alert-info' : 'ui-alert-danger'"
             >
-              <h2 class="text-lg font-bold text-on-surface">
-                Audit Record #{{ selectedLog()!.seq }} Payload
-              </h2>
-              <button
-                (click)="selectedLog.set(null)"
-                class="p-1 rounded-lg hover:bg-surface-container-high text-on-surface-variant"
-              >
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <div class="space-y-3">
-              <div class="text-xs space-y-1">
-                <p>
-                  <span class="font-semibold text-on-surface-variant"
-                    >Hash:</span
-                  >
-                  <code
-                    class="font-mono text-on-surface select-all break-all"
-                    >{{ selectedLog()!.hash }}</code
-                  >
+              <svg
+                [lucideIcon]="res.ok ? CircleCheckIcon : TriangleAlertIcon"
+                [size]="18"
+                class="mt-0.5 shrink-0"
+              ></svg>
+              <div class="min-w-0">
+                <p class="font-medium">
+                  {{
+                    res.ok
+                      ? "Hash Chain Integrity Verified OK"
+                      : "Hash Chain Broken / Tampering Detected!"
+                  }}
                 </p>
-                <p>
-                  <span class="font-semibold text-on-surface-variant"
-                    >Action:</span
-                  >
-                  {{ selectedLog()!.action }}
-                </p>
-                <p>
-                  <span class="font-semibold text-on-surface-variant"
-                    >Timestamp:</span
-                  >
-                  {{ selectedLog()!.createdAt | date: "medium" }}
-                </p>
-              </div>
-
-              <div>
-                <span
-                  class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1"
-                  >Payload JSON</span
-                >
-                <pre
-                  class="bg-surface-container rounded-xl p-3 text-xs font-mono text-on-surface overflow-x-auto max-h-60"
-                  >{{ selectedLog()!.data | json }}</pre
-                >
+                @if (res.ok) {
+                  <p class="mt-0.5 text-xs opacity-90">
+                    Checked {{ res.checked }} sequence record{{
+                      res.checked === 1 ? "" : "s"
+                    }}
+                    in range. No discrepancies found.
+                  </p>
+                } @else {
+                  <p class="mt-0.5 font-mono text-xs">
+                    First broken sequence: #{{
+                      res.firstBrokenChainSeq
+                    }}
+                    (Record ID: {{ res.firstBrokenAuditId }})
+                  </p>
+                }
               </div>
             </div>
+          }
+        </div>
+      </section>
 
-            <div class="mt-6 flex justify-end">
-              <button
-                (click)="selectedLog.set(null)"
-                class="px-4 py-2 bg-surface-container text-on-surface rounded-xl font-bold text-sm"
-              >
-                Close
-              </button>
+      <!-- Audit Logs Table -->
+      <section class="ui-panel">
+        <div class="ui-panel-head">
+          <h2 class="ui-panel-title">Audit Ledger</h2>
+          <div
+            class="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center"
+          >
+            <div class="ui-search w-full lg:w-72">
+              <svg [lucideIcon]="SearchIcon" [size]="15"></svg>
+              <input
+                type="text"
+                class="ui-input"
+                [ngModel]="actionInput()"
+                (ngModelChange)="onActionFilterChange($event)"
+                (keydown.escape)="clearActionFilter()"
+                placeholder="Filter by action (e.g. user.suspend, auth.login)..."
+              />
+              @if (actionInput()) {
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  class="ui-icon-btn absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+                  (click)="clearActionFilter()"
+                >
+                  <svg [lucideIcon]="XIcon" [size]="14"></svg>
+                </button>
+              }
             </div>
+            <select
+              class="ui-input w-full cursor-pointer lg:w-auto"
+              [ngModel]="actorTypeFilter()"
+              (ngModelChange)="onActorTypeChange($event)"
+            >
+              <option value="">All Actors</option>
+              <option value="ADMIN">ADMIN</option>
+              <option value="USER">USER</option>
+              <option value="SYSTEM">SYSTEM</option>
+            </select>
+            <button
+              type="button"
+              class="ui-btn"
+              (click)="exportCsv()"
+              title="Exports the rows loaded on screen"
+            >
+              <svg [lucideIcon]="DownloadIcon" [size]="15"></svg>
+              Export CSV
+            </button>
           </div>
         </div>
-      }
+
+        <div class="ui-panel-body overflow-hidden">
+          @if (actorIdFilter() || entityIdFilter()) {
+            <div class="flex flex-wrap items-center gap-2 px-3 py-2">
+              @if (actorIdFilter()) {
+                <button
+                  type="button"
+                  class="ui-badge ui-badge-info"
+                  (click)="clearActorFilter()"
+                  aria-label="Remove actor filter"
+                >
+                  Actor: {{ shortId(actorIdFilter()) }} ×
+                </button>
+              }
+              @if (entityIdFilter()) {
+                <button
+                  type="button"
+                  class="ui-badge ui-badge-info"
+                  (click)="clearEntityFilter()"
+                  aria-label="Remove entity filter"
+                >
+                  Entity: {{ shortId(entityIdFilter()) }} ×
+                </button>
+              }
+            </div>
+          }
+          <div class="ui-table-wrap">
+            <table class="ui-table md:min-w-[860px]">
+              <thead>
+                <tr>
+                  <th>Seq</th>
+                  <th>Action</th>
+                  <th>Actor</th>
+                  <th class="hidden md:table-cell">Entity</th>
+                  <th class="hidden md:table-cell">IP / Client</th>
+                  <th>Timestamp</th>
+                  <th class="text-right">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (loading()) {
+                  @for (n of [1, 2, 3, 4]; track n) {
+                    <tr>
+                      <td><div class="ui-skel h-4 w-8"></div></td>
+                      <td><div class="ui-skel h-4 w-28"></div></td>
+                      <td><div class="ui-skel h-4 w-24"></div></td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-24"></div>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <div class="ui-skel h-4 w-20"></div>
+                      </td>
+                      <td><div class="ui-skel h-4 w-24"></div></td>
+                      <td><div class="ui-skel ml-auto h-4 w-8"></div></td>
+                    </tr>
+                  }
+                } @else if (auditQuery.isError()) {
+                  <tr>
+                    <td [attr.colspan]="7">
+                      <div class="ui-empty">
+                        <svg
+                          [lucideIcon]="CircleAlertIcon"
+                          [size]="28"
+                          class="text-ui-danger"
+                        ></svg>
+                        <p>Couldn't load audit logs.</p>
+                        <button
+                          type="button"
+                          class="ui-btn ui-btn-sm"
+                          (click)="auditQuery.refetch()"
+                        >
+                          Try again
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @else {
+                  @for (log of auditLogs(); track log.id) {
+                    <tr>
+                      <td
+                        class="whitespace-nowrap font-mono text-[13px] font-medium text-ui-accent"
+                      >
+                        <span [copyToClipboard]="log.seq.toString()">
+                          #{{ log.seq }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="ui-badge ui-badge-neutral font-mono">
+                          {{ log.action }}
+                        </span>
+                      </td>
+                      <td>
+                        <p class="font-medium text-ui-ink">
+                          {{ log.actorType }}
+                        </p>
+                        <button
+                          type="button"
+                          class="block max-w-[140px] truncate text-left text-xs font-mono text-ui-muted hover:text-ui-accent"
+                          title="Show only this actor"
+                          [copyToClipboard]="log.actorId"
+                          (click)="filterByActor(log.actorId)"
+                        >
+                          {{ log.actorId }}
+                        </button>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <p class="font-medium text-ui-ink">
+                          {{ log.entityType }}
+                        </p>
+                        <button
+                          type="button"
+                          class="block max-w-[140px] truncate text-left text-xs font-mono text-ui-muted hover:text-ui-accent"
+                          title="Show only this entity"
+                          [copyToClipboard]="log.entityId"
+                          (click)="filterByEntity(log.entityId)"
+                        >
+                          {{ log.entityId }}
+                        </button>
+                      </td>
+                      <td class="hidden md:table-cell">
+                        <p class="font-mono text-xs text-ui-body">
+                          {{ log.ip }}
+                        </p>
+                        <p
+                          class="max-w-[160px] truncate text-[11px] font-mono text-ui-muted"
+                        >
+                          {{ log.userAgent }}
+                        </p>
+                      </td>
+                      <td class="whitespace-nowrap text-ui-muted">
+                        {{ log.createdAt | date: "medium" }}
+                      </td>
+                      <td>
+                        <div class="flex justify-end">
+                          <button
+                            type="button"
+                            class="ui-icon-btn"
+                            (click)="selectedLog.set(log)"
+                            title="View Payload Data"
+                            aria-label="View Payload Data"
+                          >
+                            <svg [lucideIcon]="BracesIcon" [size]="16"></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                  @if (auditLogs().length === 0) {
+                    <tr>
+                      <td [attr.colspan]="7">
+                        <div class="ui-empty">
+                          <svg
+                            [lucideIcon]="HistoryIcon"
+                            [size]="28"
+                            class="text-ui-faint"
+                          ></svg>
+                          <p>No audit logs found</p>
+                          @if (filtersActive()) {
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-sm"
+                              (click)="clearFilters()"
+                            >
+                              Clear filters
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Load more -->
+          <div class="ui-table-foot">
+            <p>Showing {{ auditLogs().length }} entries</p>
+            @if (hasMore()) {
+              <button
+                type="button"
+                class="ui-btn ui-btn-sm"
+                (click)="loadMore()"
+                [disabled]="isLoadingMore()"
+              >
+                @if (isLoadingMore()) {
+                  <svg
+                    [lucideIcon]="LoaderIcon"
+                    [size]="15"
+                    class="animate-spin"
+                  ></svg>
+                  <span>Loading...</span>
+                } @else {
+                  <span>Load more</span>
+                  <svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      </section>
     </div>
+
+    <!-- Payload Viewer Modal -->
+    @if (selectedLog()) {
+      <div class="ui-overlay">
+        <div
+          class="ui-backdrop"
+          aria-hidden="true"
+          (click)="selectedLog.set(null)"
+        ></div>
+        <div
+          class="ui-modal"
+          role="dialog"
+          aria-modal="true"
+          uiModal
+          (uiModalClose)="selectedLog.set(null)"
+        >
+          <div class="ui-modal-head">
+            <h2 class="ui-modal-title">
+              Audit Record #{{ selectedLog()!.seq }} Payload
+            </h2>
+            <button
+              type="button"
+              class="ui-icon-btn"
+              (click)="selectedLog.set(null)"
+              aria-label="Close"
+            >
+              <svg [lucideIcon]="XIcon" [size]="16"></svg>
+            </button>
+          </div>
+
+          <div class="ui-modal-body space-y-4">
+            <dl class="ui-dl">
+              <div class="sm:col-span-2">
+                <dt class="ui-dt">Hash</dt>
+                <dd
+                  class="ui-dd select-all break-all font-mono"
+                  [copyToClipboard]="selectedLog()!.hash"
+                >
+                  {{ selectedLog()!.hash }}
+                </dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Action</dt>
+                <dd class="ui-dd font-mono">{{ selectedLog()!.action }}</dd>
+              </div>
+              <div>
+                <dt class="ui-dt">Timestamp</dt>
+                <dd class="ui-dd">
+                  {{ selectedLog()!.createdAt | date: "medium" }}
+                </dd>
+              </div>
+            </dl>
+
+            <div>
+              <p class="mb-1.5 text-xs font-medium text-ui-muted">
+                Payload JSON
+              </p>
+              <pre
+                class="max-h-60 overflow-x-auto rounded-xl border border-ui-line bg-ui-sunken p-3 font-mono text-xs text-ui-body"
+                >{{ selectedLog()!.data | json }}</pre>
+            </div>
+          </div>
+
+          <div class="ui-modal-foot">
+            <button
+              type="button"
+              class="ui-btn"
+              (click)="selectedLog.set(null)"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
 })
 export class AuditPageComponent {
   private adminService = inject(AdminService);
   private toast = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
+  readonly HistoryIcon = History;
+  readonly ShieldCheckIcon = ShieldCheck;
+  readonly SearchIcon = Search;
+  readonly BadgeCheckIcon = BadgeCheck;
+  readonly CircleCheckIcon = CircleCheck;
+  readonly TriangleAlertIcon = TriangleAlert;
+  readonly BracesIcon = Braces;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly LoaderIcon = LoaderCircle;
+  readonly XIcon = X;
+  readonly CircleAlertIcon = CircleAlert;
+  readonly DownloadIcon = Download;
+
+  actionInput = signal("");
   actionFilter = signal("");
   actorTypeFilter = signal("");
+  actorIdFilter = signal("");
+  entityIdFilter = signal("");
 
-  verifyFromSeq = 1;
-  verifyToSeq = 100;
+  private actionTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.actionTimer) clearTimeout(this.actionTimer);
+    });
+  }
+
+  verifyFromSeq = signal(1);
+  verifyToSeq = signal(100);
   verifyResult = signal<AuditVerifyResult | null>(null);
+
+  rangeError = computed<string | null>(() => {
+    const from = this.verifyFromSeq();
+    const to = this.verifyToSeq();
+    if (!Number.isFinite(from) || from <= 0) {
+      return "Enter a valid starting sequence (1 or more).";
+    }
+    if (!Number.isFinite(to) || to <= 0) {
+      return "Enter a valid ending sequence (1 or more).";
+    }
+    if (from > to) {
+      return "From sequence must not be greater than to sequence.";
+    }
+    return null;
+  });
 
   auditQuery = injectQuery(() => ({
     queryKey: [
@@ -450,6 +545,8 @@ export class AuditPageComponent {
       {
         action: this.actionFilter(),
         actorType: this.actorTypeFilter(),
+        actorId: this.actorIdFilter(),
+        entityId: this.entityIdFilter(),
       },
     ],
     queryFn: () =>
@@ -457,6 +554,8 @@ export class AuditPageComponent {
         this.adminService.getAuditLogs({
           action: this.actionFilter() || undefined,
           actorType: this.actorTypeFilter() || undefined,
+          actorId: this.actorIdFilter() || undefined,
+          entityId: this.entityIdFilter() || undefined,
           limit: 20,
         }),
       ),
@@ -481,14 +580,82 @@ export class AuditPageComponent {
   selectedLog = signal<AuditLog | null>(null);
 
   onActionFilterChange(val: string) {
-    this.actionFilter.set(val);
-    this.rawAppended.set([]);
-    this.rawHasMore.set(null);
-    this.nextCursor.set(null);
+    this.actionInput.set(val);
+    if (this.actionTimer) clearTimeout(this.actionTimer);
+    this.actionTimer = setTimeout(() => {
+      this.actionFilter.set(val.trim());
+      this.resetPages();
+    }, 300);
+  }
+
+  clearActionFilter() {
+    if (this.actionTimer) clearTimeout(this.actionTimer);
+    this.actionInput.set("");
+    this.actionFilter.set("");
+    this.resetPages();
   }
 
   onActorTypeChange(val: string) {
     this.actorTypeFilter.set(val);
+    this.resetPages();
+  }
+
+  filterByActor(id: string) {
+    this.actorIdFilter.set(id);
+    this.resetPages();
+  }
+
+  filterByEntity(id: string) {
+    this.entityIdFilter.set(id);
+    this.resetPages();
+  }
+
+  clearActorFilter() {
+    this.actorIdFilter.set("");
+    this.resetPages();
+  }
+
+  clearEntityFilter() {
+    this.entityIdFilter.set("");
+    this.resetPages();
+  }
+
+  filtersActive() {
+    return !!(
+      this.actionFilter() ||
+      this.actorTypeFilter() ||
+      this.actorIdFilter() ||
+      this.entityIdFilter()
+    );
+  }
+
+  clearFilters() {
+    this.clearActionFilter();
+    this.actorTypeFilter.set("");
+    this.actorIdFilter.set("");
+    this.entityIdFilter.set("");
+    this.resetPages();
+  }
+
+  shortId(id: string) {
+    return id.length > 6 ? `${id.slice(0, 5)}…` : id;
+  }
+
+  exportCsv() {
+    downloadCsv("audit", this.auditLogs(), [
+      { label: "Seq", value: (l) => l.seq },
+      { label: "Action", value: (l) => l.action },
+      { label: "Actor type", value: (l) => l.actorType },
+      { label: "Actor ID", value: (l) => l.actorId },
+      { label: "Entity type", value: (l) => l.entityType },
+      { label: "Entity ID", value: (l) => l.entityId },
+      { label: "IP", value: (l) => l.ip },
+      { label: "User agent", value: (l) => l.userAgent },
+      { label: "Created", value: (l) => l.createdAt },
+    ]);
+  }
+
+  private resetPages() {
     this.rawAppended.set([]);
     this.rawHasMore.set(null);
     this.nextCursor.set(null);
@@ -502,6 +669,8 @@ export class AuditPageComponent {
       .getAuditLogs({
         action: this.actionFilter() || undefined,
         actorType: this.actorTypeFilter() || undefined,
+        actorId: this.actorIdFilter() || undefined,
+        entityId: this.entityIdFilter() || undefined,
         limit: 20,
         cursor,
       })
@@ -545,17 +714,10 @@ export class AuditPageComponent {
   }));
 
   runVerifyChain() {
-    if (
-      this.verifyFromSeq <= 0 ||
-      this.verifyToSeq <= 0 ||
-      this.verifyFromSeq > this.verifyToSeq
-    ) {
-      this.toast.show("error", "Please provide a valid sequence range");
-      return;
-    }
+    if (this.rangeError()) return;
     this.verifyMutation.mutate({
-      from: this.verifyFromSeq,
-      to: this.verifyToSeq,
+      from: this.verifyFromSeq(),
+      to: this.verifyToSeq(),
     });
   }
 }

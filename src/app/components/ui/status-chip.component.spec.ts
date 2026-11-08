@@ -25,36 +25,31 @@ describe("StatusChipComponent", () => {
 
   it("should return correct chip classes for statuses", () => {
     component.status = "SUCCESS";
-    expect(component.chipClass).toBe(
-      "bg-tertiary-fixed text-on-tertiary-fixed-variant",
-    );
+    expect(component.chipClass).toBe("ui-badge-success");
 
     component.status = "PENDING";
-    expect(component.chipClass).toBe(
-      "bg-secondary-fixed text-on-secondary-fixed-variant",
-    );
+    expect(component.chipClass).toBe("ui-badge-warning");
 
     component.status = "FAILED";
-    expect(component.chipClass).toBe(
-      "bg-error-container text-on-error-container",
-    );
+    expect(component.chipClass).toBe("ui-badge-danger");
 
     component.status = "INACTIVE";
-    expect(component.chipClass).toBe(
-      "bg-surface-container-high text-on-surface-variant",
-    );
+    expect(component.chipClass).toBe("ui-badge-neutral");
 
     component.status = "UNKNOWN_STATUS";
-    expect(component.chipClass).toBe(
-      "bg-surface-container-high text-on-surface-variant",
-    );
+    expect(component.chipClass).toBe("ui-badge-neutral");
   });
 
   it("should render the status text", () => {
-    component.status = "APPROVED";
+    fixture.componentRef.setInput("status", "APPROVED");
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     const span = compiled.querySelector("span");
-    expect(span?.textContent?.trim()).toBe("APPROVED");
+    expect(span?.textContent?.trim()).toBe("Approved");
+    expect(span?.className).toContain("ui-badge-success");
+
+    fixture.componentRef.setInput("status", "UNDER_REVIEW");
+    fixture.detectChanges();
+    expect(span?.textContent?.trim()).toBe("Under review");
   });
 });

@@ -26,22 +26,9 @@ describe("MetricCardComponent", () => {
   it("should display compact numbers", () => {
     expect(component.compactValue(1500000)).toBe("1.5M");
     expect(component.compactValue(990)).toBe("990");
-    expect(component.compactValue(2500)).toBe("2.5K");
+    expect(component.compactValue(2500)).toBe("2,500");
+    expect(component.compactValue(25000)).toBe("25.0K");
     expect(component.compactValue(1800000000)).toBe("1.8B");
-  });
-
-  it("should compute correct border color class", () => {
-    component.color = "primary";
-    expect(component.borderColorClass).toBe("border-primary");
-
-    component.color = "secondary";
-    expect(component.borderColorClass).toBe("border-secondary");
-
-    component.color = "tertiary";
-    expect(component.borderColorClass).toBe("border-tertiary");
-
-    component.color = "error";
-    expect(component.borderColorClass).toBe("border-error");
   });
 
   it("should render details correctly", () => {
@@ -56,10 +43,8 @@ describe("MetricCardComponent", () => {
     expect(compiled.querySelector("p")?.textContent?.trim()).toBe(
       "Total Earnings",
     );
-    expect(
-      compiled
-        .querySelector("span.material-symbols-outlined")
-        ?.textContent?.trim(),
-    ).toBe("trending_down");
+    expect(compiled.textContent).toContain("₦5,000NGN");
+    expect(compiled.textContent).toContain("-5.4%");
+    expect(compiled.querySelector(".text-ui-danger")).not.toBeNull();
   });
 });

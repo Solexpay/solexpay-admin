@@ -3,15 +3,21 @@ import {
   ElementRef,
   Renderer2,
   Input,
+  OnDestroy,
   OnInit,
   inject,
 } from "@angular/core";
+
+/** When the last tooltip closed; a neighbour opened soon after skips the delay. */
+let lastHiddenAt = 0;
+const WARM_MS = 400;
+const EDGE_GAP = 8;
 
 @Directive({
   selector: "[tooltip]",
   standalone: true,
 })
-export class TooltipDirective implements OnInit {
+export class TooltipDirective implements OnInit, OnDestroy {
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);
   private tooltipElement: HTMLElement | null = null;
@@ -26,6 +32,10 @@ export class TooltipDirective implements OnInit {
     const element = this.el.nativeElement;
 
     this.renderer.listen(element, "mouseenter", () => {
+      if (Date.now() - lastHiddenAt < WARM_MS) {
+        this.showTooltip(true);
+        return;
+      }
       this.timeoutId = setTimeout(() => this.showTooltip(), this.tooltipDelay);
     });
 
@@ -36,14 +46,30 @@ export class TooltipDirective implements OnInit {
       this.hideTooltip();
     });
 
-    this.renderer.listen(element, "focus", () => this.showTooltip());
+    this.renderer.listen(element, "focus", () => this.showTooltip(true));
     this.renderer.listen(element, "blur", () => this.hideTooltip());
+    this.renderer.listen(element, "keydown", (event: KeyboardEvent) => {
+      if (event.key === "Escape") this.hideTooltip();
+    });
   }
 
-  private showTooltip() {
+  // The tooltip lives on <body>, so it outlives its host unless removed here
+  // (e.g. navigating away or a row disappearing while it is hovered).
+  ngOnDestroy() {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+    this.hideTooltip();
+  }
+
+  private showTooltip(instant = false) {
     if (!this.tooltip || this.tooltipElement) return;
 
     const tooltip = this.renderer.createElement("div");
+    const id = `tooltip-${Math.random().toString(36).slice(2, 9)}`;
+    this.renderer.setAttribute(tooltip, "id", id);
+    this.renderer.setAttribute(tooltip, "role", "tooltip");
+    this.renderer.setAttribute(this.el.nativeElement, "aria-describedby", id);
     this.renderer.appendChild(tooltip, this.renderer.createText(this.tooltip));
 
     // Base styles
@@ -59,6 +85,8 @@ export class TooltipDirective implements OnInit {
     this.renderer.setStyle(tooltip, "pointer-events", "none");
     this.renderer.setStyle(tooltip, "opacity", "0");
     this.renderer.addClass(tooltip, "animate-tooltip-in");
+    // Keyboard focus and a warm neighbour show at once, without motion.
+    if (instant) this.renderer.setStyle(tooltip, "animation-duration", "0s");
 
     if (!tooltip) return;
 
@@ -91,6 +119,16 @@ export class TooltipDirective implements OnInit {
         break;
     }
 
+    // Keep it on screen near the edges.
+    left = Math.min(
+      Math.max(left, EDGE_GAP),
+      window.innerWidth - tooltipRect.width - EDGE_GAP,
+    );
+    top = Math.min(
+      Math.max(top, EDGE_GAP),
+      window.innerHeight - tooltipRect.height - EDGE_GAP,
+    );
+
     this.renderer.setStyle(this.tooltipElement, "top", `${top}px`);
     this.renderer.setStyle(this.tooltipElement, "left", `${left}px`);
     this.renderer.setStyle(this.tooltipElement, "opacity", "1");
@@ -98,8 +136,10 @@ export class TooltipDirective implements OnInit {
 
   private hideTooltip() {
     if (this.tooltipElement) {
-      document.body.removeChild(this.tooltipElement);
+      this.tooltipElement.remove();
       this.tooltipElement = null;
+      this.renderer.removeAttribute(this.el.nativeElement, "aria-describedby");
+      lastHiddenAt = Date.now();
     }
   }
 }

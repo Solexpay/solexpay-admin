@@ -11,6 +11,7 @@ import {
   catchError,
   map,
 } from "rxjs";
+import { API_BASE, ADMIN_AUTH } from "../core/api";
 
 export interface LoginRequest {
   email: string;
@@ -119,7 +120,9 @@ export class AuthService {
     role: "ADMIN" | "SCHOOL" = "ADMIN",
   ): Observable<LoginResponse> {
     const endpoint =
-      role === "ADMIN" ? `/api/auth/login` : `/api/auth/school/login`;
+      role === "ADMIN"
+        ? `${ADMIN_AUTH}/login`
+        : `${API_BASE}/auth/school/login`;
 
     return this.http.post<LoginResponse>(endpoint, credentials).pipe(
       tap((response) => {
@@ -131,7 +134,7 @@ export class AuthService {
   }
 
   enrollTotp(enrollmentToken: string): Observable<TOTPEnrollResponse> {
-    return this.http.post<TOTPEnrollResponse>("/api/auth/totp/enroll", {
+    return this.http.post<TOTPEnrollResponse>(`${ADMIN_AUTH}/totp/enroll`, {
       enrollmentToken,
     });
   }
@@ -141,7 +144,7 @@ export class AuthService {
     code: string,
   ): Observable<LoginSuccessResponse> {
     return this.http
-      .post<LoginSuccessResponse>("/api/auth/totp/confirm", {
+      .post<LoginSuccessResponse>(`${ADMIN_AUTH}/totp/confirm`, {
         enrollmentToken,
         code,
       })
@@ -162,7 +165,7 @@ export class AuthService {
     }
 
     this.refreshInFlight$ = this.http
-      .post<LoginSuccessResponse>("/api/auth/refresh", {})
+      .post<LoginSuccessResponse>(`${ADMIN_AUTH}/refresh`, {})
       .pipe(
         tap((res) => {
           this.setSession(res);
@@ -208,15 +211,19 @@ export class AuthService {
     return this.initialRefresh$;
   }
 
-  logout() {
+  /**
+   * Ends the session. `reason` tells the login page what to say:
+   * "expired" when the session could not be refreshed.
+   */
+  logout(reason: "signed-out" | "expired" = "signed-out") {
     this.http
-      .post("/api/auth/logout", {})
+      .post(`${ADMIN_AUTH}/logout`, {})
       .pipe(catchError(() => of(null)))
       .subscribe();
 
     this.initialRefreshAttempted = true;
     this.clearSession();
-    this.router.navigate(["/login"]);
+    this.router.navigate(["/login"], { queryParams: { reason } });
   }
 
   clearSession() {

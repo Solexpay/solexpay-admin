@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { ActivatedRoute, Router } from "@angular/router";
 import {
   injectQuery,
   injectMutation,
@@ -8,612 +9,578 @@ import {
 } from "@tanstack/angular-query-experimental";
 import { lastValueFrom } from "rxjs";
 import {
+  LucideDynamicIcon,
+  LucideChevronDown as ChevronDown,
+  LucideCircleAlert as CircleAlert,
+  LucideFileSearch as FileSearch,
+  LucideMailOpen as MailOpen,
+  LucideMegaphone as Megaphone,
+  LucideRotateCcw as RotateCcw,
+  LucideSend as Send,
+  LucideShieldCheck as ShieldCheck,
+  LucideWorkflow as Workflow,
+  LucideX as X,
+} from "@lucide/angular";
+import {
   AdminService,
   DeadOutbox,
   ComplianceFlag,
 } from "../../services/admin.service";
 import { ToastService } from "../../services/toast.service";
+import { ConfirmService } from "../../services/confirm.service";
+import { ModalDirective } from "../../directives/modal.directive";
+import { CopyToClipboardDirective } from "../../directives/copy-to-clipboard.directive";
 import { StatusChipComponent } from "../../components/ui/status-chip.component";
-import { RippleDirective } from "../../directives/ripple.directive";
+import { PageHeaderComponent } from "../../components/ui/page-header.component";
+
+type OpsTab = "outbox" | "compliance" | "broadcast";
 
 @Component({
   selector: "app-ops",
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatusChipComponent, RippleDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideDynamicIcon,
+    ModalDirective,
+    CopyToClipboardDirective,
+    StatusChipComponent,
+    PageHeaderComponent,
+  ],
   template: `
-    <div class="space-y-6">
-      <!-- Page header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-      >
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-on-surface">
-            Operations Center
-          </h1>
-          <p class="text-sm text-on-surface-variant mt-1">
-            Dead-letter outbox event requeueing and compliance alert management
-          </p>
-        </div>
-      </div>
+    <app-page-header
+      title="Operations Center"
+      [icon]="WorkflowIcon"
+      subtitle="Dead-letter outbox event requeueing and compliance alert management"
+    />
 
+    <div class="space-y-4">
       <!-- Navigation Tabs -->
-      <div class="flex gap-2 p-1 bg-surface-container rounded-xl w-fit">
+      <div class="ui-tabs" role="tablist">
         <button
-          (click)="activeSection.set('outbox')"
-          class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
-          [class]="
-            activeSection() === 'outbox'
-              ? 'bg-primary text-on-primary shadow-sm'
-              : 'text-on-surface-variant hover:bg-surface-container-high'
-          "
+          type="button"
+          class="ui-tab"
+          role="tab"
+          [attr.aria-selected]="activeSection() === 'outbox'"
+          [class.ui-tab-active]="activeSection() === 'outbox'"
+          (click)="selectTab('outbox')"
         >
-          <span class="material-symbols-outlined text-sm"
-            >mark_email_unread</span
-          >
+          <svg [lucideIcon]="MailOpenIcon" [size]="15"></svg>
           Dead Outbox
         </button>
         <button
-          (click)="activeSection.set('compliance')"
-          class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
-          [class]="
-            activeSection() === 'compliance'
-              ? 'bg-primary text-on-primary shadow-sm'
-              : 'text-on-surface-variant hover:bg-surface-container-high'
-          "
+          type="button"
+          class="ui-tab"
+          role="tab"
+          [attr.aria-selected]="activeSection() === 'compliance'"
+          [class.ui-tab-active]="activeSection() === 'compliance'"
+          (click)="selectTab('compliance')"
         >
-          <span class="material-symbols-outlined text-sm">policy</span>
+          <svg [lucideIcon]="FileSearchIcon" [size]="15"></svg>
           Compliance Flags
         </button>
         <button
-          (click)="activeSection.set('broadcast')"
-          class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
-          [class]="
-            activeSection() === 'broadcast'
-              ? 'bg-primary text-on-primary shadow-sm'
-              : 'text-on-surface-variant hover:bg-surface-container-high'
-          "
+          type="button"
+          class="ui-tab"
+          role="tab"
+          [attr.aria-selected]="activeSection() === 'broadcast'"
+          [class.ui-tab-active]="activeSection() === 'broadcast'"
+          (click)="selectTab('broadcast')"
         >
-          <span class="material-symbols-outlined text-sm">campaign</span>
+          <svg [lucideIcon]="MegaphoneIcon" [size]="15"></svg>
           Broadcast
         </button>
       </div>
 
       <!-- SECTION 1: DEAD OUTBOX -->
       @if (activeSection() === "outbox") {
-        <div
-          class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-        >
-          <div
-            class="p-4 border-b border-surface-container flex items-center justify-between"
-          >
-            <h2 class="text-base font-bold text-on-surface">
-              Dead-Letter Outbox Events
-            </h2>
-            <p class="text-xs text-on-surface-variant">
-              Events that exhausted max retries in the transactional outbox
-            </p>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[800px]">
-              <thead>
-                <tr class="bg-surface-container text-left">
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Event ID
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Topic / Event Type
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Error Details
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Retries
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Created
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right"
-                  >
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (outboxLoading()) {
-                  @for (n of [1, 2, 3]; track n) {
-                    <tr class="border-t border-surface-container animate-pulse">
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-24 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-32 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-48 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-12 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-20 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4 text-right">
-                        <div
-                          class="h-4 w-16 bg-surface-container-high rounded ml-auto"
-                        ></div>
-                      </td>
-                    </tr>
-                  }
-                } @else {
-                  @for (event of deadEvents(); track event.id) {
-                    <tr
-                      class="border-t border-surface-container hover:bg-surface-container-low transition-colors"
-                    >
-                      <td
-                        class="px-6 py-4 font-mono text-sm text-on-surface font-semibold"
-                      >
-                        {{ event.id }}
-                      </td>
-                      <td class="px-6 py-4">
-                        <span
-                          class="px-2.5 py-1 bg-surface-container rounded-md font-mono text-xs text-on-surface"
-                        >
-                          {{ event.eventType }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4">
-                        <p
-                          class="text-xs text-error font-mono max-w-xs truncate"
-                          [title]="event.errorMessage"
-                        >
-                          {{ event.errorMessage }}
-                        </p>
-                      </td>
-                      <td
-                        class="px-6 py-4 text-sm font-semibold text-on-surface"
-                      >
-                        {{ event.retryCount }}
-                      </td>
-                      <td
-                        class="px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap"
-                      >
-                        {{ event.createdAt | date: "short" }}
-                      </td>
-                      <td class="px-6 py-4 text-right">
-                        <button
-                          solexRipple
-                          (click)="requeueMutation.mutate(event.id)"
-                          [disabled]="requeueMutation.isPending()"
-                          class="px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-bold hover:brightness-110 disabled:opacity-50 flex items-center gap-1.5 ml-auto"
-                        >
-                          <span class="material-symbols-outlined text-xs"
-                            >replay</span
-                          >
-                          Requeue
-                        </button>
-                      </td>
-                    </tr>
-                  }
-                }
-              </tbody>
-            </table>
-          </div>
-
-          @if (!outboxLoading() && deadEvents().length === 0) {
-            <div class="text-center py-12">
-              <span class="material-symbols-outlined text-4xl text-tertiary"
-                >task_alt</span
-              >
-              <p class="text-sm text-on-surface-variant mt-2">
-                All clear: No dead outbox events
+        <section class="ui-panel">
+          <div class="ui-panel-head">
+            <div>
+              <h2 class="ui-panel-title">Dead-Letter Outbox Events</h2>
+              <p class="ui-meta mt-0.5">
+                Events that exhausted max retries in the transactional outbox
               </p>
             </div>
-          }
+          </div>
 
-          @if (outboxHasMore()) {
-            <div
-              class="flex justify-center p-4 border-t border-surface-container"
-            >
-              <button
-                (click)="loadMoreOutbox()"
-                [disabled]="isOutboxLoadingMore()"
-                class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
-              >
-                @if (isOutboxLoadingMore()) {
-                  <span
-                    class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                  ></span>
-                  <span>Loading...</span>
-                } @else {
-                  <span>Load more</span>
-                  <span class="material-symbols-outlined text-sm"
-                    >expand_more</span
-                  >
-                }
-              </button>
+          <div class="ui-panel-body overflow-hidden">
+            <div class="ui-table-wrap">
+              <table class="ui-table md:min-w-[760px]">
+                <thead>
+                  <tr>
+                    <th>Event ID</th>
+                    <th>Topic</th>
+                    <th class="hidden md:table-cell">Last error</th>
+                    <th class="hidden md:table-cell">Attempts</th>
+                    <th>Created</th>
+                    <th class="text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (outboxLoading()) {
+                    @for (n of [1, 2, 3]; track n) {
+                      <tr>
+                        <td><div class="ui-skel h-4 w-24"></div></td>
+                        <td><div class="ui-skel h-4 w-32"></div></td>
+                        <td class="hidden md:table-cell">
+                          <div class="ui-skel h-4 w-48"></div>
+                        </td>
+                        <td class="hidden md:table-cell">
+                          <div class="ui-skel h-4 w-12"></div>
+                        </td>
+                        <td><div class="ui-skel h-4 w-20"></div></td>
+                        <td><div class="ui-skel ml-auto h-4 w-16"></div></td>
+                      </tr>
+                    }
+                  } @else if (outboxQuery.isError()) {
+                    <tr>
+                      <td [attr.colspan]="6">
+                        <div class="ui-empty">
+                          <svg
+                            [lucideIcon]="CircleAlertIcon"
+                            [size]="28"
+                            class="text-ui-danger"
+                          ></svg>
+                          <p>Couldn't load dead outbox events.</p>
+                          <button
+                            type="button"
+                            class="ui-btn ui-btn-sm"
+                            (click)="outboxQuery.refetch()"
+                          >
+                            Try again
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @else {
+                    @for (event of deadEvents(); track event.id) {
+                      <tr>
+                        <td
+                          class="font-mono text-[13px] font-medium text-ui-ink"
+                          [copyToClipboard]="event.id"
+                          title="Click to copy event ID"
+                        >
+                          {{ event.id }}
+                        </td>
+                        <td>
+                          <span
+                            class="ui-badge ui-badge-neutral font-mono text-[11px]"
+                          >
+                            {{ event.topic }}
+                          </span>
+                        </td>
+                        <td class="hidden md:table-cell">
+                          <p
+                            class="max-w-xs truncate font-mono text-xs text-ui-danger"
+                            [title]="event.lastError ?? ''"
+                          >
+                            {{ event.lastError || "—" }}
+                          </p>
+                        </td>
+                        <td
+                          class="hidden tabular-nums text-ui-ink md:table-cell"
+                        >
+                          {{ event.attempts }}
+                        </td>
+                        <td class="whitespace-nowrap text-ui-muted">
+                          {{ event.createdAt | date: "short" }}
+                        </td>
+                        <td>
+                          <div class="flex justify-end">
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-primary ui-btn-sm"
+                              (click)="requeueEvent(event)"
+                              [disabled]="
+                                requeueMutation.isPending() &&
+                                requeueMutation.variables() === event.id
+                              "
+                            >
+                              <svg
+                                [lucideIcon]="RotateCcwIcon"
+                                [size]="15"
+                              ></svg>
+                              Requeue
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                    @if (deadEvents().length === 0) {
+                      <tr>
+                        <td [attr.colspan]="6">
+                          <div class="ui-empty">
+                            <img
+                              src="/art/all-clear.webp"
+                              alt=""
+                              width="72"
+                              height="72"
+                              class="h-[72px] w-[72px] object-contain"
+                            />
+                            <p class="font-medium text-ui-ink">All clear</p>
+                            <p>
+                              No events are stuck in the dead-letter outbox.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
             </div>
-          }
-        </div>
+
+            @if (outboxHasMore()) {
+              <div class="ui-table-foot">
+                <span>{{ deadEvents().length }} events</span>
+                <button
+                  type="button"
+                  class="ui-btn ui-btn-sm"
+                  (click)="loadMoreOutbox()"
+                  [disabled]="isOutboxLoadingMore()"
+                >
+                  @if (isOutboxLoadingMore()) {
+                    <span
+                      class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-ui-accent border-t-transparent"
+                    ></span>
+                    <span>Loading...</span>
+                  } @else {
+                    <span>Load more</span>
+                    <svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                  }
+                </button>
+              </div>
+            }
+          </div>
+        </section>
       }
 
       <!-- SECTION 2: COMPLIANCE FLAGS -->
       @if (activeSection() === "compliance") {
-        <div
-          class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] overflow-hidden"
-        >
-          <div
-            class="p-4 border-b border-surface-container flex items-center justify-between"
-          >
-            <h2 class="text-base font-bold text-on-surface">
-              Compliance & AML Alerts
-            </h2>
-            <div class="flex gap-1 bg-surface-container p-1 rounded-lg">
+        <section class="ui-panel">
+          <div class="ui-panel-head">
+            <h2 class="ui-panel-title">Compliance & AML Alerts</h2>
+            <div class="ui-tabs">
               <button
+                type="button"
+                class="ui-tab"
+                [class.ui-tab-active]="flagFilter() === ''"
                 (click)="onFlagFilterChange('')"
-                class="px-3 py-1 text-xs font-semibold rounded-md transition-all"
-                [class]="
-                  flagFilter() === ''
-                    ? 'bg-primary text-on-primary'
-                    : 'text-on-surface-variant'
-                "
               >
                 All
               </button>
               <button
+                type="button"
+                class="ui-tab"
+                [class.ui-tab-active]="flagFilter() === 'OPEN'"
                 (click)="onFlagFilterChange('OPEN')"
-                class="px-3 py-1 text-xs font-semibold rounded-md transition-all"
-                [class]="
-                  flagFilter() === 'OPEN'
-                    ? 'bg-primary text-on-primary'
-                    : 'text-on-surface-variant'
-                "
               >
                 Open
               </button>
               <button
+                type="button"
+                class="ui-tab"
+                [class.ui-tab-active]="flagFilter() === 'RESOLVED'"
                 (click)="onFlagFilterChange('RESOLVED')"
-                class="px-3 py-1 text-xs font-semibold rounded-md transition-all"
-                [class]="
-                  flagFilter() === 'RESOLVED'
-                    ? 'bg-primary text-on-primary'
-                    : 'text-on-surface-variant'
-                "
               >
                 Resolved
               </button>
             </div>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[800px]">
-              <thead>
-                <tr class="bg-surface-container text-left">
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Flag ID & User
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Severity
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Reason
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Status
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                  >
-                    Flagged At
-                  </th>
-                  <th
-                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right"
-                  >
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (complianceLoading()) {
-                  @for (n of [1, 2, 3]; track n) {
-                    <tr class="border-t border-surface-container animate-pulse">
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-28 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-16 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-40 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-16 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div
-                          class="h-4 w-20 bg-surface-container-high rounded"
-                        ></div>
-                      </td>
-                      <td class="px-6 py-4 text-right">
-                        <div
-                          class="h-4 w-16 bg-surface-container-high rounded ml-auto"
-                        ></div>
-                      </td>
-                    </tr>
-                  }
-                } @else {
-                  @for (flag of complianceFlags(); track flag.id) {
-                    <tr
-                      class="border-t border-surface-container hover:bg-surface-container-low transition-colors"
-                    >
-                      <td class="px-6 py-4">
-                        <p
-                          class="text-sm font-mono font-semibold text-on-surface"
-                        >
-                          {{ flag.id }}
-                        </p>
-                        <p class="text-xs text-on-surface-variant font-mono">
-                          User: {{ flag.userId }}
-                        </p>
-                      </td>
-                      <td class="px-6 py-4">
-                        <span
-                          class="px-2.5 py-1 rounded-full text-xs font-bold uppercase"
-                          [class]="
-                            flag.severity === 'HIGH' ||
-                            flag.severity === 'CRITICAL'
-                              ? 'bg-error-container text-on-error-container'
-                              : flag.severity === 'MEDIUM'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-surface-container text-on-surface'
-                          "
-                        >
-                          {{ flag.severity }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 text-sm text-on-surface">
-                        <p class="font-medium">{{ flag.reason }}</p>
-                        @if (flag.resolutionNote) {
-                          <p class="text-xs text-on-surface-variant mt-1">
-                            Resolution: {{ flag.resolutionNote }}
-                          </p>
-                        }
-                      </td>
-                      <td class="px-6 py-4">
-                        <app-status-chip
-                          [status]="flag.status"
-                        ></app-status-chip>
-                      </td>
-                      <td
-                        class="px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap"
-                      >
-                        {{ flag.flaggedAt | date: "short" }}
-                      </td>
-                      <td class="px-6 py-4 text-right">
-                        @if (flag.status === "OPEN") {
+          <div class="ui-panel-body overflow-hidden">
+            <div class="ui-table-wrap">
+              <table class="ui-table md:min-w-[760px]">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Kind</th>
+                    <th class="hidden md:table-cell">Detail</th>
+                    <th>Status</th>
+                    <th class="hidden md:table-cell">Flagged</th>
+                    <th class="text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (complianceLoading()) {
+                    @for (n of [1, 2, 3]; track n) {
+                      <tr>
+                        <td><div class="ui-skel h-4 w-28"></div></td>
+                        <td><div class="ui-skel h-4 w-16"></div></td>
+                        <td class="hidden md:table-cell">
+                          <div class="ui-skel h-4 w-40"></div>
+                        </td>
+                        <td>
+                          <div class="ui-skel h-5 w-16 rounded-full"></div>
+                        </td>
+                        <td class="hidden md:table-cell">
+                          <div class="ui-skel h-4 w-20"></div>
+                        </td>
+                        <td><div class="ui-skel ml-auto h-4 w-16"></div></td>
+                      </tr>
+                    }
+                  } @else if (complianceQuery.isError()) {
+                    <tr>
+                      <td [attr.colspan]="6">
+                        <div class="ui-empty">
+                          <svg
+                            [lucideIcon]="CircleAlertIcon"
+                            [size]="28"
+                            class="text-ui-danger"
+                          ></svg>
+                          <p>Couldn't load compliance flags.</p>
                           <button
-                            solexRipple
-                            (click)="openResolveFlag(flag)"
-                            class="px-3 py-1.5 bg-tertiary text-on-tertiary rounded-lg text-xs font-bold hover:brightness-110 ml-auto"
+                            type="button"
+                            class="ui-btn ui-btn-sm"
+                            (click)="complianceQuery.refetch()"
                           >
-                            Resolve
+                            Try again
                           </button>
-                        } @else {
-                          <span class="text-xs text-on-surface-variant"
-                            >Resolved</span
-                          >
-                        }
+                        </div>
                       </td>
                     </tr>
+                  } @else {
+                    @for (flag of complianceFlags(); track flag.id) {
+                      <tr>
+                        <td>
+                          <p class="font-medium text-ui-ink">
+                            {{ flag.userName }}
+                          </p>
+                          <p class="text-xs text-ui-muted">
+                            {{ flag.phoneNumber }}
+                          </p>
+                        </td>
+                        <td>
+                          <span class="ui-badge ui-badge-warning">{{
+                            kindLabel(flag.kind)
+                          }}</span>
+                        </td>
+                        <td class="hidden md:table-cell">
+                          <p
+                            class="max-w-sm truncate font-mono text-xs text-ui-body"
+                            [title]="detailText(flag.detail)"
+                          >
+                            {{ detailText(flag.detail) }}
+                          </p>
+                          @if (flag.reviewedBy) {
+                            <p class="mt-1 text-xs text-ui-muted">
+                              Reviewed by {{ flag.reviewedBy }}
+                              @if (flag.reviewedAt) {
+                                · {{ flag.reviewedAt | date: "short" }}
+                              }
+                            </p>
+                          }
+                        </td>
+                        <td><app-status-chip [status]="flag.status" /></td>
+                        <td
+                          class="hidden whitespace-nowrap text-ui-muted md:table-cell"
+                        >
+                          {{ flag.createdAt | date: "short" }}
+                        </td>
+                        <td>
+                          @if (flag.status === "OPEN") {
+                            <div class="flex justify-end">
+                              <button
+                                type="button"
+                                class="ui-btn ui-btn-sm"
+                                (click)="openResolveFlag(flag)"
+                              >
+                                Resolve
+                              </button>
+                            </div>
+                          } @else {
+                            <div class="flex justify-end">
+                              <span class="text-xs text-ui-muted"
+                                >Resolved</span
+                              >
+                            </div>
+                          }
+                        </td>
+                      </tr>
+                    }
+                    @if (complianceFlags().length === 0) {
+                      <tr>
+                        <td [attr.colspan]="6">
+                          <div class="ui-empty">
+                            @if (flagFilter() === "OPEN") {
+                              <img
+                                src="/art/all-clear.webp"
+                                alt=""
+                                width="72"
+                                height="72"
+                                class="h-[72px] w-[72px] object-contain"
+                              />
+                              <p class="font-medium text-ui-ink">All clear</p>
+                              <p>No open compliance flags.</p>
+                            } @else {
+                              <svg
+                                [lucideIcon]="ShieldCheckIcon"
+                                [size]="28"
+                                class="text-ui-faint"
+                              ></svg>
+                              <p>No compliance flags found</p>
+                            }
+                          </div>
+                        </td>
+                      </tr>
+                    }
                   }
-                }
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
+
+            @if (complianceHasMore()) {
+              <div class="ui-table-foot">
+                <span>{{ complianceFlags().length }} flags</span>
+                <button
+                  type="button"
+                  class="ui-btn ui-btn-sm"
+                  (click)="loadMoreCompliance()"
+                  [disabled]="isComplianceLoadingMore()"
+                >
+                  @if (isComplianceLoadingMore()) {
+                    <span
+                      class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-ui-accent border-t-transparent"
+                    ></span>
+                    <span>Loading...</span>
+                  } @else {
+                    <span>Load more</span>
+                    <svg [lucideIcon]="ChevronDownIcon" [size]="15"></svg>
+                  }
+                </button>
+              </div>
+            }
           </div>
-
-          @if (!complianceLoading() && complianceFlags().length === 0) {
-            <div class="text-center py-12">
-              <span
-                class="material-symbols-outlined text-4xl text-surface-variant"
-                >verified_user</span
-              >
-              <p class="text-sm text-on-surface-variant mt-2">
-                No compliance flags found
-              </p>
-            </div>
-          }
-
-          @if (complianceHasMore()) {
-            <div
-              class="flex justify-center p-4 border-t border-surface-container"
-            >
-              <button
-                (click)="loadMoreCompliance()"
-                [disabled]="isComplianceLoadingMore()"
-                class="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container disabled:opacity-50 transition-colors font-medium text-sm flex items-center gap-2"
-              >
-                @if (isComplianceLoadingMore()) {
-                  <span
-                    class="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                  ></span>
-                  <span>Loading...</span>
-                } @else {
-                  <span>Load more</span>
-                  <span class="material-symbols-outlined text-sm"
-                    >expand_more</span
-                  >
-                }
-              </button>
-            </div>
-          }
-        </div>
+        </section>
       }
 
       <!-- SECTION 3: SYSTEM BROADCAST -->
       @if (activeSection() === "broadcast") {
-        <div
-          class="bg-surface-container-lowest rounded-xl shadow-[0_2px_12px_rgba(25,28,29,0.06)] p-6 max-w-2xl"
-        >
-          <div class="border-b border-surface-container pb-4 mb-6">
-            <h2 class="text-base font-bold text-on-surface">
-              System Notification Broadcast
-            </h2>
-            <p class="text-xs text-on-surface-variant">
-              Send an announcement to platform users or schools
-            </p>
+        <section class="ui-panel max-w-2xl">
+          <div class="ui-panel-head">
+            <div>
+              <h2 class="ui-panel-title">System Notification Broadcast</h2>
+              <p class="ui-meta mt-0.5">
+                Send an announcement to platform users or schools
+              </p>
+            </div>
           </div>
-
-          <form (ngSubmit)="submitBroadcast()" class="space-y-4">
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <label
-                  for="broadcast-title"
-                  class="block text-xs font-semibold text-on-surface"
-                >
-                  Broadcast Title
-                </label>
-                <span class="text-xs font-mono text-on-surface-variant">
-                  {{ broadcastTitle.length }}/120
-                </span>
+          <div class="ui-panel-body p-4 sm:p-5">
+            <form (ngSubmit)="submitBroadcast()" class="space-y-4">
+              <div>
+                <div class="mb-1.5 flex items-center justify-between gap-3">
+                  <label for="broadcast-title" class="ui-label mb-0">
+                    Broadcast Title
+                  </label>
+                  <span class="font-mono text-xs text-ui-muted">
+                    {{ broadcastTitle().length }}/120
+                  </span>
+                </div>
+                <input
+                  id="broadcast-title"
+                  type="text"
+                  [ngModel]="broadcastTitle()"
+                  (ngModelChange)="broadcastTitle.set($event)"
+                  name="title"
+                  maxlength="120"
+                  placeholder="Announcement headline (up to 120 characters)"
+                  class="ui-input"
+                  required
+                />
               </div>
-              <input
-                id="broadcast-title"
-                type="text"
-                [(ngModel)]="broadcastTitle"
-                name="title"
-                maxlength="120"
-                placeholder="Announcement headline (up to 120 characters)"
-                class="w-full bg-surface-container-highest rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                required
-              />
-            </div>
 
-            <div>
-              <label
-                for="broadcast-target"
-                class="block text-xs font-semibold text-on-surface mb-1"
-              >
-                Target Audience
-              </label>
-              <select
-                id="broadcast-target"
-                [(ngModel)]="broadcastTarget"
-                name="targetAudience"
-                class="w-full bg-surface-container-highest rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="ALL">All Users & Schools</option>
-                <option value="USERS">Users</option>
-                <option value="SCHOOLS">Partner Schools</option>
-              </select>
-            </div>
-
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <label
-                  for="broadcast-message"
-                  class="block text-xs font-semibold text-on-surface"
-                >
-                  Message Content
+              <div>
+                <label for="broadcast-target" class="ui-label">
+                  Target Audience
                 </label>
-                <span class="text-xs font-mono text-on-surface-variant">
-                  {{ broadcastMessage.length }}/1000
-                </span>
+                <select
+                  id="broadcast-target"
+                  [ngModel]="broadcastTarget()"
+                  (ngModelChange)="broadcastTarget.set($event)"
+                  name="targetAudience"
+                  class="ui-input"
+                >
+                  <option value="ALL">All Users & Schools</option>
+                  <option value="USERS">Users</option>
+                  <option value="SCHOOLS">Partner Schools</option>
+                </select>
               </div>
-              <textarea
-                id="broadcast-message"
-                [(ngModel)]="broadcastMessage"
-                name="message"
-                rows="5"
-                maxlength="1000"
-                placeholder="Broadcast message body (up to 1000 characters)"
-                class="w-full bg-surface-container-highest rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                required
-              ></textarea>
-            </div>
 
-            <div class="flex justify-end pt-2">
-              <button
-                solexRipple
-                type="submit"
-                [disabled]="
-                  broadcastMutation.isPending() ||
-                  !broadcastTitle.trim() ||
-                  !broadcastMessage.trim()
-                "
-                class="px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold text-sm hover:brightness-110 disabled:opacity-50 flex items-center gap-2"
-              >
-                <span class="material-symbols-outlined text-sm">send</span>
-                {{
-                  broadcastMutation.isPending()
-                    ? "Sending..."
-                    : "Send Broadcast"
-                }}
-              </button>
-            </div>
-          </form>
-        </div>
+              <div>
+                <div class="mb-1.5 flex items-center justify-between gap-3">
+                  <label for="broadcast-message" class="ui-label mb-0">
+                    Message Content
+                  </label>
+                  <span class="font-mono text-xs text-ui-muted">
+                    {{ broadcastMessage().length }}/1000
+                  </span>
+                </div>
+                <textarea
+                  id="broadcast-message"
+                  [ngModel]="broadcastMessage()"
+                  (ngModelChange)="broadcastMessage.set($event)"
+                  name="message"
+                  rows="5"
+                  maxlength="1000"
+                  placeholder="Broadcast message body (up to 1000 characters)"
+                  class="ui-input"
+                  required
+                ></textarea>
+              </div>
+
+              <div class="flex justify-end pt-1">
+                <button
+                  type="submit"
+                  [disabled]="
+                    broadcastMutation.isPending() ||
+                    !broadcastTitle().trim() ||
+                    !broadcastMessage().trim()
+                  "
+                  class="ui-btn ui-btn-primary"
+                >
+                  <svg [lucideIcon]="SendIcon" [size]="15"></svg>
+                  {{
+                    broadcastMutation.isPending()
+                      ? "Sending..."
+                      : "Send Broadcast"
+                  }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
       }
 
       <!-- Resolve Compliance Flag Modal -->
       @if (resolvingFlag()) {
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/30 backdrop-blur-md"
-        >
+        <div class="ui-overlay">
+          <div class="ui-backdrop" aria-hidden="true"></div>
           <div
-            class="relative bg-surface-container-lowest rounded-2xl p-6 w-full max-w-md shadow-2xl"
+            class="ui-modal"
+            role="dialog"
+            aria-modal="true"
+            uiModal
+            (uiModalClose)="resolvingFlag.set(null)"
           >
-            <h2 class="text-lg font-bold text-on-surface mb-2">
-              Resolve Compliance Flag
-            </h2>
-            <p class="text-sm text-on-surface-variant mb-4">
-              Flag ID:
-              <span class="font-mono font-semibold">{{
-                resolvingFlag()!.id
-              }}</span>
-            </p>
-
-            <div class="mb-4">
-              <label
-                for="resolution-note"
-                class="block text-xs font-semibold text-on-surface mb-1"
+            <div class="ui-modal-head">
+              <h2 class="ui-modal-title">Resolve Compliance Flag</h2>
+              <button
+                type="button"
+                class="ui-icon-btn"
+                (click)="resolvingFlag.set(null)"
+                aria-label="Close"
               >
+                <svg [lucideIcon]="XIcon" [size]="16"></svg>
+              </button>
+            </div>
+            <div class="ui-modal-body">
+              <p class="mb-4 text-sm text-ui-muted">
+                Flag ID:
+                <span class="font-mono font-semibold text-ui-ink">{{
+                  resolvingFlag()!.id
+                }}</span>
+              </p>
+              <label for="resolution-note" class="ui-label">
                 Resolution Note (Required)
               </label>
               <textarea
@@ -621,26 +588,27 @@ import { RippleDirective } from "../../directives/ripple.directive";
                 [(ngModel)]="resolutionNoteInput"
                 rows="3"
                 placeholder="Explain the review outcome and justification"
-                class="w-full bg-surface-container-highest rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                class="ui-input"
+                data-autofocus
+                (keydown.control.enter)="submitResolveFlag()"
+                (keydown.meta.enter)="submitResolveFlag()"
               ></textarea>
             </div>
-
-            <div class="flex justify-end gap-2">
+            <div class="ui-modal-foot">
               <button
                 type="button"
                 (click)="resolvingFlag.set(null)"
-                class="px-4 py-2 bg-surface-container text-on-surface rounded-xl font-bold text-sm"
+                class="ui-btn"
               >
                 Cancel
               </button>
               <button
-                solexRipple
                 type="button"
                 (click)="submitResolveFlag()"
                 [disabled]="
                   resolveFlagMutation.isPending() || !resolutionNoteInput.trim()
                 "
-                class="px-4 py-2 bg-tertiary text-on-tertiary rounded-xl font-bold text-sm disabled:opacity-50"
+                class="ui-btn ui-btn-primary"
               >
                 {{
                   resolveFlagMutation.isPending()
@@ -656,11 +624,38 @@ import { RippleDirective } from "../../directives/ripple.directive";
   `,
 })
 export class OpsPageComponent {
+  readonly WorkflowIcon = Workflow;
+  readonly MailOpenIcon = MailOpen;
+  readonly FileSearchIcon = FileSearch;
+  readonly MegaphoneIcon = Megaphone;
+  readonly RotateCcwIcon = RotateCcw;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly SendIcon = Send;
+  readonly XIcon = X;
+  readonly ShieldCheckIcon = ShieldCheck;
+  readonly CircleAlertIcon = CircleAlert;
+
   private adminService = inject(AdminService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
   private queryClient = injectQueryClient();
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
-  activeSection = signal<"outbox" | "compliance" | "broadcast">("outbox");
+  activeSection = signal<OpsTab>(this.tabFromUrl());
+
+  private tabFromUrl(): OpsTab {
+    const tab = this.route.snapshot.queryParamMap.get("tab");
+    return tab === "compliance" || tab === "broadcast" ? tab : "outbox";
+  }
+
+  selectTab(tab: OpsTab) {
+    this.activeSection.set(tab);
+    void this.router.navigate([], {
+      queryParams: { tab },
+      replaceUrl: true,
+    });
+  }
 
   // Dead outbox state
   outboxQuery = injectQuery(() => ({
@@ -684,12 +679,19 @@ export class OpsPageComponent {
     return [...initial, ...this.rawAppendedOutbox()];
   });
 
+  private resetOutboxPages() {
+    this.rawAppendedOutbox.set([]);
+    this.rawOutboxHasMore.set(null);
+    this.outboxCursor.set(null);
+  }
+
   requeueMutation = injectMutation(() => ({
     mutationFn: (id: string) =>
       lastValueFrom(this.adminService.requeueDeadOutbox(id)),
     onSuccess: () => {
       this.toast.show("success", "Event successfully requeued");
       this.queryClient.invalidateQueries({ queryKey: ["ops-dead-outbox"] });
+      this.resetOutboxPages();
     },
     onError: (err: unknown) => {
       const message =
@@ -698,6 +700,17 @@ export class OpsPageComponent {
       this.toast.show("error", message);
     },
   }));
+
+  async requeueEvent(event: DeadOutbox) {
+    const ok = await this.confirm.ask({
+      title: "Requeue this event?",
+      message: `It goes back to the outbox and is retried (${event.topic}).`,
+      confirmLabel: "Requeue",
+      tone: "primary",
+    });
+    if (!ok) return;
+    this.requeueMutation.mutate(event.id);
+  }
 
   loadMoreOutbox() {
     const cursor = this.outboxCursor() ?? this.outboxQuery.data()?.nextCursor;
@@ -753,11 +766,15 @@ export class OpsPageComponent {
   resolvingFlag = signal<ComplianceFlag | null>(null);
   resolutionNoteInput = "";
 
-  onFlagFilterChange(val: string) {
-    this.flagFilter.set(val);
+  private resetCompliancePages() {
     this.rawAppendedCompliance.set([]);
     this.rawComplianceHasMore.set(null);
     this.complianceCursor.set(null);
+  }
+
+  onFlagFilterChange(val: string) {
+    this.flagFilter.set(val);
+    this.resetCompliancePages();
   }
 
   loadMoreCompliance() {
@@ -802,6 +819,7 @@ export class OpsPageComponent {
       this.queryClient.invalidateQueries({
         queryKey: ["ops-compliance-flags"],
       });
+      this.resetCompliancePages();
     },
     onError: (err: unknown) => {
       const message =
@@ -819,9 +837,9 @@ export class OpsPageComponent {
   }
 
   // System broadcast state
-  broadcastTitle = "";
-  broadcastMessage = "";
-  broadcastTarget = "ALL";
+  broadcastTitle = signal("");
+  broadcastMessage = signal("");
+  broadcastTarget = signal("ALL");
 
   broadcastMutation = injectMutation(() => ({
     mutationFn: ({
@@ -838,9 +856,9 @@ export class OpsPageComponent {
       ),
     onSuccess: () => {
       this.toast.show("success", "Broadcast announcement successfully queued");
-      this.broadcastTitle = "";
-      this.broadcastMessage = "";
-      this.broadcastTarget = "ALL";
+      this.broadcastTitle.set("");
+      this.broadcastMessage.set("");
+      this.broadcastTarget.set("ALL");
     },
     onError: (err: unknown) => {
       const message =
@@ -850,14 +868,39 @@ export class OpsPageComponent {
     },
   }));
 
-  submitBroadcast() {
-    const title = this.broadcastTitle.trim();
-    const message = this.broadcastMessage.trim();
+  async submitBroadcast() {
+    const title = this.broadcastTitle().trim();
+    const message = this.broadcastMessage().trim();
     if (!title || !message) return;
+    const target = this.broadcastTarget();
+    const audience =
+      target === "USERS"
+        ? "all users"
+        : target === "SCHOOLS"
+          ? "all partner schools"
+          : "all users and schools";
+    const ok = await this.confirm.ask({
+      title: `Send "${title}"?`,
+      message: `It goes to ${audience} as a notification and can't be recalled.`,
+      confirmLabel: "Send broadcast",
+      tone: target === "ALL" ? "danger" : "primary",
+      typeToConfirm: target === "ALL" ? "SEND" : undefined,
+    });
+    if (!ok) return;
     this.broadcastMutation.mutate({
       title,
       message,
-      targetAudience: this.broadcastTarget,
+      targetAudience: target,
     });
+  }
+
+  kindLabel(kind: string): string {
+    const words = (kind ?? "").replace(/_/g, " ").toLowerCase();
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+
+  detailText(detail: unknown): string {
+    if (detail == null) return "—";
+    return typeof detail === "string" ? detail : JSON.stringify(detail);
   }
 }

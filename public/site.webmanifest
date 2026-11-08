@@ -1,12 +1,11 @@
 {
-  "name": "Solexpay",
-  "short_name": "Solexpay",
-  "description": "The smarter wallet for Nigerian students",
-  "start_url": "/",
+  "name": "Solexpay Admin",
+  "short_name": "Solexpay Admin",
+  "description": "Solexpay back office",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#005bbf",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "/favicon-96x96.png",
