@@ -1,6 +1,7 @@
 import type { HttpHandler } from "msw";
 import { b1Handlers } from "./b1";
 import { b2Handlers } from "./b2";
+import { b3Handlers } from "./b3";
 import { b4Handlers } from "./b4";
 import { handlers } from "./handlers";
 import { telemetryHandlers } from "./telemetry";
@@ -12,6 +13,7 @@ import { telemetryHandlers } from "./telemetry";
 export const allHandlers: HttpHandler[] = [
   ...b1Handlers,
   ...b2Handlers,
+  ...b3Handlers,
   ...b4Handlers,
   ...telemetryHandlers,
   ...handlers,
